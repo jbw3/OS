@@ -5,6 +5,9 @@ INCLUDES = -I.
 CC = gcc
 CFLAGS = $(INCLUDES) -std=c99 -m32 -nostdlib -nostdinc -fno-builtin -fno-stack-protector
 
+CXX = g++
+CXXFLAGS = $(INCLUDES) -m32 -nostdlib -nostdinc -fno-builtin -fno-stack-protector -Wno-main
+
 LDFLAGS = -Tlink.ld -melf_i386
 
 ASFLAGS = -f elf32
@@ -27,6 +30,9 @@ $(TARGET): $(OBJ)
 
 $(ODIR)/%.o: %.c
 	$(CC) $(CFLAGS) -c $< -o $@
+
+$(ODIR)/%.o: %.cpp
+	$(CXX) $(CXXFLAGS) -c $< -o $@
 
 $(ODIR)/%.o: %.s
 	nasm $(ASFLAGS) $< -o $@
