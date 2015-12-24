@@ -1,21 +1,34 @@
 # Makefile
 
-SOURCES=boot.o main.o
+CC = gcc
+CFLAGS = -m32 -nostdlib -nostdinc -fno-builtin -fno-stack-protector
 
-CFLAGS=-m32 -nostdlib -nostdinc -fno-builtin -fno-stack-protector
-LDFLAGS=-Tlink.ld -melf_i386
-ASFLAGS=-f elf32
+LDFLAGS = -Tlink.ld -melf_i386
 
-all: $(SOURCES) link
+ASFLAGS = -f elf32
 
-link:
-	ld $(LDFLAGS) -o kernel $(SOURCES)
+ODIR = obj
+_OBJ = boot.o main.o
+OBJ = $(patsubst %,$(ODIR)/%,$(_OBJ))
 
-main.o: main.c
-	gcc $(CFLAGS) -c main.c
+TARGET = kernel
 
-boot.o:
-	nasm $(ASFLAGS) boot.s
+.PHONY: all
+all: init $(TARGET)
 
+.PHONY: init
+init:
+	mkdir -p $(ODIR)
+
+$(TARGET): $(OBJ)
+	ld $(LDFLAGS) $(OBJ) -o $(TARGET)
+
+$(ODIR)/%.o: %.c
+	$(CC) $(CFLAGS) -c $< -o $@
+
+$(ODIR)/%.o: %.s
+	nasm $(ASFLAGS) $< -o $@
+
+.PHONY: clean
 clean:
-	rm -f *.o kernel
+	rm -f $(ODIR)/*.o $(TARGET)

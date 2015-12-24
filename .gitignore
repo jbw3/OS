@@ -1,4 +1,4 @@
+obj/
 *.img
-*.o
 bochsout.txt
 kernel
