@@ -6,7 +6,7 @@ CC = gcc
 CFLAGS = $(INCLUDES) -std=c99 -m32 -nostdlib -nostdinc -fno-builtin -fno-stack-protector
 
 CXX = g++
-CXXFLAGS = $(INCLUDES) -m32 -nostdlib -nostdinc -fno-builtin -fno-stack-protector -Wno-main
+CXXFLAGS = $(INCLUDES) -std=c++11 -m32 -nostdlib -nostdinc -fno-builtin -fno-stack-protector -Wno-main
 
 ASM = nasm
 ASFLAGS = -f elf32
@@ -14,7 +14,7 @@ ASFLAGS = -f elf32
 LDFLAGS = -Tlink.ld -melf_i386
 
 ODIR = obj
-_OBJ = boot.o main.o string.o
+_OBJ = boot.o main.o screen.o string.o
 OBJ = $(patsubst %,$(ODIR)/%,$(_OBJ))
 
 TARGET = kernel

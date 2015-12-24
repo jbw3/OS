@@ -3,16 +3,26 @@
 #include <stdint.h>
 #include <string.h>
 
+#include "screen.h"
+
 struct multiboot;
 
 int main(struct multiboot* mbootPtr)
 {
-    uint32_t a1[2] = {0xDEADBEEF, 0xFEEDFACE};
-    uint32_t a2[2];
+    os::Screen screen;
 
-    memcpy(a2, a1, sizeof(uint32_t) * 2);
-    memset(a2, 0xAB, sizeof(uint32_t) * 2);
+    screen.clear();
 
-    uint32_t ret = a2[1];
-    return ret;
+    screen.setBackgroundColor(os::Screen::EColor::eBlack);
+    screen.setForegroundColor(os::Screen::EColor::eLightGreen);
+
+    screen.write('A');
+    screen.write('B');
+    screen.write('C');
+    screen.write('\n');
+    screen.write('D');
+
+    while (true);
+
+    return 0;
 }
