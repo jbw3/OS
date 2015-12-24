@@ -1,14 +1,16 @@
 # Makefile
 
+INCLUDES = -I.
+
 CC = gcc
-CFLAGS = -m32 -nostdlib -nostdinc -fno-builtin -fno-stack-protector
+CFLAGS = $(INCLUDES) -std=c99 -m32 -nostdlib -nostdinc -fno-builtin -fno-stack-protector
 
 LDFLAGS = -Tlink.ld -melf_i386
 
 ASFLAGS = -f elf32
 
 ODIR = obj
-_OBJ = boot.o main.o
+_OBJ = boot.o main.o string.o
 OBJ = $(patsubst %,$(ODIR)/%,$(_OBJ))
 
 TARGET = kernel
