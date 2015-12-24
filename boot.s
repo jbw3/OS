@@ -1,60 +1,47 @@
-; This is the kernel's entry point. We could either call main here,
-; or we can use this to setup the stack or other nice stuff, like
-; perhaps setting up the GDT and segments. Please note that interrupts
-; are disabled at this point: More on interrupts later!
-[BITS 32]
-global start
-start:
-    mov esp, _sys_stack     ; This points the stack to our new stack area
-    jmp stublet
+; boot.s
 
-; This part MUST be 4byte aligned, so we solve that issue using 'ALIGN 4'
+MBOOT_PAGE_ALIGN	equ 1 << 0 		; load kernel and modules on a page boundary
+MBOOT_MEM_INFO		equ 1 << 1 		; provide kernel with memory info
+MBOOT_HEADER_MAGIC	equ 0x1BADB002	; multiboot magic number
+
+MBOOT_HEADER_FLAGS	equ MBOOT_PAGE_ALIGN | MBOOT_MEM_INFO
+MBOOT_CHECKSUM		equ -(MBOOT_HEADER_MAGIC + MBOOT_HEADER_FLAGS)
+
+; instructions are 32-bit
+[BITS 32]
+
+global mboot	; make 'mboot' accessible from C
+extern code		; start of the .text section
+extern bss		; start of the .bss section
+extern end		; end of the last loadable section
+
+; this part must be 4-byte aligned
 ALIGN 4
 mboot:
-    ; Multiboot macros to make a few lines later more readable
-    MULTIBOOT_PAGE_ALIGN	equ 1<<0
-    MULTIBOOT_MEMORY_INFO	equ 1<<1
-    MULTIBOOT_AOUT_KLUDGE	equ 1<<16
-    MULTIBOOT_HEADER_MAGIC	equ 0x1BADB002
-    MULTIBOOT_HEADER_FLAGS	equ MULTIBOOT_PAGE_ALIGN | MULTIBOOT_MEMORY_INFO | MULTIBOOT_AOUT_KLUDGE
-    MULTIBOOT_CHECKSUM	equ -(MULTIBOOT_HEADER_MAGIC + MULTIBOOT_HEADER_FLAGS)
-    EXTERN code, bss, end
+	dd MBOOT_HEADER_MAGIC	; GRUB will search for this value on each 4-byte
+							; boundary in the kernel file
+	dd MBOOT_HEADER_FLAGS	; how GRUB should load your file/settings
+	dd MBOOT_CHECKSUM		; to ensure the above values are correct
 
-    ; This is the GRUB Multiboot header. A boot signature
-    dd MULTIBOOT_HEADER_MAGIC
-    dd MULTIBOOT_HEADER_FLAGS
-    dd MULTIBOOT_CHECKSUM
+	dd mboot				; location of this descriptor
+	dd code					; start of the kernel .text (code) section
+	dd bss					; end of the kernel .data section
+	dd end					; end of the kernel
+	dd start				; kernel entry point (initial EIP)
 
-    ; AOUT kludge - must be physical addresses. Make a note of these:
-    ; The linker script fills in the data for these ones!
-    dd mboot
-    dd code
-    dd bss
-    dd end
-    dd start
+global start				; kernel entry point
+extern main					; C code entry point
 
-; This is an endless loop here. Make a note of this: Later on, we
-; will insert an 'extern _main', followed by 'call _main', right
-; before the 'jmp $'.
-stublet:
-	extern main
-	call main
-    jmp $
+start:
+	mov esp, _sys_stack		; this points the stack to the new stack area
+	push ebx				; load multiboot header location
 
+	; execute the kernel
+	cli						; clear interrupts
+	call main				; call main()
+	jmp $					; infinite loop
 
-; Shortly we will add code for loading the GDT right here!
-
-
-; In just a few pages in this tutorial, we will add our Interrupt
-; Service Routines (ISRs) right here!
-
-
-
-; Here is the definition of our BSS section. Right now, we'll use
-; it just to store the stack. Remember that a stack actually grows
-; downwards, so we declare the size of the data before declaring
-; the identifier '_sys_stack'
-SECTION .bss
-    resb 8192               ; This reserves 8KBytes of memory here
+; definition of BSS section that stores the stack
+section .bss
+	resb 8192				; reserve 8 KB of memory
 _sys_stack:
-
