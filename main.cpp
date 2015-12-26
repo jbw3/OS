@@ -1,26 +1,23 @@
 // main.c
 
 #include <stdint.h>
+#include <stdlib.h>
 #include <string.h>
 
 #include "screen.h"
 
 struct multiboot;
 
-int main(struct multiboot* mbootPtr)
+extern "C"
+int kernelMain(struct multiboot* mbootPtr)
 {
     os::Screen screen;
 
-    screen.clear();
-
     screen.setBackgroundColor(os::Screen::EColor::eBlack);
     screen.setForegroundColor(os::Screen::EColor::eLightGreen);
+    screen.clear();
 
-    screen.write('A');
-    screen.write('B');
-    screen.write('C');
-    screen.write('\n');
-    screen.write('D');
+    screen.write("SandboxOS\n");
 
     while (true);
 

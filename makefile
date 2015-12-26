@@ -3,18 +3,20 @@
 INCLUDES = -I.
 
 CC = gcc
-CFLAGS = $(INCLUDES) -std=c99 -m32 -nostdlib -nostdinc -fno-builtin -fno-stack-protector
+CFLAGS = $(INCLUDES) -m32 -nostdlib -nostdinc -fno-builtin -fno-stack-protector
 
 CXX = g++
-CXXFLAGS = $(INCLUDES) -std=c++11 -m32 -nostdlib -nostdinc -fno-builtin -fno-stack-protector -Wno-main
+CXXFLAGS = $(INCLUDES) -std=c++1y -m32 -nostdlib -nostdinc -fno-builtin -fno-stack-protector -Wno-main
 
 ASM = nasm
 ASFLAGS = -f elf32
 
 LDFLAGS = -Tlink.ld -melf_i386
 
+DEPS = screen.h stddef.h stdint.h stdlib.h string.h
+
 ODIR = obj
-_OBJ = boot.o main.o screen.o string.o
+_OBJ = boot.o main.o screen.o stdlib.o string.o
 OBJ = $(patsubst %,$(ODIR)/%,$(_OBJ))
 
 TARGET = kernel
@@ -33,10 +35,10 @@ install:
 $(TARGET): $(OBJ)
 	ld $(LDFLAGS) $(OBJ) -o $(TARGET)
 
-$(ODIR)/%.o: %.c
+$(ODIR)/%.o: %.c $(DEPS)
 	$(CC) $(CFLAGS) -c $< -o $@
 
-$(ODIR)/%.o: %.cpp
+$(ODIR)/%.o: %.cpp $(DEPS)
 	$(CXX) $(CXXFLAGS) -c $< -o $@
 
 $(ODIR)/%.o: %.s

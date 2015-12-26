@@ -30,7 +30,7 @@ mboot:
 	dd start				; kernel entry point (initial EIP)
 
 global start				; kernel entry point
-extern main					; C code entry point
+extern kernelMain			; C code entry point
 
 start:
 	mov esp, _sys_stack		; this points the stack to the new stack area
@@ -38,7 +38,7 @@ start:
 
 	; execute the kernel
 	cli						; clear interrupts
-	call main				; call main()
+	call kernelMain			; call kernelMain()
 	jmp $					; infinite loop
 
 ; definition of BSS section that stores the stack
