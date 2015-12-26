@@ -2,7 +2,8 @@
 
 void* memcpy(void* dst, const void* src, size_t num)
 {
-    for (size_t i = 0; i < num; ++i)
+    size_t i;
+    for (i = 0; i < num; ++i)
     {
         ((char*)dst)[i] = ((char*)src)[i];
     }
@@ -12,7 +13,8 @@ void* memcpy(void* dst, const void* src, size_t num)
 
 void* memset(void* ptr, int value, size_t num)
 {
-    for (size_t i = 0; i < num; ++i)
+    size_t i;
+    for (i = 0; i < num; ++i)
     {
         ((unsigned char*)ptr)[i] = (unsigned char)value;
     }
