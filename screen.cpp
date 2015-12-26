@@ -6,6 +6,7 @@ namespace os
 
 const int Screen::SCREEN_WIDTH = 80;
 const int Screen::SCREEN_HEIGHT = 25;
+const int Screen::TAB_SIZE = 4;
 
 Screen::Screen()
 {
@@ -79,6 +80,23 @@ void Screen::outputChar(char ch)
     else if (ch == '\r')
     {
         csrX = 0;
+    }
+    else if (ch == '\t')
+    {
+        int spaces = TAB_SIZE - (csrX % TAB_SIZE);
+        csrX += spaces;
+        if (csrX >= SCREEN_WIDTH)
+        {
+            ++csrY;
+            csrX = 0;
+        }
+    }
+    else if (ch == '\b')
+    {
+        if (csrX > 0)
+        {
+            --csrX;
+        }
     }
     else
     {

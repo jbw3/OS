@@ -44,6 +44,7 @@ public:
 private:
     static const int SCREEN_WIDTH;
     static const int SCREEN_HEIGHT;
+    static const int TAB_SIZE;
 
     uint16_t* textMem;
     uint16_t attrib;

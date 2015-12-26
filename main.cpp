@@ -17,7 +17,15 @@ int kernelMain(struct multiboot* mbootPtr)
     screen.setForegroundColor(os::Screen::EColor::eLightGreen);
     screen.clear();
 
-    screen.write("SandboxOS\n");
+    for (int i = 0; i < 13; ++i)
+    {
+        screen.write('\n');
+    }
+    for (int i = 0; i < 35; ++i)
+    {
+        screen.write(' ');
+    }
+    screen.write("Sandbox OS");
 
     while (true);
 
