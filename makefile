@@ -6,7 +6,7 @@ CC = gcc
 CFLAGS = $(INCLUDES) -m32 -nostdlib -nostdinc -fno-builtin -fno-stack-protector
 
 CXX = g++
-CXXFLAGS = $(INCLUDES) -std=c++1y -m32 -nostdlib -nostdinc -fno-builtin -fno-stack-protector -Wno-main
+CXXFLAGS = $(INCLUDES) -std=c++1y -m32 -nostdlib -nostdinc -fno-builtin -fno-stack-protector
 
 ASM = nasm
 ASFLAGS = -f elf32
