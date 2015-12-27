@@ -33,7 +33,11 @@ public:
 
     void init();
 
+    EColor getForegroundColor() const;
+
     void setForegroundColor(EColor color);
+
+    EColor getBackgroundColor() const;
 
     void setBackgroundColor(EColor color);
 

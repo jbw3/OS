@@ -22,12 +22,27 @@ void Screen::init()
     setForegroundColor(EColor::eWhite);
 }
 
+
+Screen::EColor Screen::getForegroundColor() const
+{
+    uint16_t color = 0x0F00 & attrib;
+    color >>= 8;
+    return static_cast<EColor>(color);
+}
+
 void Screen::setForegroundColor(EColor color)
 {
     uint16_t temp = static_cast<uint16_t>(color);
     temp <<= 8;
-    attrib &= 0xF000; // clear all but backgrund color
+    attrib &= 0xF000; // clear all but background color
     attrib |= temp; // set new foreground color
+}
+
+Screen::EColor Screen::getBackgroundColor() const
+{
+    uint16_t color = 0xF000 & attrib;
+    color >>= 12;
+    return static_cast<EColor>(color);
 }
 
 void Screen::setBackgroundColor(EColor color)
