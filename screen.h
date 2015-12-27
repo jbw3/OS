@@ -59,8 +59,6 @@ private:
 
     void outputChar(char ch);
 
-    void portWrite(uint16_t port, uint8_t value);
-
     void updateCursor();
 
     void scroll();

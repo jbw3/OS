@@ -1,5 +1,6 @@
 #include <string.h>
 #include "screen.h"
+#include "system.h"
 
 namespace os
 {
@@ -133,21 +134,16 @@ void Screen::outputChar(char ch)
     }
 }
 
-void Screen::portWrite(uint16_t port, uint8_t value)
-{
-    asm volatile ("outb %1, %0" : : "dN" (port), "a" (value));
-}
-
 void Screen::updateCursor()
 {
     int pos = csrY * SCREEN_WIDTH + csrX;
 
     // set the upper and lower bytes of the
     // blinking cursor index
-    portWrite(0x3D4, 14);
-    portWrite(0x3D5, (uint8_t)(pos >> 8));
-    portWrite(0x3D4, 15);
-    portWrite(0x3D5, (uint8_t)(pos));
+    outb(0x3D4, 14);
+    outb(0x3D5, (uint8_t)(pos >> 8));
+    outb(0x3D4, 15);
+    outb(0x3D5, (uint8_t)(pos));
 }
 
 void Screen::scroll()
