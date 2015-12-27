@@ -31,6 +31,8 @@ public:
 
     Screen();
 
+    void init();
+
     void setForegroundColor(EColor color);
 
     void setBackgroundColor(EColor color);
@@ -61,5 +63,7 @@ private:
 };
 
 } // namespace os
+
+extern os::Screen screen;
 
 #endif // SCREEN_H_

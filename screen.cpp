@@ -10,6 +10,10 @@ const int Screen::TAB_SIZE = 4;
 
 Screen::Screen()
 {
+}
+
+void Screen::init()
+{
     textMem = (uint16_t*)(0xB8000);
     csrX = 0;
     csrY = 0;
@@ -158,3 +162,6 @@ void Screen::scroll()
 }
 
 } // namespace os
+
+// create instance of screen
+os::Screen screen;

@@ -1,6 +1,7 @@
 #include <string.h>
 
 #include "idt.h"
+#include "isr.h"
 
 // this function is defined in assembly
 extern void idtFlush(uint32_t);
@@ -22,7 +23,6 @@ void initIdt()
     memset(&idtEntries, 0, sizeof(struct IdtEntry) * NUM_IDT_ENTRIES);
 
     // add ISRs
-    /*
     idtSetGate( 0, (uint32_t)isr0 , 0x08, 0x8E);
     idtSetGate( 1, (uint32_t)isr1 , 0x08, 0x8E);
     idtSetGate( 2, (uint32_t)isr2 , 0x08, 0x8E);
@@ -55,7 +55,6 @@ void initIdt()
     idtSetGate(29, (uint32_t)isr29, 0x08, 0x8E);
     idtSetGate(30, (uint32_t)isr30, 0x08, 0x8E);
     idtSetGate(31, (uint32_t)isr31, 0x08, 0x8E);
-    */
 
     // points the processor's internal register to the new IDT
     idtFlush((uint32_t)&idtPtr);

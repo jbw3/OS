@@ -16,21 +16,14 @@ int kernelMain(struct multiboot* mbootPtr)
     initGdt();
     initIdt();
 
-    os::Screen screen;
+    // os::Screen screen;
 
+    screen.init();
     screen.setBackgroundColor(os::Screen::EColor::eBlack);
     screen.setForegroundColor(os::Screen::EColor::eLightGreen);
     screen.clear();
 
-    for (int i = 0; i < 13; ++i)
-    {
-        screen.write('\n');
-    }
-    for (int i = 0; i < 35; ++i)
-    {
-        screen.write(' ');
-    }
-    screen.write("Sandbox OS");
+    screen.write("Sandbox OS\n");
 
     while (true);
 
