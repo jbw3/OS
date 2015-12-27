@@ -12,6 +12,7 @@ struct GdtPtr gdtPtr;
 
 void initGdt()
 {
+    // set up the GDT pointer and limit
     gdtPtr.limit = (sizeof(struct GdtEntry) * NUM_GDT_ENTRIES) - 1;
     gdtPtr.base = (uint32_t)&gdtEntries;
 
@@ -21,6 +22,7 @@ void initGdt()
     gdtSetGate(3, 0, 0xFFFFFFFF, 0xFA, 0xCF); // user mode code segment
     gdtSetGate(4, 0, 0xFFFFFFFF, 0xF2, 0xCF); // user mode data segment
 
+    // flush out the old GDT and intall the new one
     gdtFlush((uint32_t)&gdtPtr);
 }
 

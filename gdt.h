@@ -10,8 +10,6 @@ extern "C"
 
 /**
  * @brief Contains the value of one GDT entry
- * @details [long description]
- *
  */
 struct GdtEntry
 {
