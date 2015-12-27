@@ -4,6 +4,7 @@
 #include <stdlib.h>
 #include <string.h>
 
+#include "descriptortables.h"
 #include "screen.h"
 
 struct multiboot;
@@ -11,6 +12,8 @@ struct multiboot;
 extern "C"
 int kernelMain(struct multiboot* mbootPtr)
 {
+    initDescriptorTables();
+
     os::Screen screen;
 
     screen.setBackgroundColor(os::Screen::EColor::eBlack);
