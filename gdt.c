@@ -1,27 +1,16 @@
-#include "descriptortables.h"
+#include "gdt.h"
 
 // this function is defined in assembly
 extern void gdtFlush(uint32_t);
 
 // internal function prototypes
-static void initGdt();
 static void gdtSetGate(int32_t idx, uint32_t base, uint32_t limit, uint8_t access, uint8_t gran);
 
 const int NUM_GDT_ENTRIES = 5;
 struct GdtEntry gdtEntries[5];
 struct GdtPtr gdtPtr;
 
-/// @todo
-// const int NUM_IDT_ENTRIES = 256;
-// IdtEntry idtEntries[NUM_IDT_ENTRIES];
-// IdtPtr idtPtr;
-
-void initDescriptorTables()
-{
-    initGdt();
-}
-
-static void initGdt()
+void initGdt()
 {
     gdtPtr.limit = (sizeof(struct GdtEntry) * NUM_GDT_ENTRIES) - 1;
     gdtPtr.base = (uint32_t)&gdtEntries;

@@ -1,5 +1,5 @@
-#ifndef DESCRIPTORTABLES_H_
-#define DESCRIPTORTABLES_H_
+#ifndef GDT_H_
+#define GDT_H_
 
 #include <stdint.h>
 
@@ -30,12 +30,12 @@ struct GdtPtr
 } __attribute__((packed));
 
 /**
- * @brief Initialize descriptor tables
+ * @brief Initialize the Global Descriptor Table
  */
-void initDescriptorTables();
+void initGdt();
 
 #ifdef __cplusplus
 } // extern "C"
 #endif
 
-#endif // DESCRIPTORTABLES_H_
+#endif // GDT_H_

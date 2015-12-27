@@ -4,7 +4,7 @@
 #include <stdlib.h>
 #include <string.h>
 
-#include "descriptortables.h"
+#include "gdt.h"
 #include "screen.h"
 
 struct multiboot;
@@ -12,7 +12,7 @@ struct multiboot;
 extern "C"
 int kernelMain(struct multiboot* mbootPtr)
 {
-    initDescriptorTables();
+    initGdt();
 
     os::Screen screen;
 
