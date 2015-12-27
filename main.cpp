@@ -16,8 +16,6 @@ int kernelMain(struct multiboot* mbootPtr)
     initGdt();
     initIdt();
 
-    // os::Screen screen;
-
     screen.init();
     screen.setBackgroundColor(os::Screen::EColor::eBlack);
     screen.setForegroundColor(os::Screen::EColor::eLightGreen);
