@@ -5,6 +5,7 @@
 #include <string.h>
 
 #include "gdt.h"
+#include "idt.h"
 #include "screen.h"
 
 struct multiboot;
@@ -13,6 +14,7 @@ extern "C"
 int kernelMain(struct multiboot* mbootPtr)
 {
     initGdt();
+    initIdt();
 
     os::Screen screen;
 

@@ -46,7 +46,7 @@ start:
 ; Kernel data descriptor offset: 16 B
 ; To set CS, we have to do a far jump. A far jump includes
 ; a segment as well as an offset
-; None: this is declared in C as "extern void gdtFlush(uint32_t);"
+; Note: This is declared in C as "extern void gdtFlush(uint32_t);"
 global gdtFlush
 gdtFlush:
 	mov eax, [esp+4]	; get the pointer to the GDT, passed as a parameter
@@ -60,6 +60,14 @@ gdtFlush:
 	mov ss, ax
 	jmp 8:.flush		; 8 is the offset to the code segment
 .flush:
+	ret
+
+; Loads the IDT into the processor
+; Note: This is declared in C as "extern void idtFlush(uint32_t);"
+global idtFlush
+idtFlush:
+	mov eax, [esp+4] 	; get the pointer to the IDT, passed as a parameter
+	lidt [eax]			; load the IDT pointer
 	ret
 
 ; definition of BSS section that stores the stack
