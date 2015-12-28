@@ -6,6 +6,7 @@
 
 #include "gdt.h"
 #include "idt.h"
+#include "irq.h"
 #include "screen.h"
 
 struct multiboot;
@@ -15,6 +16,7 @@ int kernelMain(struct multiboot* mbootPtr)
 {
     initGdt();
     initIdt();
+    initIrq();
 
     screen.init();
     screen.setBackgroundColor(os::Screen::EColor::eBlack);

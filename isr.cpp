@@ -42,6 +42,9 @@ const char* EXCEPTION_MESSAGES[] =
 
 }
 
+/**
+ * @brief Called from assembly to handle ISR
+ */
 extern "C"
 void isrHandler(struct registers regs)
 {

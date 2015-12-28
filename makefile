@@ -13,10 +13,10 @@ ASFLAGS = -f elf32
 
 LDFLAGS = -Tlink.ld -melf_i386
 
-DEPS = gdt.h idt.h isr.h screen.h stddef.h stdint.h stdlib.h string.h system.h
+DEPS = gdt.h idt.h irq.h isr.h screen.h stddef.h stdint.h stdlib.h string.h system.h
 
 ODIR = obj
-_OBJ = boot.o gdt.o idt.o interrupt.o isr.o main.o screen.o stdlib.o string.o system.o
+_OBJ = boot.o gdt.o idt.o interrupt.o irq.o isr.o main.o screen.o stdlib.o string.o system.o
 OBJ = $(patsubst %,$(ODIR)/%,$(_OBJ))
 
 TARGET = kernel

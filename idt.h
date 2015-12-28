@@ -32,6 +32,8 @@ struct IdtPtr
 
 void initIdt();
 
+void idtSetGate(uint8_t idx, uint32_t base, uint16_t sel, uint8_t flags);
+
 #ifdef __cplusplus
 } // extern "C"
 #endif

@@ -6,9 +6,6 @@
 // this function is defined in assembly
 extern void idtFlush(uint32_t);
 
-// internal function prototypes
-static void idtSetGate(uint8_t idx, uint32_t base, uint16_t sel, uint8_t flags);
-
 const int NUM_IDT_ENTRIES = 256;
 struct IdtEntry idtEntries[256];
 struct IdtPtr idtPtr;
@@ -60,7 +57,7 @@ void initIdt()
     idtFlush((uint32_t)&idtPtr);
 }
 
-static void idtSetGate(uint8_t idx, uint32_t base, uint16_t sel, uint8_t flags)
+void idtSetGate(uint8_t idx, uint32_t base, uint16_t sel, uint8_t flags)
 {
     struct IdtEntry* entry = idtEntries + idx;
 
