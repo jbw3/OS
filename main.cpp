@@ -8,6 +8,7 @@
 #include "idt.h"
 #include "irq.h"
 #include "screen.h"
+#include "timer.h"
 
 struct multiboot;
 
@@ -18,13 +19,15 @@ int kernelMain(struct multiboot* mbootPtr)
     initIdt();
     initIrq();
 
-    // enable interrupts
-    asm volatile ("sti");
+    os::Timer::init(18);
 
     screen.init();
     screen.setBackgroundColor(os::Screen::EColor::eBlack);
     screen.setForegroundColor(os::Screen::EColor::eLightGreen);
     screen.clear();
+
+    // enable interrupts
+    asm volatile ("sti");
 
     screen.write("Sandbox OS\n");
 
