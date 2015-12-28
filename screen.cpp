@@ -73,6 +73,34 @@ void Screen::write(const char* str)
     }
 }
 
+void Screen::write(int num)
+{
+    int idx = 0;
+    char buff[11];
+
+    if (num < 0)
+    {
+        write('-');
+    }
+    else
+    {
+        num = -num;
+    }
+
+    do
+    {
+        char digit = -(num % 10);
+        buff[idx++] = digit + '0';
+        num /= 10;
+    } while (num < 0);
+
+    while (idx > 0)
+    {
+        --idx;
+        write(buff[idx]);
+    }
+}
+
 void Screen::clear()
 {
     // clear the screen by filling it with spaces

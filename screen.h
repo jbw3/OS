@@ -45,6 +45,8 @@ public:
 
     void write(const char* str);
 
+    void write(int num);
+
     void clear();
 
 private:
