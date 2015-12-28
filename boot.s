@@ -37,7 +37,7 @@ start:
 	push ebx				; load multiboot header location
 
 	; execute the kernel
-	cli						; clear interrupts
+	cli						; disable interrupts
 	call kernelMain			; call kernelMain()
 	jmp $					; infinite loop
 

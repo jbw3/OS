@@ -18,6 +18,9 @@ int kernelMain(struct multiboot* mbootPtr)
     initIdt();
     initIrq();
 
+    // enable interrupts
+    asm volatile ("sti");
+
     screen.init();
     screen.setBackgroundColor(os::Screen::EColor::eBlack);
     screen.setForegroundColor(os::Screen::EColor::eLightGreen);
