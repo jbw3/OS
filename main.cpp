@@ -7,6 +7,7 @@
 #include "gdt.h"
 #include "idt.h"
 #include "irq.h"
+#include "keyboard.h"
 #include "screen.h"
 #include "timer.h"
 
@@ -25,6 +26,8 @@ int kernelMain(struct multiboot* mbootPtr)
     screen.setBackgroundColor(os::Screen::EColor::eBlack);
     screen.setForegroundColor(os::Screen::EColor::eLightGreen);
     screen.clear();
+
+    os::Keyboard::init();
 
     // enable interrupts
     asm volatile ("sti");
