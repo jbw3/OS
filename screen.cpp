@@ -202,5 +202,24 @@ void Screen::scroll()
 
 } // namespace os
 
+os::Screen& operator <<(os::Screen& s, char ch)
+{
+    s.write(ch);
+    return s;
+}
+
+os::Screen& operator <<(os::Screen& s, const char* str)
+{
+    s.write(str);
+    return s;
+}
+
+os::Screen& operator <<(os::Screen& s, int num)
+{
+    s.write(num);
+    return s;
+}
+
+
 // create instance of screen
 os::Screen screen;

@@ -68,6 +68,10 @@ private:
 
 } // namespace os
 
+os::Screen& operator <<(os::Screen& s, char ch);
+os::Screen& operator <<(os::Screen& s, const char* str);
+os::Screen& operator <<(os::Screen& s, int num);
+
 extern os::Screen screen;
 
 #endif // SCREEN_H_
