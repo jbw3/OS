@@ -14,7 +14,7 @@
 struct multiboot;
 
 extern "C"
-int kernelMain(struct multiboot* mbootPtr)
+void kernelMain(struct multiboot* mbootPtr)
 {
     initGdt();
     initIdt();
@@ -34,7 +34,8 @@ int kernelMain(struct multiboot* mbootPtr)
 
     screen.write("Sandbox OS\n");
 
-    while (true);
-
-    return 0;
+    while (true)
+    {
+        os::Keyboard::processQueue();
+    }
 }

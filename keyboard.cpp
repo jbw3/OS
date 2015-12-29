@@ -4,10 +4,15 @@
 
 #define CONTROL_KEYS_START 0x0100
 
-#define KEY_LEFT_SHIFT  0x0100
-#define KEY_RIGHT_SHIFT 0x0200
+#define KEY_CONTROL     0x0100
+#define KEY_LEFT_SHIFT  0x0200
+#define KEY_RIGHT_SHIFT 0x0400
 #define KEY_SHIFT       (KEY_LEFT_SHIFT | KEY_RIGHT_SHIFT)
-#define KEY_ALT         0x0400
+#define KEY_ALT         0x0800
+#define KEY_CAPS_LOCK   0x1000
+#define KEY_NUM_LOCK    0x2000
+#define KEY_SCROLL_LOCK 0x4000
+#define KEY_LOCKS       (KEY_CAPS_LOCK | KEY_NUM_LOCK | KEY_SCROLL_LOCK)
 
 namespace os
 {
@@ -43,7 +48,7 @@ const uint16_t Keyboard::LAYOUT_US[128] =
     '[',
     ']',
     '\n', // enter
-    0, // control
+    KEY_CONTROL, // control
     'a',
     's',
     'd',
@@ -70,9 +75,9 @@ const uint16_t Keyboard::LAYOUT_US[128] =
     '/',
     KEY_RIGHT_SHIFT, // right shift
     '*',
-    0, // alt
+    KEY_ALT, // alt
     ' ',
-    0, // caps lock
+    KEY_CAPS_LOCK, // caps lock
     0, // F1
     0, // F2
     0, // F3
@@ -83,16 +88,33 @@ const uint16_t Keyboard::LAYOUT_US[128] =
     0, // F8
     0, // F9
     0, // F10
-    0, // num lock
-    0, // scroll lock
+    KEY_NUM_LOCK, // num lock
+    KEY_SCROLL_LOCK, // scroll lock
     0, // home
     0, // up arrow
     0, // page up
     '-',
     0, // left arrow
+    0,
+    0, // right arrow
+    '+',
+    0, // end
+    0, // down arrow
+    0, // page down
+    0, // insert
+    0, // delete
+    0,
+    0,
+    0,
+    0, // F11
+    0, // F12
 };
 
 uint16_t Keyboard::controlPressed = 0;
+
+uint8_t Keyboard::queue[Keyboard::QUEUE_SIZE];
+unsigned int Keyboard::qHead = 0;
+unsigned int Keyboard::qTail = 0;
 
 void Keyboard::init()
 {
@@ -104,15 +126,46 @@ void Keyboard::interruptHandler(const registers* regs)
     // read from the keyboard's data buffer
     uint8_t scanCode = inb(0x60);
 
-    // if bit 7 is set, the key was just released
-    if ((scanCode & 0x80) != 0)
+    // add the scan code to the queue if it is not full
+    if ( (qTail != qHead - 1) && !(qHead == 0 && qTail == QUEUE_SIZE - 1) )
     {
-        scanCode &= 0x7F;
-        keyRelease(LAYOUT_US[scanCode]);
+        queue[qTail] = scanCode;
+        if (qTail >= QUEUE_SIZE - 1)
+        {
+            qTail = 0;
+        }
+        else
+        {
+            ++qTail;
+        }
     }
-    else
+}
+
+void Keyboard::processQueue()
+{
+    while (qHead != qTail)
     {
-        keyPress(LAYOUT_US[scanCode]);
+        // read scan code from queue
+        uint16_t scanCode = queue[qHead];
+        if (qHead >= QUEUE_SIZE - 1)
+        {
+            qHead = 0;
+        }
+        else
+        {
+            ++qHead;
+        }
+
+        // if bit 7 is set, the key was just released
+        if ((scanCode & 0x80) != 0)
+        {
+            scanCode &= 0x7F;
+            keyRelease(LAYOUT_US[scanCode]);
+        }
+        else
+        {
+            keyPress(LAYOUT_US[scanCode]);
+        }
     }
 }
 
@@ -120,7 +173,11 @@ void Keyboard::keyRelease(uint16_t key)
 {
     if (key >= CONTROL_KEYS_START)
     {
-        controlPressed &= ~key;
+        // don't update caps lock, num lock, or scroll lock on a key release
+        if ( (key & KEY_LOCKS) == 0)
+        {
+            controlPressed &= ~key;
+        }
     }
 }
 
@@ -134,17 +191,31 @@ void Keyboard::keyPress(uint16_t key)
 
     if (key >= CONTROL_KEYS_START)
     {
-        controlPressed |= key;
+        // if the key is caps lock, num lock, or scroll lock, toggle the state
+        if ( (key & KEY_LOCKS) != 0 )
+        {
+            controlPressed ^= key;
+            updateLights();
+        }
+        else // set the key as pressed
+        {
+            controlPressed |= key;
+        }
     }
     else
     {
         char ch = static_cast<char>(key);
-        // check if shift is pressed
-        if ((controlPressed & KEY_SHIFT) != 0)
+
+        // check if this is a printable char
+        if ( (ch >= ' ' && ch <= '~') || ch == '\b' || ch == '\t' || ch == '\n' || ch == '\r' )
         {
-            ch = shift(ch);
+            // check if shift is pressed
+            if ((controlPressed & KEY_SHIFT) != 0)
+            {
+                ch = shift(ch);
+            }
+            screen.write(ch);
         }
-        screen.write(ch);
     }
 }
 
@@ -206,6 +277,32 @@ char Keyboard::shift(char ch)
 
     // if there was no mapping, return the original char
     return ch;
+}
+
+void Keyboard::updateLights()
+{
+    uint8_t lights = 0;
+    if (controlPressed & KEY_SCROLL_LOCK)
+    {
+        lights |= 0x1;
+    }
+    if (controlPressed & KEY_NUM_LOCK)
+    {
+        lights |= 0x2;
+    }
+    if (controlPressed & KEY_CAPS_LOCK)
+    {
+        lights |= 0x4;
+    }
+
+    // wait until the keyboard controller is ready
+    while ( (inb(0x64) & 0x2) != 0 );
+
+    // send command byte
+    outb(0x60, 0xED);
+
+    // send lights status
+    outb(0x60, lights);
 }
 
 } // namespace os
