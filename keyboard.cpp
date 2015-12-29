@@ -209,8 +209,11 @@ void Keyboard::keyPress(uint16_t key)
         // check if this is a printable char
         if ( (ch >= ' ' && ch <= '~') || ch == '\b' || ch == '\t' || ch == '\n' || ch == '\r' )
         {
-            // check if shift is pressed
-            if ((controlPressed & KEY_SHIFT) != 0)
+            // shift the char if
+            // 1. either of the shift keys are pressed OR
+            // 2. caps lock is active and the char is an alphabet char
+            if ( (controlPressed & KEY_SHIFT) != 0 ||
+                 ( (controlPressed & KEY_CAPS_LOCK) != 0 && ch >= 'a' && ch <= 'z' ) )
             {
                 ch = shift(ch);
             }
