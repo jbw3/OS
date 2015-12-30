@@ -1,5 +1,22 @@
 #include <string.h>
 
+int memcmp(const void* ptr1, const void* ptr2, size_t num)
+{
+    size_t i = 0;
+    while (i < num)
+    {
+        int diff = ((const unsigned char*)ptr1)[i] - ((const unsigned char*)ptr2)[i];
+        if (diff != 0)
+        {
+            return diff;
+        }
+
+        ++i;
+    }
+
+    return 0;
+}
+
 void* memcpy(void* dst, const void* src, size_t num)
 {
     size_t i;
