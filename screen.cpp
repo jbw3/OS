@@ -73,34 +73,6 @@ void Screen::write(const char* str)
     }
 }
 
-void Screen::write(int num)
-{
-    int idx = 0;
-    char buff[11];
-
-    if (num < 0)
-    {
-        write('-');
-    }
-    else
-    {
-        num = -num;
-    }
-
-    do
-    {
-        char digit = -(num % 10);
-        buff[idx++] = digit + '0';
-        num /= 10;
-    } while (num < 0);
-
-    while (idx > 0)
-    {
-        --idx;
-        write(buff[idx]);
-    }
-}
-
 void Screen::clear()
 {
     // clear the screen by filling it with spaces
@@ -116,6 +88,72 @@ void Screen::clear()
     csrY = 0;
 
     updateCursor();
+}
+
+Screen& Screen::operator <<(char ch)
+{
+    write(ch);
+    return *this;
+}
+
+Screen& Screen::operator <<(const char* str)
+{
+    write(str);
+    return *this;
+}
+
+Screen& Screen::operator <<(bool b)
+{
+    write(b ? '1' : '0');
+    return *this;
+}
+
+Screen& Screen::operator <<(signed char num)
+{
+    writeSigned(num);
+    return *this;
+}
+
+Screen& Screen::operator <<(short num)
+{
+    writeSigned(num);
+    return *this;
+}
+
+Screen& Screen::operator <<(int num)
+{
+    writeSigned(num);
+    return *this;
+}
+
+Screen& Screen::operator <<(long num)
+{
+    writeSigned(num);
+    return *this;
+}
+
+Screen& Screen::operator <<(unsigned char num)
+{
+    writeUnsigned(num);
+    return *this;
+}
+
+Screen& Screen::operator <<(unsigned short num)
+{
+    writeUnsigned(num);
+    return *this;
+}
+
+Screen& Screen::operator <<(unsigned int num)
+{
+    writeUnsigned(num);
+    return *this;
+}
+
+Screen& Screen::operator <<(unsigned long num)
+{
+    writeUnsigned(num);
+    return *this;
 }
 
 void Screen::outputChar(char ch)
@@ -200,26 +238,61 @@ void Screen::scroll()
     }
 }
 
+template<typename T>
+void Screen::writeSigned(T num)
+{
+    // need 19 chars for max signed 64-bit decimal number (9,223,372,036,854,775,807)
+    // and 1 char for possible negative sign
+    char buff[20];
+
+    int idx = 0;
+
+    if (num < 0)
+    {
+        write('-');
+    }
+    else
+    {
+        num = -num;
+    }
+
+    do
+    {
+        char digit = -(num % 10);
+        buff[idx++] = digit + '0';
+        num /= 10;
+    } while (num < 0);
+
+    while (idx > 0)
+    {
+        --idx;
+        write(buff[idx]);
+    }
+}
+
+template<typename T>
+void Screen::writeUnsigned(T num)
+{
+    // need 20 chars for max unsigned 64-bit decimal number (18,446,744,073,709,551,615)
+    char buff[20];
+
+    int idx = 0;
+
+    do
+    {
+        char digit = num % 10;
+        buff[idx++] = digit + '0';
+        num /= 10;
+    } while (num > 0);
+
+    while (idx > 0)
+    {
+        --idx;
+        write(buff[idx]);
+    }
+}
+
 } // namespace os
-
-os::Screen& operator <<(os::Screen& s, char ch)
-{
-    s.write(ch);
-    return s;
-}
-
-os::Screen& operator <<(os::Screen& s, const char* str)
-{
-    s.write(str);
-    return s;
-}
-
-os::Screen& operator <<(os::Screen& s, int num)
-{
-    s.write(num);
-    return s;
-}
-
 
 // create instance of screen
 os::Screen screen;

@@ -45,9 +45,29 @@ public:
 
     void write(const char* str);
 
-    void write(int num);
-
     void clear();
+
+    os::Screen& operator <<(char ch);
+
+    os::Screen& operator <<(const char* str);
+
+    os::Screen& operator <<(bool b);
+
+    os::Screen& operator <<(signed char num);
+
+    os::Screen& operator <<(short num);
+
+    os::Screen& operator <<(int num);
+
+    os::Screen& operator <<(long num);
+
+    os::Screen& operator <<(unsigned char num);
+
+    os::Screen& operator <<(unsigned short num);
+
+    os::Screen& operator <<(unsigned int num);
+
+    os::Screen& operator <<(unsigned long num);
 
 private:
     static const int SCREEN_WIDTH;
@@ -64,13 +84,15 @@ private:
     void updateCursor();
 
     void scroll();
+
+    template<typename T>
+    void writeSigned(T num);
+
+    template<typename T>
+    void writeUnsigned(T num);
 };
 
 } // namespace os
-
-os::Screen& operator <<(os::Screen& s, char ch);
-os::Screen& operator <<(os::Screen& s, const char* str);
-os::Screen& operator <<(os::Screen& s, int num);
 
 extern os::Screen screen;
 
