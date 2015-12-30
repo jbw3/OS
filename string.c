@@ -5,7 +5,34 @@ void* memcpy(void* dst, const void* src, size_t num)
     size_t i;
     for (i = 0; i < num; ++i)
     {
-        ((char*)dst)[i] = ((char*)src)[i];
+        ((char*)dst)[i] = ((const char*)src)[i];
+    }
+
+    return dst;
+}
+
+void* memmove(void* dst, const void* src, size_t num)
+{
+    size_t i;
+
+    /* if the destination address is greater than the source
+    address, copy "backward" in case the beginning of dst
+    overlaps with the end of src */
+    if (dst > src)
+    {
+        for (i = num; i > 0; --i)
+        {
+            ((char*)dst)[i - 1] = ((const char*)src)[i - 1];
+        }
+    }
+    /* else copy "forward" in case the beginning of src
+    overlaps with end end of dst */
+    else
+    {
+        for (i = 0; i < num; ++i)
+        {
+            ((char*)dst)[i] = ((const char*)src)[i];
+        }
     }
 
     return dst;
@@ -24,14 +51,14 @@ void* memset(void* ptr, int value, size_t num)
 
 char* strcat(char* str1, const char* str2)
 {
-    // find the end of str1
+    /* find the end of str1 */
     size_t idx1 = 0;
     while (str1[idx1] != '\0')
     {
         ++idx1;
     }
 
-    // copy str2
+    /* copy str2 */
     size_t idx2 = 0;
     char ch;
     do

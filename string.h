@@ -9,13 +9,15 @@ extern "C"
 #endif
 
 void* memcpy(void* dst, const void* src, size_t num);
+void* memmove(void* dst, const void* src, size_t num);
 void* memset(void* ptr, int value, size_t num);
+
 char* strcat(char* str1, const char* str2);
 char* strcpy(char* dst, const char* src);
 size_t strlen(const char* str);
 
 #ifdef __cplusplus
-} // extern "C"
+} /* extern "C" */
 #endif
 
-#endif // STRING_H_
+#endif /* STRING_H_ */
