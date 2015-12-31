@@ -69,6 +69,8 @@ public:
 
     os::Screen& operator <<(unsigned long num);
 
+    os::Screen& operator <<(const void* ptr);
+
 private:
     static const int SCREEN_WIDTH;
     static const int SCREEN_HEIGHT;

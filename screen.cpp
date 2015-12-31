@@ -156,6 +156,12 @@ Screen& Screen::operator <<(unsigned long num)
     return *this;
 }
 
+Screen& Screen::operator <<(const void* ptr)
+{
+    writeUnsigned((uintptr_t)ptr);
+    return *this;
+}
+
 void Screen::outputChar(char ch)
 {
     if (ch == '\n')
