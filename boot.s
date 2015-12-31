@@ -33,7 +33,7 @@ global start				; kernel entry point
 extern kernelMain			; C code entry point
 
 start:
-	mov esp, _sys_stack		; this points the stack to the new stack area
+	mov esp, kernel_stack_start	; this points the stack to the new stack area
 	push ebx				; load multiboot header location
 
 	; execute the kernel
@@ -72,5 +72,11 @@ idtFlush:
 
 ; definition of BSS section that stores the stack
 section .bss
-	resb 8192				; reserve 8 KB of memory
-_sys_stack:
+
+global kernel_stack_start
+global kernel_stack_end
+; the stack grows downward in memory so the start
+; is at a higher address than the end
+kernel_stack_end:
+	resb 1024			; reserve 1 KB of memory
+kernel_stack_start:
