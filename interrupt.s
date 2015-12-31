@@ -10,7 +10,6 @@
 %macro ISR_NOERRCODE 1	; define a macro taking one parameter
 global isr%1
 isr%1:
-	cli					; disable interrupts
 	push byte 0			; push a dummy 0 value in place of an error code
 	push byte %1		; push the interrupt number
 	jmp isrCommonStub
@@ -22,7 +21,6 @@ isr%1:
 %macro ISR_ERRCODE 1	; define a macro taking one parameter
 global isr%1
 isr%1:
-	cli					; disable interrupts
 	push byte %1		; push the interrupt number
 	jmp isrCommonStub
 %endmacro
@@ -32,7 +30,6 @@ isr%1:
 %macro IRQ 2
 global irq%1
 irq%1:
-	cli					; disable interrupts
 	push byte 0			; push a dummy 0 value in place of an error code
 	push byte %2		; push the interrupt number
 	jmp irqCommonStub
@@ -66,7 +63,6 @@ isrCommonStub:
 
 	popa				; pop edi, esi, ebp, esp, ebx, edx, ecx, eax
 	add esp, 8			; cleans up the pushed error code and interrupt number
-	sti					; enable interrupts
 	iret				; pops 5 things at once: CS, EIP, EFLAGS, SS, and ESP
 						; (these are pushed automatically by the processor)
 
@@ -103,7 +99,6 @@ irqCommonStub:
 
 	popa				; pop edi, esi, ebp, esp, ebx, edx, ecx, eax
 	add esp, 8			; cleans up the pushed error code and interrupt number
-	sti					; enable interrupts
 	iret				; pops 5 things at once: CS, EIP, EFLAGS, SS, and ESP
 						; (these are pushed automatically by the processor)
 
