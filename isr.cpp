@@ -4,6 +4,7 @@
 namespace
 {
 
+/// @todo Fill in "Reserved" strings
 const char* EXCEPTION_MESSAGES[] =
 {
     "Division By Zero",
@@ -46,7 +47,7 @@ const char* EXCEPTION_MESSAGES[] =
  * @brief Called from assembly to handle ISR
  */
 extern "C"
-void isrHandler(struct registers regs)
+void isrHandler(const struct registers* regs)
 {
     os::Screen::EColor bgColor = screen.getBackgroundColor();
     os::Screen::EColor fgColor = screen.getForegroundColor();
@@ -54,16 +55,16 @@ void isrHandler(struct registers regs)
     screen.setBackgroundColor(os::Screen::EColor::eRed);
     screen.setForegroundColor(os::Screen::EColor::eWhite);
 
-    if (regs.intNo >= 0 && regs.intNo < 32)
+    if (regs->intNo >= 0 && regs->intNo < 32)
     {
-        screen << EXCEPTION_MESSAGES[regs.intNo] << " Exception\n";
+        screen << EXCEPTION_MESSAGES[regs->intNo] << " Exception\n";
     }
     else
     {
-        screen << "Unknown exception number: " << regs.intNo << '\n';
+        screen << "Unknown exception number: " << regs->intNo << '\n';
     }
 
-    screen << "Error code: " << regs.errCode << '\n';
+    screen << "Error code: " << regs->errCode << '\n';
 
     screen.setBackgroundColor(bgColor);
     screen.setForegroundColor(fgColor);

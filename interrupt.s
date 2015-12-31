@@ -53,7 +53,12 @@ isrCommonStub:
 	mov fs, ax
 	mov gs, ax
 
+	mov eax, esp		; push the stack pointer
+	push eax
+
 	call isrHandler		; call the C interrupt handler
+
+	pop eax				; pop the stack pointer
 
 	pop eax				; reload the original data segment descriptor
 	mov ds, ax
