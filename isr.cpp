@@ -56,13 +56,14 @@ void isrHandler(struct registers regs)
 
     if (regs.intNo >= 0 && regs.intNo < 32)
     {
-        screen.write(EXCEPTION_MESSAGES[regs.intNo]);
-        screen.write(" Exception\n");
+        screen << EXCEPTION_MESSAGES[regs.intNo] << " Exception\n";
     }
     else
     {
-        screen.write("Unknown exception number\n");
+        screen << "Unknown exception number: " << regs.intNo << '\n';
     }
+
+    screen << "Error code: " << regs.errCode << '\n';
 
     screen.setBackgroundColor(bgColor);
     screen.setForegroundColor(fgColor);
