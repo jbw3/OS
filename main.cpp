@@ -1,5 +1,3 @@
-// main.c
-
 #include <stdint.h>
 #include <stdlib.h>
 #include <string.h>
@@ -13,6 +11,9 @@
 
 struct multiboot;
 
+/**
+ * @brief 32-bit x86 kernel main
+ */
 extern "C"
 void kernelMain(struct multiboot* mbootPtr)
 {
@@ -37,5 +38,8 @@ void kernelMain(struct multiboot* mbootPtr)
     while (true)
     {
         os::Keyboard::processQueue();
+
+        // halt CPU until an interrupt occurs
+        asm volatile ("hlt");
     }
 }
