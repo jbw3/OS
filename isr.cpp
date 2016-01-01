@@ -4,12 +4,11 @@
 namespace
 {
 
-/// @todo Fill in "Reserved" strings
 const char* EXCEPTION_MESSAGES[] =
 {
     "Division By Zero",
     "Debug",
-    "Non Maskable Interrupt",
+    "Non-Maskable Interrupt",
     "Breakpoint",
     "Into Detected Overflow",
     "Out of Bounds",
@@ -17,15 +16,17 @@ const char* EXCEPTION_MESSAGES[] =
     "No Coprocessor",
     "Double Fault",
     "Coprocessor Segment Overrun",
-    "Bad TSS",
+    "Invalid TSS",
     "Segment Not Present",
-    "Stack Fault",
+    "Stack-Segment Fault",
     "General Protection Fault",
     "Page Fault",
-    "Unknown Interrupt",
-    "Coprocessor Fault",
+    "Reserved",
+    "x87 Floating-Point",
     "Alignment Check",
     "Machine Check",
+    "SIMD Floating-Point",
+    "Virtualizatin",
     "Reserved",
     "Reserved",
     "Reserved",
@@ -35,9 +36,7 @@ const char* EXCEPTION_MESSAGES[] =
     "Reserved",
     "Reserved",
     "Reserved",
-    "Reserved",
-    "Reserved",
-    "Reserved",
+    "Security",
     "Reserved",
 };
 
