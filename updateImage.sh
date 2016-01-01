@@ -1,8 +1,7 @@
 #!/bin/bash
 
-cp floppy_template.img floppy.img
-sudo losetup /dev/loop0 floppy.img
-sudo mount /dev/loop0 /mnt
-sudo cp kernel /mnt/kernel
-sudo umount /dev/loop0
-sudo losetup -d /dev/loop0
+# create an ISO image
+mkdir -p isodir/boot/grub
+cp kernel isodir/boot/kernel
+cp grub.cfg isodir/boot/grub/grub.cfg
+grub-mkrescue -o SandboxOS.iso isodir

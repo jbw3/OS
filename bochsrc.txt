@@ -1,9 +1,9 @@
 megs: 32
 romimage: file="/usr/share/bochs/BIOS-bochs-latest"
 vgaromimage: file ="/usr/share/bochs/VGABIOS-lgpl-latest"
-floppya: image="floppy.img", status=inserted
+ata0-slave:  type=cdrom, path="SandboxOS.iso", status=inserted
 display_library: sdl
-boot: floppy
+boot: cdrom
 log: bochsout.txt
 mouse: enabled=0
 clock: sync=realtime
