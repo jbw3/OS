@@ -15,7 +15,7 @@ struct registers
     uint32_t edi;     ///< pushed by pusha
     uint32_t esi;     ///< pushed by pusha
     uint32_t ebp;     ///< pushed by pusha
-    uint32_t esp;     ///< pushed by pusha
+    uint32_t uselessValue; ///< pushed by pusha
     uint32_t ebx;     ///< pushed by pusha
     uint32_t edx;     ///< pushed by pusha
     uint32_t ecx;     ///< pushed by pusha
@@ -27,7 +27,7 @@ struct registers
     uint32_t eip;     ///< pushed by the processor automatically
     uint32_t cs;      ///< pushed by the processor automatically
     uint32_t eflags;  ///< pushed by the processor automatically
-    uint32_t useresp; ///< pushed by the processor automatically
+    uint32_t esp;     ///< pushed by the processor automatically
     uint32_t ss;      ///< pushed by the processor automatically
 };
 
