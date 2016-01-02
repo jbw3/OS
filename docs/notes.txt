@@ -1,0 +1,19 @@
+Directory structure
+
+<top>
+|-- bin
+|-- obj
+|-- src
+    |-- kernel
+    |   |-- arch
+    |   |   |-- arm
+    |   |   |   |-- CortexA7
+    |   |   |
+    |   |   |-- x86
+    |   |       |-- 32Bit
+    |   |       |-- 64Bit
+    |   |
+    |   |-- common
+    |
+    |-- lib
+    |-- programs

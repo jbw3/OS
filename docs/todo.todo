@@ -1,0 +1,4 @@
+ ☐ Build cross-compiler
+ ☐ Paging
+ ☐ Boot on x86_64 machine
+ ☐ Move multiboot header to its own file (http://os.phil-opp.com/multiboot-kernel.html)
