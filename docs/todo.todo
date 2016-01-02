@@ -1,4 +1,8 @@
  ☐ Build cross-compiler
+ ☐ Protected mode?
  ☐ Paging
+ ☐ Heap
  ☐ Boot on x86_64 machine
  ☐ Move multiboot header to its own file (http://os.phil-opp.com/multiboot-kernel.html)
+ ☐ Call C++ global constructors (Bare Bones Tutorial, http://wiki.osdev.org/Bare_Bones)
+ ☐ Use multiple cores
