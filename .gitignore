@@ -1,5 +1,3 @@
-isodir/
+bin/
 obj/
 bochsout.txt
-kernel
-SandboxOS.iso

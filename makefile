@@ -19,7 +19,8 @@ ODIR = obj
 _OBJ = boot.o gdt.o idt.o interrupt.o irq.o isr.o keyboard.o main.o screen.o stdlib.o string.o system.o systemasm.o timer.o
 OBJ = $(patsubst %,$(ODIR)/%,$(_OBJ))
 
-TARGET = kernel
+BINDIR = bin
+TARGET = $(BINDIR)/kernel-x86
 
 .PHONY: all
 all: init $(TARGET) install
@@ -27,6 +28,7 @@ all: init $(TARGET) install
 .PHONY: init
 init:
 	mkdir -p $(ODIR)
+	mkdir -p $(BINDIR)
 
 .PHONY: install
 install:
