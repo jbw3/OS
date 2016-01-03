@@ -4,16 +4,20 @@ Directory structure
 |-- bin
 |-- obj
 |-- src
-    |-- kernel
-    |   |-- arch
-    |   |   |-- arm
-    |   |   |   |-- CortexA7
-    |   |   |
-    |   |   |-- x86
-    |   |       |-- 32Bit
-    |   |       |-- 64Bit
-    |   |
-    |   |-- common
-    |
-    |-- lib
-    |-- programs
+|   |-- kernel
+|   |   |-- arch
+|   |   |   |-- arm
+|   |   |   |   |-- CortexA7
+|   |   |   |
+|   |   |   |-- x86
+|   |   |       |-- 32Bit
+|   |   |       |-- 64Bit
+|   |   |
+|   |   |-- common
+|   |
+|   |-- lib
+|       |-- libc
+|       |-- libc++
+|       |-- posix
+|
+|-- tools
