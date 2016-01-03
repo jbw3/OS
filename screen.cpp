@@ -9,6 +9,12 @@ const int Screen::SCREEN_WIDTH = 80;
 const int Screen::SCREEN_HEIGHT = 25;
 const int Screen::TAB_SIZE = 4;
 
+Screen& Screen::bin(Screen& s)
+{
+    s.base = 2;
+    return s;
+}
+
 Screen& Screen::oct(Screen& s)
 {
     s.base = 8;
@@ -272,9 +278,9 @@ void Screen::scroll()
 template<typename T>
 void Screen::writeSigned(T num)
 {
-    // need 21 chars for max signed 64-bit decimal number (9,223,372,036,854,775,807)
-    // in octal base and 1 char for possible negative sign
-    char buff[22];
+    // need 64 chars for max signed 64-bit number
+    // and 1 char for possible negative sign
+    char buff[65];
 
     int idx = 0;
 
@@ -312,9 +318,8 @@ void Screen::writeSigned(T num)
 template<typename T>
 void Screen::writeUnsigned(T num)
 {
-    // need 22 chars for max unsigned 64-bit decimal number (18,446,744,073,709,551,615)
-    // in octal base
-    char buff[22];
+    // need 64 chars for max unsigned 64-bit number
+    char buff[64];
 
     int idx = 0;
 

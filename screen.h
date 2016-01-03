@@ -9,6 +9,8 @@ namespace os
 class Screen
 {
 public:
+    static os::Screen& bin(os::Screen& s);
+
     static os::Screen& oct(os::Screen& s);
 
     static os::Screen& dec(os::Screen& s);
