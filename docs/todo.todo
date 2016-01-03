@@ -6,3 +6,4 @@
  ☐ Move multiboot header to its own file (http://os.phil-opp.com/multiboot-kernel.html)
  ☐ Call C++ global constructors (Bare Bones Tutorial, http://wiki.osdev.org/Bare_Bones)
  ☐ Use multiple cores
+ ☐ Create bootable HDD (Grub 2, http://wiki.osdev.org/GRUB_2)
