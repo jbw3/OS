@@ -9,6 +9,10 @@ const int Screen::SCREEN_WIDTH = 80;
 const int Screen::SCREEN_HEIGHT = 25;
 const int Screen::TAB_SIZE = 4;
 
+
+const uint8_t Screen::BOOL_ALPHA = 0x01;
+const uint8_t Screen::UPPERCASE  = 0x02;
+
 Screen& Screen::bin(Screen& s)
 {
     s.base = 2;
@@ -33,6 +37,30 @@ Screen& Screen::hex(Screen& s)
     return s;
 }
 
+Screen& Screen::boolalpha(Screen& s)
+{
+    s.flags |= BOOL_ALPHA;
+    return s;
+}
+
+Screen& Screen::noboolalpha(Screen& s)
+{
+    s.flags &= ~BOOL_ALPHA;
+    return s;
+}
+
+Screen& Screen::uppercase(Screen& s)
+{
+    s.flags |= UPPERCASE;
+    return s;
+}
+
+Screen& Screen::nouppercase(Screen& s)
+{
+    s.flags &= ~UPPERCASE;
+    return s;
+}
+
 Screen::Screen()
 {
 }
@@ -44,6 +72,7 @@ void Screen::init()
     csrY = 0;
 
     base = 10;
+    flags = BOOL_ALPHA;
 
     setBackgroundColor(EColor::eBlack);
     setForegroundColor(EColor::eWhite);
@@ -130,7 +159,14 @@ Screen& Screen::operator <<(const char* str)
 
 Screen& Screen::operator <<(bool b)
 {
-    write(b ? '1' : '0');
+    if ((flags & BOOL_ALPHA) != 0)
+    {
+        write(b ? "true" : "false");
+    }
+    else
+    {
+        write(b ? '1' : '0');
+    }
     return *this;
 }
 
@@ -296,15 +332,8 @@ void Screen::writeSigned(T num)
     do
     {
         char digit = -(num % base);
-        if (digit >= 10)
-        {
-            buff[idx] = digit - 10 + 'a';
-        }
-        else
-        {
-            buff[idx] = digit + '0';
-        }
-        ++idx;
+        digitToChar(digit);
+        buff[idx++] = digit;
         num /= base;
     } while (num < 0);
 
@@ -326,15 +355,8 @@ void Screen::writeUnsigned(T num)
     do
     {
         char digit = num % base;
-        if (digit >= 10)
-        {
-            buff[idx] = digit - 10 + 'a';
-        }
-        else
-        {
-            buff[idx] = digit + '0';
-        }
-        ++idx;
+        digitToChar(digit);
+        buff[idx++] = digit;
         num /= base;
     } while (num > 0);
 
@@ -342,6 +364,25 @@ void Screen::writeUnsigned(T num)
     {
         --idx;
         write(buff[idx]);
+    }
+}
+
+void Screen::digitToChar(char& digit)
+{
+    if (digit >= 10)
+    {
+        if ((flags & UPPERCASE) != 0)
+        {
+            digit += 'A' - 10;
+        }
+        else
+        {
+            digit += 'a' - 10;
+        }
+    }
+    else
+    {
+        digit += '0';
     }
 }
 

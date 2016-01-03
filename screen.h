@@ -17,6 +17,14 @@ public:
 
     static os::Screen& hex(os::Screen& s);
 
+    static os::Screen& boolalpha(os::Screen& s);
+
+    static os::Screen& noboolalpha(os::Screen& s);
+
+    static os::Screen& uppercase(os::Screen& s);
+
+    static os::Screen& nouppercase(os::Screen& s);
+
     enum class EColor
     {
         eBlack        =  0,
@@ -86,12 +94,16 @@ private:
     static const int SCREEN_HEIGHT;
     static const int TAB_SIZE;
 
+    static const uint8_t BOOL_ALPHA;
+    static const uint8_t UPPERCASE;
+
     uint16_t* textMem;
     uint16_t attrib;
     int csrX;
     int csrY;
 
     int base;
+    uint8_t flags;
 
     void outputChar(char ch);
 
@@ -104,6 +116,8 @@ private:
 
     template<typename T>
     void writeUnsigned(T num);
+
+    void digitToChar(char& digit);
 };
 
 } // namespace os
