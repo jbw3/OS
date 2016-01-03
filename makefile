@@ -34,7 +34,7 @@ init:
 
 .PHONY: install
 install:
-	$(TOOLSDIR)/createIso.sh
+	$(TOOLSDIR)/createIso.sh x86
 
 $(TARGET): $(OBJ)
 	ld $(LDFLAGS) $(OBJ) -o $(TARGET)

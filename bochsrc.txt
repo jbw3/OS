@@ -1,7 +1,7 @@
 megs: 32
 romimage: file="/usr/share/bochs/BIOS-bochs-latest"
 vgaromimage: file ="/usr/share/bochs/VGABIOS-lgpl-latest"
-ata0-slave:  type=cdrom, path="bin/SandboxOS.iso", status=inserted
+ata0-slave:  type=cdrom, path="bin/SandboxOS-x86.iso", status=inserted
 display_library: sdl
 boot: cdrom
 log: bochsout.txt
