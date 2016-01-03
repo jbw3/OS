@@ -9,6 +9,18 @@ const int Screen::SCREEN_WIDTH = 80;
 const int Screen::SCREEN_HEIGHT = 25;
 const int Screen::TAB_SIZE = 4;
 
+Screen& Screen::oct(Screen& s)
+{
+    s.base = 8;
+    return s;
+}
+
+Screen& Screen::dec(Screen& s)
+{
+    s.base = 10;
+    return s;
+}
+
 Screen::Screen()
 {
 }
@@ -18,6 +30,8 @@ void Screen::init()
     textMem = (uint16_t*)(0xB8000);
     csrX = 0;
     csrY = 0;
+
+    base = 10;
 
     setBackgroundColor(EColor::eBlack);
     setForegroundColor(EColor::eWhite);
@@ -162,6 +176,11 @@ Screen& Screen::operator <<(const void* ptr)
     return *this;
 }
 
+Screen& Screen::operator <<(Screen& (*fPtr)(Screen&))
+{
+    return fPtr(*this);
+}
+
 void Screen::outputChar(char ch)
 {
     if (ch == '\n')
@@ -247,9 +266,9 @@ void Screen::scroll()
 template<typename T>
 void Screen::writeSigned(T num)
 {
-    // need 19 chars for max signed 64-bit decimal number (9,223,372,036,854,775,807)
-    // and 1 char for possible negative sign
-    char buff[20];
+    // need 21 chars for max signed 64-bit decimal number (9,223,372,036,854,775,807)
+    // in octal base and 1 char for possible negative sign
+    char buff[22];
 
     int idx = 0;
 
@@ -264,9 +283,9 @@ void Screen::writeSigned(T num)
 
     do
     {
-        char digit = -(num % 10);
+        char digit = -(num % base);
         buff[idx++] = digit + '0';
-        num /= 10;
+        num /= base;
     } while (num < 0);
 
     while (idx > 0)
@@ -279,16 +298,17 @@ void Screen::writeSigned(T num)
 template<typename T>
 void Screen::writeUnsigned(T num)
 {
-    // need 20 chars for max unsigned 64-bit decimal number (18,446,744,073,709,551,615)
-    char buff[20];
+    // need 22 chars for max unsigned 64-bit decimal number (18,446,744,073,709,551,615)
+    // in octal base
+    char buff[22];
 
     int idx = 0;
 
     do
     {
-        char digit = num % 10;
+        char digit = num % base;
         buff[idx++] = digit + '0';
-        num /= 10;
+        num /= base;
     } while (num > 0);
 
     while (idx > 0)

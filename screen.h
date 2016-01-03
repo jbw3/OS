@@ -9,6 +9,10 @@ namespace os
 class Screen
 {
 public:
+    static os::Screen& oct(os::Screen& s);
+
+    static os::Screen& dec(os::Screen& s);
+
     enum class EColor
     {
         eBlack        =  0,
@@ -71,6 +75,8 @@ public:
 
     os::Screen& operator <<(const void* ptr);
 
+    os::Screen& operator <<(os::Screen& (*fPtr)(os::Screen&));
+
 private:
     static const int SCREEN_WIDTH;
     static const int SCREEN_HEIGHT;
@@ -80,6 +86,8 @@ private:
     uint16_t attrib;
     int csrX;
     int csrY;
+
+    int base;
 
     void outputChar(char ch);
 
