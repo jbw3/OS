@@ -21,6 +21,12 @@ Screen& Screen::dec(Screen& s)
     return s;
 }
 
+Screen& Screen::hex(Screen& s)
+{
+    s.base = 16;
+    return s;
+}
+
 Screen::Screen()
 {
 }
@@ -284,7 +290,15 @@ void Screen::writeSigned(T num)
     do
     {
         char digit = -(num % base);
-        buff[idx++] = digit + '0';
+        if (digit >= 10)
+        {
+            buff[idx] = digit - 10 + 'a';
+        }
+        else
+        {
+            buff[idx] = digit + '0';
+        }
+        ++idx;
         num /= base;
     } while (num < 0);
 
@@ -307,7 +321,15 @@ void Screen::writeUnsigned(T num)
     do
     {
         char digit = num % base;
-        buff[idx++] = digit + '0';
+        if (digit >= 10)
+        {
+            buff[idx] = digit - 10 + 'a';
+        }
+        else
+        {
+            buff[idx] = digit + '0';
+        }
+        ++idx;
         num /= base;
     } while (num > 0);
 

@@ -13,6 +13,8 @@ public:
 
     static os::Screen& dec(os::Screen& s);
 
+    static os::Screen& hex(os::Screen& s);
+
     enum class EColor
     {
         eBlack        =  0,
