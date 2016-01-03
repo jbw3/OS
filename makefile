@@ -22,6 +22,8 @@ OBJ = $(patsubst %,$(ODIR)/%,$(_OBJ))
 BINDIR = bin
 TARGET = $(BINDIR)/kernel-x86
 
+TOOLSDIR = ./tools
+
 .PHONY: all
 all: init $(TARGET) install
 
@@ -32,7 +34,7 @@ init:
 
 .PHONY: install
 install:
-	./updateImage.sh
+	$(TOOLSDIR)/createIso.sh
 
 $(TARGET): $(OBJ)
 	ld $(LDFLAGS) $(OBJ) -o $(TARGET)
