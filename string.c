@@ -89,6 +89,35 @@ char* strcat(char* str1, const char* str2)
     return str1;
 }
 
+char* strncat(char* str1, const char* str2, size_t num)
+{
+    /* find the end of str1 */
+    size_t idx1 = 0;
+    while (str1[idx1] != '\0')
+    {
+        ++idx1;
+    }
+
+    /* copy str2 */
+    size_t idx2 = 0;
+    char ch;
+    do
+    {
+        if (idx2 >= num)
+        {
+            str1[idx1] = '\0';
+            break;
+        }
+
+        ch = str2[idx2];
+        str1[idx1] = ch;
+        ++idx1;
+        ++idx2;
+    } while (ch != '\0');
+
+    return str1;
+}
+
 char* strcpy(char* dst, const char* src)
 {
     size_t idx = 0;
