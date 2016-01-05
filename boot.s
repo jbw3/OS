@@ -34,12 +34,17 @@ extern kernelMain			; C code entry point
 
 start:
 	mov esp, kernel_stack_start	; this points the stack to the new stack area
-	push ebx				; load multiboot header location
+	push ebx				; push multiboot header location (kernelMain param)
+	push eax				; push multiboot magic number (kernelMain param)
 
 	; execute the kernel
 	cli						; disable interrupts
 	call kernelMain			; call kernelMain()
-	jmp $					; infinite loop
+
+.Linfinite:					; infinite loop
+	cli
+	hlt
+	jmp .Linfinite
 
 ; Set up the segment registers:
 ; Kernel code descriptor offset: 8 B
