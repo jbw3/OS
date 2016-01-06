@@ -97,6 +97,24 @@ void printMultibootInfo(const multiboot_info* mbootInfo)
                 screen << mbootInfo->mods_count << " boot module" << (mbootInfo->mods_count == 1 ? "" : "s") << " were loaded\n";
                 break;
 
+            case MULTIBOOT_INFO_AOUT_SYMS:
+                screen << "AOUT\n";
+                break;
+
+            case MULTIBOOT_INFO_ELF_SHDR:
+                screen << "ELF\n";
+                break;
+
+            case MULTIBOOT_INFO_DRIVE_INFO:
+                screen << mbootInfo->drives_length << '\n';
+                break;
+
+            case MULTIBOOT_INFO_CONFIG_TABLE:
+                screen << os::Screen::hex
+                       << mbootInfo->config_table << '\n'
+                       << os::Screen::dec;
+                break;
+
             case MULTIBOOT_INFO_MEM_MAP:
                 screen << mbootInfo->mmap_length << '\n';
                 break;
