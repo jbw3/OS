@@ -37,7 +37,7 @@ install:
 	$(TOOLSDIR)/createIso.sh x86
 
 $(TARGET): $(OBJ)
-	$(CXX) $(LDFLAGS) $(OBJ) -o $(TARGET)
+	$(CXX) $(OBJ) -o $(TARGET) $(LDFLAGS)
 
 $(ODIR)/%.o: %.c $(DEPS)
 	$(CC) $(CFLAGS) -c $< -o $@
