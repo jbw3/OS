@@ -2,11 +2,11 @@
 
 INCLUDES = -I.
 
-CC = gcc
-CFLAGS = $(INCLUDES) -m32 -nostdlib -nostdinc -fno-builtin -fno-stack-protector
+CC = i686-elf-gcc
+CFLAGS = $(INCLUDES) -std=c11 -ffreestanding -O2 -Wall -Wextra
 
-CXX = g++
-CXXFLAGS = $(INCLUDES) -std=c++1y -m32 -nostdlib -nostdinc -fno-builtin -fno-stack-protector
+CXX = i686-elf-g++
+CXXFLAGS = $(INCLUDES) -std=c++14 -ffreestanding -O2 -Wall -Wextra -fno-exceptions -fno-rtti
 
 ASM = nasm
 ASFLAGS = -f elf32
