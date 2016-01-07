@@ -8,10 +8,10 @@ CFLAGS = $(INCLUDES) -std=c11 -ffreestanding -O2 -Wall -Wextra
 CXX = i686-elf-g++
 CXXFLAGS = $(INCLUDES) -std=c++14 -ffreestanding -O2 -Wall -Wextra -fno-exceptions -fno-rtti
 
-ASM = nasm
+AS = nasm
 ASFLAGS = -f elf32
 
-LDFLAGS = -Tlink.ld -melf_i386
+LDFLAGS = -T link.ld -ffreestanding -O2 -nostdlib -lgcc
 
 DEPS = gdt.h idt.h irq.h isr.h keyboard.h screen.h stddef.h stdint.h stdlib.h string.h system.h timer.h
 
@@ -37,7 +37,7 @@ install:
 	$(TOOLSDIR)/createIso.sh x86
 
 $(TARGET): $(OBJ)
-	ld $(LDFLAGS) $(OBJ) -o $(TARGET)
+	$(CXX) $(LDFLAGS) $(OBJ) -o $(TARGET)
 
 $(ODIR)/%.o: %.c $(DEPS)
 	$(CC) $(CFLAGS) -c $< -o $@
@@ -46,7 +46,7 @@ $(ODIR)/%.o: %.cpp $(DEPS)
 	$(CXX) $(CXXFLAGS) -c $< -o $@
 
 $(ODIR)/%.o: %.s
-	$(ASM) $(ASFLAGS) $< -o $@
+	$(AS) $(ASFLAGS) $< -o $@
 
 .PHONY: clean
 clean:
