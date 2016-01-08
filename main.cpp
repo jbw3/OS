@@ -17,6 +17,8 @@
  */
 void printMultibootInfo(const multiboot_info* mbootInfo);
 
+void printMemMap(uint32_t addr, uint32_t len);
+
 /**
  * @brief 32-bit x86 kernel main
  */
@@ -51,6 +53,7 @@ void kernelMain(const uint32_t MULTIBOOT_MAGIC_NUM, const multiboot_info* mbootI
     screen.write("Sandbox OS\n");
 
     printMultibootInfo(mbootInfo);
+    printMemMap(mbootInfo->mmap_addr, mbootInfo->mmap_length);
 
     while (true)
     {
@@ -130,5 +133,24 @@ void printMultibootInfo(const multiboot_info* mbootInfo)
         }
 
         bit <<= 1;
+    }
+}
+
+void printMemMap(uint32_t addr, uint32_t len)
+{
+    uint32_t offset = 0;
+    while (offset < len)
+    {
+        const multiboot_mmap_entry* entry = reinterpret_cast<const multiboot_mmap_entry*>(addr + offset);
+
+        uint64_t startAddr = entry->addr;
+        uint64_t endAddr = entry->addr + entry->len - 1;
+
+        screen << os::Screen::hex
+               << "0x" << startAddr << " - " << "0x" << endAddr
+               << os::Screen::dec
+               << " (" << (entry->len / 1024) << " KB)\n";
+
+        offset += entry->size + sizeof(entry->size);
     }
 }
