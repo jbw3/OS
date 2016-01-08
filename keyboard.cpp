@@ -121,7 +121,7 @@ void Keyboard::init()
     installIrqHandler(IRQ_KEYBOARD, interruptHandler);
 }
 
-void Keyboard::interruptHandler(const registers* regs)
+void Keyboard::interruptHandler(const registers* /*regs*/)
 {
     // read from the keyboard's data buffer
     uint8_t scanCode = inb(0x60);

@@ -54,7 +54,7 @@ void isrHandler(const struct registers* regs)
     screen.setBackgroundColor(os::Screen::EColor::eRed);
     screen.setForegroundColor(os::Screen::EColor::eWhite);
 
-    if (regs->intNo >= 0 && regs->intNo < 32)
+    if (regs->intNo < 32)
     {
         screen << EXCEPTION_MESSAGES[regs->intNo] << " Exception\n";
     }

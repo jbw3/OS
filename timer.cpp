@@ -26,7 +26,7 @@ void Timer::init(unsigned int freq)
     outb(0x40, divisor >> 8);
 }
 
-void Timer::interruptHandler(const struct registers* regs)
+void Timer::interruptHandler(const registers* /*regs*/)
 {
     ++ticks;
 }
