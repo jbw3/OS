@@ -194,6 +194,12 @@ Screen& Screen::operator <<(long num)
     return *this;
 }
 
+Screen& Screen::operator <<(long long num)
+{
+    writeSigned(num);
+    return *this;
+}
+
 Screen& Screen::operator <<(unsigned char num)
 {
     writeUnsigned(num);
@@ -213,6 +219,12 @@ Screen& Screen::operator <<(unsigned int num)
 }
 
 Screen& Screen::operator <<(unsigned long num)
+{
+    writeUnsigned(num);
+    return *this;
+}
+
+Screen& Screen::operator <<(unsigned long long num)
 {
     writeUnsigned(num);
     return *this;

@@ -77,6 +77,8 @@ public:
 
     os::Screen& operator <<(long num);
 
+    os::Screen& operator <<(long long num);
+
     os::Screen& operator <<(unsigned char num);
 
     os::Screen& operator <<(unsigned short num);
@@ -84,6 +86,8 @@ public:
     os::Screen& operator <<(unsigned int num);
 
     os::Screen& operator <<(unsigned long num);
+
+    os::Screen& operator <<(unsigned long long num);
 
     os::Screen& operator <<(const void* ptr);
 
