@@ -1,4 +1,4 @@
-Directory structure
+Directory Structure
 
 <top>
 |-- bin
@@ -21,3 +21,10 @@ Directory structure
 |       |-- posix
 |
 |-- tools
+
+
+Building Cross Compiler
+
+Scripts are in the tools directory
+1. Run build-binutils.sh
+2. Run build-gcc.sh
