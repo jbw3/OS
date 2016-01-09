@@ -13,10 +13,10 @@ ASFLAGS = -f elf32
 
 LDFLAGS = -T link.ld -ffreestanding -O2 -nostdlib -lgcc
 
-DEPS = gdt.h idt.h irq.h isr.h keyboard.h screen.h stddef.h stdint.h stdlib.h string.h system.h timer.h
+DEPS = gdt.h idt.h irq.h isr.h keyboard.h paging.h screen.h stddef.h stdint.h stdlib.h string.h system.h timer.h
 
 ODIR = obj
-_OBJ = boot.o gdt.o idt.o interrupt.o irq.o isr.o keyboard.o main.o screen.o stdlib.o string.o system.o systemasm.o timer.o
+_OBJ = boot.o gdt.o idt.o interrupt.o irq.o isr.o keyboard.o main.o paging.o screen.o stdlib.o string.o system.o systemasm.o timer.o
 OBJ = $(patsubst %,$(ODIR)/%,$(_OBJ))
 
 BINDIR = bin
@@ -25,7 +25,7 @@ TARGET = $(BINDIR)/kernel-x86
 TOOLSDIR = ./tools
 
 .PHONY: all
-all: init $(TARGET) install
+all: init $(TARGET)
 
 .PHONY: init
 init:

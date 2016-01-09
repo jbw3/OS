@@ -76,6 +76,7 @@ idtFlush:
 	ret
 
 ; definition of BSS section that stores the stack
+; and page table
 section .bss
 
 global kernel_stack_start
@@ -85,3 +86,10 @@ global kernel_stack_end
 kernel_stack_end:
 	resb 1024			; reserve 1 KB of memory
 kernel_stack_start:
+
+global pageDirStart
+global pageDirEnd
+alignb 4096
+pageDirStart:
+	resb 4096
+pageDirEnd:
