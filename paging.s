@@ -30,18 +30,24 @@ getPageDirEnd:
 global initPageDir
 initPageDir:
     mov eax, pageDirStart
-    mov ecx, PAGE_DIR_INIT_ENTRY
-
-.Lstart
-    mov [eax   ], ecx
-    mov [eax+ 4], ecx
-    mov [eax+ 8], ecx
-    mov [eax+12], ecx
-    mov [eax+16], ecx
-    mov [eax+20], ecx
-    mov [eax+24], ecx
-    mov [eax+28], ecx
-    add eax, 32
+.Lstart:
+    mov dword [eax   ], PAGE_DIR_INIT_ENTRY
+    mov dword [eax+ 4], PAGE_DIR_INIT_ENTRY
+    mov dword [eax+ 8], PAGE_DIR_INIT_ENTRY
+    mov dword [eax+12], PAGE_DIR_INIT_ENTRY
+    mov dword [eax+16], PAGE_DIR_INIT_ENTRY
+    mov dword [eax+20], PAGE_DIR_INIT_ENTRY
+    mov dword [eax+24], PAGE_DIR_INIT_ENTRY
+    mov dword [eax+28], PAGE_DIR_INIT_ENTRY
+    mov dword [eax+32], PAGE_DIR_INIT_ENTRY
+    mov dword [eax+36], PAGE_DIR_INIT_ENTRY
+    mov dword [eax+40], PAGE_DIR_INIT_ENTRY
+    mov dword [eax+44], PAGE_DIR_INIT_ENTRY
+    mov dword [eax+48], PAGE_DIR_INIT_ENTRY
+    mov dword [eax+52], PAGE_DIR_INIT_ENTRY
+    mov dword [eax+56], PAGE_DIR_INIT_ENTRY
+    mov dword [eax+60], PAGE_DIR_INIT_ENTRY
+    add eax, 64
     cmp eax, pageDirEnd
     jl .Lstart
 
