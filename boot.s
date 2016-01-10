@@ -10,13 +10,17 @@ MBOOT_CHECKSUM		equ -(MBOOT_HEADER_MAGIC + MBOOT_HEADER_FLAGS)
 ; instructions are 32-bit
 [BITS 32]
 
+global kImgStart
+global kImgEnd
+
 global mboot	; make 'mboot' accessible from C
 extern code		; start of the .text section
 extern bss		; start of the .bss section
 extern end		; end of the last loadable section
 
 ; this part must be 4-byte aligned
-ALIGN 4
+align 4
+kImgStart: ; the start of the kernel image
 mboot:
 	dd MBOOT_HEADER_MAGIC	; GRUB will search for this value on each 4-byte
 							; boundary in the kernel file
@@ -84,7 +88,7 @@ global kernel_stack_end
 ; the stack grows downward in memory so the start
 ; is at a higher address than the end
 kernel_stack_end:
-	resb 1024			; reserve 1 KB of memory
+	resb 4096			; reserve 4 KiB of memory
 kernel_stack_start:
 
 global pageDirStart
@@ -93,3 +97,5 @@ alignb 4096
 pageDirStart:
 	resb 4096
 pageDirEnd:
+
+kImgEnd: ; the end of the kernel image
