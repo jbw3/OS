@@ -16,8 +16,8 @@ Directory Structure
 |   |   |-- common
 |   |
 |   |-- lib
-|       |-- libc
-|       |-- libc++
+|       |-- c
+|       |-- c++
 |       |-- posix
 |
 |-- tools
