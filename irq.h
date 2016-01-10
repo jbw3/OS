@@ -20,8 +20,9 @@
 #define IRQ14 14
 #define IRQ15 15
 
-#define IRQ_TIMER    IRQ0
-#define IRQ_KEYBOARD IRQ1
+#define IRQ_TIMER      IRQ0
+#define IRQ_KEYBOARD   IRQ1
+#define IRQ_PAGE_FAULT IRQ14
 
 #ifdef __cplusplus
 extern "C"

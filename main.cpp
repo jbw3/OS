@@ -8,7 +8,9 @@
 #include "idt.h"
 #include "irq.h"
 #include "keyboard.h"
+#include "paging.h"
 #include "screen.h"
+#include "system.h"
 #include "timer.h"
 
 /**
@@ -18,6 +20,20 @@
 void printMultibootInfo(const multiboot_info* mbootInfo);
 
 void printMemMap(uint32_t addr, uint32_t len);
+
+void printMem(const uint32_t* ptr);
+
+void printMem(int ptr)
+{
+    printMem(reinterpret_cast<const uint32_t*>(ptr));
+}
+
+void printMem(const uint32_t* ptr)
+{
+    screen << os::Screen::hex
+           << ptr << ": " << *ptr << '\n'
+           << os::Screen::dec;
+}
 
 /**
  * @brief 32-bit x86 kernel main
@@ -54,6 +70,8 @@ void kernelMain(const uint32_t MULTIBOOT_MAGIC_NUM, const multiboot_info* mbootI
 
     printMultibootInfo(mbootInfo);
     printMemMap(mbootInfo->mmap_addr, mbootInfo->mmap_length);
+
+    initPaging();
 
     while (true)
     {
