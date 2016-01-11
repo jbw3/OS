@@ -61,6 +61,11 @@ Screen& Screen::nouppercase(Screen& s)
     return s;
 }
 
+Screen::Manip<size_t> Screen::setw(size_t width)
+{
+    return Manip<size_t>(setWidth, width);
+}
+
 Screen::Screen()
 {
 }
@@ -73,6 +78,8 @@ void Screen::init()
 
     base = 10;
     flags = BOOL_ALPHA;
+    width = 0;
+    fill = ' ';
 
     setBackgroundColor(EColor::eBlack);
     setForegroundColor(EColor::eWhite);
@@ -111,18 +118,25 @@ void Screen::setBackgroundColor(EColor color)
 
 void Screen::write(char ch)
 {
-    outputChar(ch);
-    scroll();
-    updateCursor();
+    if (width > 0)
+    {
+        justify(1);
+    }
+    rawWrite(ch);
 }
 
 void Screen::write(const char* str)
 {
-    unsigned long idx = 0;
+    if (width > 0)
+    {
+        justify(strlen(str));
+    }
+
+    size_t idx = 0;
     char ch = str[idx];
     while (ch != '\0')
     {
-        write(ch);
+        rawWrite(ch);
         ++idx;
         ch = str[idx];
     }
@@ -241,6 +255,11 @@ Screen& Screen::operator <<(Screen& (*fPtr)(Screen&))
     return fPtr(*this);
 }
 
+void Screen::setWidth(Screen& s, size_t width)
+{
+    s.width = width;
+}
+
 void Screen::outputChar(char ch)
 {
     if (ch == '\n')
@@ -323,21 +342,37 @@ void Screen::scroll()
     }
 }
 
+void Screen::rawWrite(char ch)
+{
+    outputChar(ch);
+    scroll();
+    updateCursor();
+}
+
+void Screen::justify(size_t strLen)
+{
+    for (size_t i = strLen; i < width; ++i)
+    {
+        rawWrite(fill);
+    }
+
+    width = 0;
+}
+
 template<typename T>
 void Screen::writeSigned(T num)
 {
-    // need 64 chars for max signed 64-bit number
-    // and 1 char for possible negative sign
-    char buff[65];
+    // need 64 chars for max signed 64-bit number,
+    // 1 char for possible negative sign,
+    // and 1 char for null
+    char buff[66];
+    buff[65] = '\0';
 
-    int idx = 0;
-
-    if (num < 0)
+    int idx = 65;
+    bool negative = true;
+    if (num >= 0)
     {
-        write('-');
-    }
-    else
-    {
+        negative = false;
         num = -num;
     }
 
@@ -345,38 +380,38 @@ void Screen::writeSigned(T num)
     {
         char digit = -(num % base);
         digitToChar(digit);
-        buff[idx++] = digit;
+        buff[--idx] = digit;
         num /= base;
     } while (num < 0);
 
-    while (idx > 0)
+    if (negative)
     {
-        --idx;
-        write(buff[idx]);
+        buff[--idx] = '-';
     }
+
+    write(buff + idx);
 }
 
 template<typename T>
 void Screen::writeUnsigned(T num)
 {
     // need 64 chars for max unsigned 64-bit number
-    char buff[64];
+    // and 1 char for null
+    char buff[65];
+    buff[64] = '\0';
 
-    int idx = 0;
+    int idx = 64;
 
     do
     {
         char digit = num % base;
         digitToChar(digit);
-        buff[idx++] = digit;
+        buff[--idx] = digit;
         num /= base;
     } while (num > 0);
 
-    while (idx > 0)
-    {
-        --idx;
-        write(buff[idx]);
-    }
+
+    write(buff + idx);
 }
 
 void Screen::digitToChar(char& digit)

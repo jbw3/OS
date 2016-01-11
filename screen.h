@@ -1,13 +1,38 @@
 #ifndef SCREEN_H_
 #define SCREEN_H_
 
+#include <stddef.h>
 #include <stdint.h>
 
 namespace os
 {
 
+// forward declaration
+class Screen;
+
 class Screen
 {
+private:
+    template<typename T>
+    class Manip
+    {
+    public:
+        Manip(void(*funcPtr)(os::Screen& s, T arg), T argument)
+        {
+            fPtr = funcPtr;
+            arg = argument;
+        }
+
+        void exec(os::Screen& s)
+        {
+            fPtr(s, arg);
+        }
+
+    private:
+        void(*fPtr)(os::Screen& s, T arg);
+        T arg;
+    };
+
 public:
     static os::Screen& bin(os::Screen& s);
 
@@ -24,6 +49,8 @@ public:
     static os::Screen& uppercase(os::Screen& s);
 
     static os::Screen& nouppercase(os::Screen& s);
+
+    static Manip<size_t> setw(size_t width);
 
     enum class EColor
     {
@@ -93,6 +120,13 @@ public:
 
     os::Screen& operator <<(os::Screen& (*fPtr)(os::Screen&));
 
+    template<typename T>
+    os::Screen& operator <<(os::Screen::Manip<T> manip)
+    {
+        manip.exec(*this);
+        return *this;
+    }
+
 private:
     static const int SCREEN_WIDTH;
     static const int SCREEN_HEIGHT;
@@ -101,6 +135,8 @@ private:
     static const uint8_t BOOL_ALPHA;
     static const uint8_t UPPERCASE;
 
+    static void setWidth(os::Screen& s, size_t width);
+
     uint16_t* textMem;
     uint16_t attrib;
     int csrX;
@@ -108,12 +144,18 @@ private:
 
     int base;
     uint8_t flags;
+    size_t width;
+    char fill;
 
     void outputChar(char ch);
 
     void updateCursor();
 
     void scroll();
+
+    void rawWrite(char ch);
+
+    void justify(size_t strLen);
 
     template<typename T>
     void writeSigned(T num);
