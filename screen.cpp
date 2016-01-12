@@ -9,7 +9,6 @@ const int Screen::SCREEN_WIDTH = 80;
 const int Screen::SCREEN_HEIGHT = 25;
 const int Screen::TAB_SIZE = 4;
 
-
 const uint8_t Screen::BOOL_ALPHA = 0x01;
 const uint8_t Screen::UPPERCASE  = 0x02;
 
@@ -59,6 +58,11 @@ Screen& Screen::nouppercase(Screen& s)
 {
     s.flags &= ~UPPERCASE;
     return s;
+}
+
+Screen::Manip<char> Screen::setfill(char ch)
+{
+    return Manip<char>(setFill, ch);
 }
 
 Screen::Manip<size_t> Screen::setw(size_t width)
@@ -253,6 +257,11 @@ Screen& Screen::operator <<(const void* ptr)
 Screen& Screen::operator <<(Screen& (*fPtr)(Screen&))
 {
     return fPtr(*this);
+}
+
+void Screen::setFill(Screen& s, char ch)
+{
+    s.fill = ch;
 }
 
 void Screen::setWidth(Screen& s, size_t width)

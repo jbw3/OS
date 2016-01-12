@@ -50,6 +50,8 @@ public:
 
     static os::Screen& nouppercase(os::Screen& s);
 
+    static Manip<char> setfill(char ch);
+
     static Manip<size_t> setw(size_t width);
 
     enum class EColor
@@ -134,6 +136,8 @@ private:
 
     static const uint8_t BOOL_ALPHA;
     static const uint8_t UPPERCASE;
+
+    static void setFill(os::Screen& s, char ch);
 
     static void setWidth(os::Screen& s, size_t width);
 
