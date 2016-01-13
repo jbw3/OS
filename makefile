@@ -33,7 +33,7 @@ init:
 	mkdir -p $(BINDIR)
 
 .PHONY: install
-install:
+install: $(TARGET)
 	$(TOOLSDIR)/createIso.sh x86
 
 $(TARGET): $(OBJ)
