@@ -7,14 +7,22 @@ namespace
 
 /**
  * @brief Identity map the kernel
+ * @todo Add all pages in the first page table for now. Later,
+ * this should only map the kernel code and data
  */
 void mapKernel()
 {
+    /*
     uint32_t kStart = reinterpret_cast<uint32_t>(getKImgStart());
     uint32_t kEnd = reinterpret_cast<uint32_t>(getKImgEnd());
     for (uint32_t pageAddr = kStart; pageAddr < kEnd; pageAddr += 4096)
     {
         addPage(pageAddr);
+    }
+    */
+    for (uint32_t i = 0; i < 1024; ++i)
+    {
+        addPage(i * 4096);
     }
 }
 
@@ -47,30 +55,27 @@ void initPaging()
     initPageDir();
 
     // add a page table
-    initPageTable(0);
-    addPageTable(0);
-    addPage(0);
+    initPageTable(0x200000);
+    addPageTable(0, 0x200000);
+    addPage(0x200000);
 
     mapKernel();
 
-    // enablePaging();
+    enablePaging();
 }
 
-void addPageTable(uint32_t pageTableAddr)
+void addPageTable(int idx, uint32_t pageTableAddr)
 {
     uint32_t* pageDir = getPageDirStart();
 
-    // calculate the page directory index
-    int pageDirIdx = pageTableAddr >> 22;
-
     // get the page directory entry from the page directory
-    uint32_t pageDirEntry = pageDir[pageDirIdx];
+    uint32_t pageDirEntry = pageDir[idx];
 
     // add the page table address to the page directory
     pageDirEntry &= ~PAGE_DIR_ADDRESS;
     pageDirEntry |= (pageTableAddr & PAGE_DIR_ADDRESS);
     pageDirEntry |= PAGE_DIR_PRESENT;
-    pageDir[pageDirIdx] = pageDirEntry;
+    pageDir[idx] = pageDirEntry;
 }
 
 void addPage(uint32_t pageAddr)

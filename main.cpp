@@ -30,8 +30,9 @@ void printMem(int ptr)
 
 void printMem(const uint32_t* ptr)
 {
-    screen << os::Screen::hex
-           << ptr << ": " << *ptr << '\n'
+    screen << os::Screen::hex << os::Screen::setfill('0')
+           << os::Screen::setw(8) << ptr << ": "
+           << os::Screen::setw(8) << *ptr << '\n'
            << os::Screen::dec;
 }
 

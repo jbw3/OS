@@ -27,7 +27,7 @@ void initPageDir();
  * @brief Initialize a page table
  * @brief addr the address of the page table (MUST be 4 KiB aligned)
  */
-void initPageTable(void* addr);
+void initPageTable(uint32_t addr);
 
 void enablePaging();
 
@@ -40,7 +40,7 @@ void initPaging();
 /**
  * @brief Add a page table to the page directory
  */
-void addPageTable(uint32_t pageTableAddr);
+void addPageTable(int idx, uint32_t pageTableAddr);
 
 /**
  * @brief Add a page to a page table
