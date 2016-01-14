@@ -1,9 +1,15 @@
- ☐ Build cross-compiler
  ☐ Protected mode?
- ☐ Paging
+ ☐ Page fault handler is not registered correctly
+ ☐ Only map kernel code and data in page table
  ☐ Heap
  ☐ Boot on x86_64 machine
  ☐ Move multiboot header to its own file (http://os.phil-opp.com/multiboot-kernel.html)
  ☐ Call C++ global constructors (Bare Bones Tutorial, http://wiki.osdev.org/Bare_Bones)
  ☐ Use multiple cores
  ☐ Create bootable HDD (Grub 2, http://wiki.osdev.org/GRUB_2)
+
+
+＿＿＿＿＿＿＿＿＿＿＿＿＿＿＿＿＿＿＿
+Archive:
+ ✔ Enable paging @done (16-01-13 22:58)
+ ✔ Build cross-compiler @done (16-01-13 22:56)
