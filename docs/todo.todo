@@ -1,15 +1,16 @@
- ☐ Protected mode?
  ☐ Page fault handler is not registered correctly
+ ☐ Call C++ global constructors (Bare Bones Tutorial, http://wiki.osdev.org/Bare_Bones)
  ☐ Only map kernel code and data in page table
+ ☐ Protected mode?
  ☐ Heap
  ☐ Boot on x86_64 machine
  ☐ Move multiboot header to its own file (http://os.phil-opp.com/multiboot-kernel.html)
- ☐ Call C++ global constructors (Bare Bones Tutorial, http://wiki.osdev.org/Bare_Bones)
- ☐ Use multiple cores
  ☐ Create bootable HDD (Grub 2, http://wiki.osdev.org/GRUB_2)
+ ☐ Use multiple cores
 
 
 ＿＿＿＿＿＿＿＿＿＿＿＿＿＿＿＿＿＿＿
 Archive:
+ ✔ Move debugging functions to their own file @done (16-01-15 19:38)
  ✔ Enable paging @done (16-01-13 22:58)
  ✔ Build cross-compiler @done (16-01-13 22:56)
