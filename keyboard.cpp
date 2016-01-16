@@ -118,7 +118,7 @@ unsigned int Keyboard::qTail = 0;
 
 void Keyboard::init()
 {
-    installIrqHandler(IRQ_KEYBOARD, interruptHandler);
+    registerIrqHandler(IRQ_KEYBOARD, interruptHandler);
 }
 
 void Keyboard::interruptHandler(const registers* /*regs*/)

@@ -4,7 +4,7 @@
 namespace
 {
 
-const char* EXCEPTION_MESSAGES[] =
+const char* EXCEPTION_MESSAGES[32] =
 {
     "Division By Zero",
     "Debug",
@@ -40,6 +40,27 @@ const char* EXCEPTION_MESSAGES[] =
     "Reserved",
 };
 
+/**
+ * @brief Array of function pointers for ISR handlers
+ */
+isrHandlerPtr isrFunctions[32] =
+{
+    nullptr, nullptr, nullptr, nullptr, nullptr, nullptr, nullptr, nullptr,
+    nullptr, nullptr, nullptr, nullptr, nullptr, nullptr, nullptr, nullptr,
+    nullptr, nullptr, nullptr, nullptr, nullptr, nullptr, nullptr, nullptr,
+    nullptr, nullptr, nullptr, nullptr, nullptr, nullptr, nullptr, nullptr,
+};
+
+}
+
+void registerIsrHandler(uint8_t isr, isrHandlerPtr handler)
+{
+    isrFunctions[isr] = handler;
+}
+
+void unregisterIsrHandler(uint8_t isr)
+{
+    isrFunctions[isr] = nullptr;
 }
 
 /**
@@ -48,23 +69,40 @@ const char* EXCEPTION_MESSAGES[] =
 extern "C"
 void isrHandler(const struct registers* regs)
 {
-    os::Screen::EColor bgColor = screen.getBackgroundColor();
-    os::Screen::EColor fgColor = screen.getForegroundColor();
-
-    screen.setBackgroundColor(os::Screen::EColor::eRed);
-    screen.setForegroundColor(os::Screen::EColor::eWhite);
-
+    isrHandlerPtr handler = nullptr;
     if (regs->intNo < 32)
     {
-        screen << EXCEPTION_MESSAGES[regs->intNo] << " Exception\n";
+        handler = isrFunctions[regs->intNo];
     }
-    else
+
+    // if an interrupt handler is registered, call it
+    if (handler != nullptr)
     {
-        screen << "Unknown exception number: " << regs->intNo << '\n';
+        handler(regs);
+    }
+    else // print an error message and hang
+    {
+        os::Screen::EColor bgColor = screen.getBackgroundColor();
+        os::Screen::EColor fgColor = screen.getForegroundColor();
+
+        screen.setBackgroundColor(os::Screen::EColor::eRed);
+        screen.setForegroundColor(os::Screen::EColor::eWhite);
+
+        if (regs->intNo < 32)
+        {
+            screen << EXCEPTION_MESSAGES[regs->intNo] << " Exception\n";
+        }
+        else
+        {
+            screen << "Unknown exception number: " << regs->intNo << '\n';
+        }
+
+        screen << "Error code: " << regs->errCode << '\n';
+
+        screen.setBackgroundColor(bgColor);
+        screen.setForegroundColor(fgColor);
+
+        while (true);
     }
 
-    screen << "Error code: " << regs->errCode << '\n';
-
-    screen.setBackgroundColor(bgColor);
-    screen.setForegroundColor(fgColor);
 }

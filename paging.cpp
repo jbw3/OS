@@ -49,7 +49,7 @@ void pageFault(const registers* /*regs*/)
 void initPaging()
 {
     // register page fault handler
-    installIrqHandler(IRQ_PAGE_FAULT, pageFault);
+    registerIsrHandler(ISR_PAGE_FAULT, pageFault);
 
     // initialize the page driectory
     initPageDir();

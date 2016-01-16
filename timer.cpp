@@ -12,7 +12,7 @@ void Timer::init(unsigned int freq)
     ticks = 0;
 
     // register interrupt
-    installIrqHandler(IRQ_TIMER, interruptHandler);
+    registerIrqHandler(IRQ_TIMER, interruptHandler);
 
     // the value we send to the PIT is the value to divide it's
     // 1,193,180 Hz input clock by

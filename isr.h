@@ -3,6 +3,8 @@
 
 #include <stdint.h>
 
+#define ISR_PAGE_FAULT 14
+
 #ifdef __cplusplus
 extern "C"
 {
@@ -64,6 +66,18 @@ extern void isr28();
 extern void isr29();
 extern void isr30();
 extern void isr31();
+
+typedef void (*isrHandlerPtr)(const struct registers*);
+
+/**
+ * @brief Register a handler for an ISR
+ */
+void registerIsrHandler(uint8_t isr, isrHandlerPtr handler);
+
+/**
+ * @brief Unregister a handler for an ISR
+ */
+void unregisterIsrHandler(uint8_t isr);
 
 #ifdef __cplusplus
 } // extern "C"

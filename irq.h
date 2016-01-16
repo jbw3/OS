@@ -22,7 +22,6 @@
 
 #define IRQ_TIMER      IRQ0
 #define IRQ_KEYBOARD   IRQ1
-#define IRQ_PAGE_FAULT IRQ14
 
 #ifdef __cplusplus
 extern "C"
@@ -51,14 +50,14 @@ typedef void (*irqHandlerPtr)(const struct registers*);
 void initIrq();
 
 /**
- * @brief Install a handler for an IRQ
+ * @brief Register a handler for an IRQ
  */
-void installIrqHandler(uint8_t irq, irqHandlerPtr handler);
+void registerIrqHandler(uint8_t irq, irqHandlerPtr handler);
 
 /**
- * @brief Uninstall a handler for an IRQ
+ * @brief Unregister a handler for an IRQ
  */
-void uninstallIrqHandler(uint8_t irq);
+void unregisterIrqHandler(uint8_t irq);
 
 #ifdef __cplusplus
 } // extern "C"

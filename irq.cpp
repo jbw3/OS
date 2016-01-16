@@ -58,12 +58,12 @@ void initIrq()
     idtSetGate(IRQ_START_NUM + 15, (uint32_t)irq15, 0x08, 0x8E);
 }
 
-void installIrqHandler(uint8_t irq, irqHandlerPtr handler)
+void registerIrqHandler(uint8_t irq, irqHandlerPtr handler)
 {
     irqFunctions[irq] = handler;
 }
 
-void uninstallIrqHandler(uint8_t irq)
+void unregisterIrqHandler(uint8_t irq)
 {
     irqFunctions[irq] = nullptr;
 }

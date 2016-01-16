@@ -3,7 +3,7 @@
 
 #include <stdint.h>
 
-#include "irq.h"
+#include "isr.h"
 
 #define PAGE_DIR_ADDRESS 0xFFFFF000
 #define PAGE_DIR_PRESENT 0x00000001
