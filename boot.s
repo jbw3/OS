@@ -34,6 +34,7 @@ mboot:
 	dd start				; kernel entry point (initial EIP)
 
 global start				; kernel entry point
+extern _init				; global variable initialization
 extern kernelMain			; C code entry point
 
 start:
@@ -41,8 +42,11 @@ start:
 	push ebx				; push multiboot header location (kernelMain param)
 	push eax				; push multiboot magic number (kernelMain param)
 
-	; execute the kernel
 	cli						; disable interrupts
+
+	call _init				; call C++ global variable constructors
+
+	; execute the kernel
 	call kernelMain			; call kernelMain()
 
 .Linfinite:					; infinite loop

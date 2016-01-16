@@ -1,7 +1,7 @@
- ☐ Page fault handler is not registered correctly
- ☐ Call C++ global constructors (Bare Bones Tutorial, http://wiki.osdev.org/Bare_Bones)
+ ☐ Write readme
  ☐ Only map kernel code and data in page table
- ☐ Protected mode?
+ ☐ Implement filesystem
+ ☐ Organize files (see notes)
  ☐ Heap
  ☐ Boot on x86_64 machine
  ☐ Move multiboot header to its own file (http://os.phil-opp.com/multiboot-kernel.html)
@@ -11,6 +11,8 @@
 
 ＿＿＿＿＿＿＿＿＿＿＿＿＿＿＿＿＿＿＿
 Archive:
+ ✔ Call C++ global constructors (Bare Bones Tutorial, http://wiki.osdev.org/Bare_Bones) @done (16-01-16 00:18)
+ ✔ Page fault handler is not registered correctly @done (16-01-15 20:09)
  ✔ Move debugging functions to their own file @done (16-01-15 19:38)
  ✔ Enable paging @done (16-01-13 22:58)
  ✔ Build cross-compiler @done (16-01-13 22:56)
