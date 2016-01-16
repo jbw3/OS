@@ -20,9 +20,7 @@ extern const void* getStackEnd();
 
 extern uint32_t getStackOffset();
 
-uint32_t* getKImgStart();
-
-uint32_t* getKImgEnd();
+uint32_t getKernelEnd();
 
 #ifdef __cplusplus
 } // extern "C"

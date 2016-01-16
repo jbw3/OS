@@ -2,8 +2,7 @@
 
 extern kernel_stack_start
 extern kernel_stack_end
-extern kImgStart
-extern kImgEnd
+extern end
 
 ; get the stack pointer
 global getStackPointer
@@ -31,14 +30,8 @@ getStackOffset:
     sub eax, esp
     ret
 
-; get the kernel's start address
-global getKImgStart
-getKImgStart:
-    mov eax, kImgStart
-    ret
-
 ; get the kernel's end address
-global getKImgEnd
-getKImgEnd:
-    mov eax, kImgEnd
+global getKernelEnd
+getKernelEnd:
+    mov eax, end
     ret

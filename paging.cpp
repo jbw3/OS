@@ -7,22 +7,12 @@ namespace
 
 /**
  * @brief Identity map the kernel
- * @todo Add all pages in the first page table for now. Later,
- * this should only map the kernel code and data
  */
 void mapKernel()
 {
-    /*
-    uint32_t kStart = reinterpret_cast<uint32_t>(getKImgStart());
-    uint32_t kEnd = reinterpret_cast<uint32_t>(getKImgEnd());
-    for (uint32_t pageAddr = kStart; pageAddr < kEnd; pageAddr += 4096)
+    for (uint32_t addr = 0; addr < getKernelEnd(); addr += 4096)
     {
-        addPage(pageAddr);
-    }
-    */
-    for (uint32_t i = 0; i < 1024; ++i)
-    {
-        addPage(i * 4096);
+        addPage(addr);
     }
 }
 
@@ -54,10 +44,15 @@ void initPaging()
     // initialize the page driectory
     initPageDir();
 
-    // add a page table
-    initPageTable(0x200000);
-    addPageTable(0, 0x200000);
-    addPage(0x200000);
+    // add a page table after the kernel
+    uint32_t pageAddr = getKernelEnd();
+    if ((pageAddr & 0xFFF) != 0)
+    {
+        pageAddr &= 0xFFFF'F000;
+        pageAddr += 4096;
+    }
+    initPageTable(pageAddr);
+    addPageTable(0, pageAddr);
 
     mapKernel();
 
