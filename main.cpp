@@ -20,7 +20,6 @@
 extern "C"
 void kernelMain(const uint32_t MULTIBOOT_MAGIC_NUM, const multiboot_info* mbootInfo)
 {
-    screen.init();
     screen.setBackgroundColor(os::Screen::EColor::eBlack);
     screen.setForegroundColor(os::Screen::EColor::eLightGreen);
     screen.clear();

@@ -76,8 +76,6 @@ public:
 
     Screen();
 
-    void init();
-
     EColor getForegroundColor() const;
 
     void setForegroundColor(EColor color);

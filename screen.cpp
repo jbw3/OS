@@ -72,10 +72,6 @@ Screen::Manip<size_t> Screen::setw(size_t width)
 
 Screen::Screen()
 {
-}
-
-void Screen::init()
-{
     textMem = (uint16_t*)(0xB8000);
     csrX = 0;
     csrY = 0;
@@ -88,7 +84,6 @@ void Screen::init()
     setBackgroundColor(EColor::eBlack);
     setForegroundColor(EColor::eWhite);
 }
-
 
 Screen::EColor Screen::getForegroundColor() const
 {
