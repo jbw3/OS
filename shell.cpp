@@ -211,9 +211,55 @@ void Shell::showCmd()
         {
             printMemMap(mbootInfo->mmap_addr, mbootInfo->mmap_length);
         }
+        else if (strcmp(arg2, "drives") == 0)
+        {
+            printDrives(mbootInfo->drives_addr, mbootInfo->drives_length);
+        }
         else
         {
             screen << "Unexpected argument\n";
+        }
+    }
+    else if (strcmp(arg1, "pagedir") == 0)
+    {
+        char* arg2 = strtok(nullptr, " ");
+        if (arg2 == nullptr)
+        {
+            screen << "Not enough arguments\n";
+        }
+        else
+        {
+            int startIdx = atoi(arg2);
+            int endIdx = startIdx;
+
+            char* arg3 = strtok(nullptr, " ");
+            if (arg3 != nullptr)
+            {
+                endIdx = atoi(arg3);
+            }
+
+            if (startIdx < 0 || startIdx >= 1024)
+            {
+                screen << "Invalid start index\n";
+            }
+            else if (endIdx < 0 || endIdx >= 1024)
+            {
+                screen << "Invalid end index\n";
+            }
+            else
+            {
+                const uint32_t* pageDir = getPageDirStart();
+                for (int i = startIdx; i <= endIdx; ++i)
+                {
+                    screen << os::Screen::setw(4) << i << ": "
+                           << os::Screen::hex
+                           << os::Screen::setfill('0')
+                           << os::Screen::setw(8)
+                           << pageDir[i] << '\n'
+                           << os::Screen::setfill(' ')
+                           << os::Screen::dec;
+                }
+            }
         }
     }
     else if (strcmp(arg1, "smile") == 0 || strcmp(arg1, "smiley") == 0)

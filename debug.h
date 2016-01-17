@@ -17,6 +17,8 @@ void printMultibootInfo(const multiboot_info* mbootInfo);
 
 void printMemMap(uint32_t addr, uint32_t len);
 
+void printDrives(uint32_t addr, uint32_t len);
+
 void printMem(int ptr);
 
 void printMem(const uint32_t* ptr);

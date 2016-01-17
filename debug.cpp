@@ -1,6 +1,16 @@
 #include "debug.h"
 #include "screen.h"
 
+struct multiboot_drives_entry
+{
+    uint32_t size;
+    uint8_t drive_number;
+    uint8_t drive_mode;
+    uint16_t drive_cylinders;
+    uint8_t drive_heads;
+    uint8_t drive_sectors;
+} __attribute__((packed));
+
 void printMultibootInfo(const multiboot_info* mbootInfo)
 {
     screen << "Multiboot info:\n";
@@ -90,6 +100,29 @@ void printMemMap(uint32_t addr, uint32_t len)
                << " (" << (entry->len / 1024) << " KB)\n";
 
         offset += entry->size + sizeof(entry->size);
+    }
+}
+
+void printDrives(uint32_t addr, uint32_t len)
+{
+    if (len == 0)
+    {
+        screen << "No drives\n";
+    }
+    else
+    {
+        uint32_t offset = 0;
+        while (offset < len)
+        {
+            const multiboot_drives_entry* entry = reinterpret_cast<const multiboot_drives_entry*>(addr + offset);
+
+            screen << "Drive " << entry->drive_number << ":\n"
+                   << "Mode: " << entry->drive_mode << '\n'
+                   << "Cylinders: " << entry->drive_cylinders << '\n'
+                   << '\n';
+
+            offset += entry->size;
+        }
     }
 }
 
