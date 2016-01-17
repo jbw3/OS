@@ -135,7 +135,7 @@ private:
     static const int SCREEN_WIDTH;
     static const int SCREEN_HEIGHT;
     static const int TAB_SIZE;
-    static const unsigned int IN_QUEUE_SIZE = 4;
+    static const unsigned int IN_QUEUE_SIZE = 32;
 
     static const uint8_t BOOL_ALPHA;
     static const uint8_t UPPERCASE;
