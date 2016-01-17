@@ -47,11 +47,6 @@ void kernelMain(const uint32_t MULTIBOOT_MAGIC_NUM, const multiboot_info* mbootI
 
     screen.write("Sandbox OS\n");
 
-    printMultibootInfo(mbootInfo);
-    printMultibootInfo(mbootInfo);
-    screen << os::Screen::hex << (uint32_t)(mbootInfo) << os::Screen::dec << '\n';
-    // printMemMap(mbootInfo->mmap_addr, mbootInfo->mmap_length);
-
     initPaging();
 
     Shell sh(mbootInfo);

@@ -175,22 +175,38 @@ void Shell::setCmd()
     }
     else
     {
-        screen << "Unexpected arguments\n";
+        screen << "Unexpected argument\n";
     }
 }
 
 void Shell::showCmd()
 {
-    char* arg = strtok(nullptr, " ");
-    if (arg == nullptr)
+    char* arg1 = strtok(nullptr, " ");
+    if (arg1 == nullptr)
     {
         screen << "Not enough arguments\n";
     }
-    else if (strcmp(arg, "mboot") == 0)
+    else if (strcmp(arg1, "mboot") == 0)
     {
-        printMultibootInfo(mbootInfo);
+        char* arg2 = strtok(nullptr, " ");
+        if (arg2 == nullptr)
+        {
+            screen << "Not enough arguments\n";
+        }
+        else if (strcmp(arg2, "info") == 0)
+        {
+            printMultibootInfo(mbootInfo);
+        }
+        else if (strcmp(arg2, "mem") == 0)
+        {
+            printMemMap(mbootInfo->mmap_addr, mbootInfo->mmap_length);
+        }
+        else
+        {
+            screen << "Unexpected argument\n";
+        }
     }
-    else if (strcmp(arg, "smile") == 0 || strcmp(arg, "smiley") == 0)
+    else if (strcmp(arg1, "smile") == 0 || strcmp(arg1, "smiley") == 0)
     {
         for (int i = 0; i < 20; ++i)
         {
@@ -199,6 +215,6 @@ void Shell::showCmd()
     }
     else
     {
-        screen << "Unexpected arguments\n";
+        screen << "Unexpected argument\n";
     }
 }
