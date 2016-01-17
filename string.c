@@ -118,6 +118,24 @@ char* strncat(char* str1, const char* str2, size_t num)
     return str1;
 }
 
+char* strchr(const char* str, int ch)
+{
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wdiscarded-qualifiers"
+    char* ptr = str;
+#pragma GCC diagnostic pop
+
+    do
+    {
+        if (*ptr == (char)ch)
+        {
+            return ptr;
+        }
+    } while (*(ptr++) != '\0');
+
+    return NULL;
+}
+
 int strcmp(const char* str1, const char* str2)
 {
     size_t i = 0;
@@ -160,4 +178,48 @@ size_t strlen(const char* str)
     }
 
     return size;
+}
+
+char* strtok(char* str, const char* delimiters)
+{
+    static char* pos = NULL;
+    char* start;
+
+    if (str != NULL)
+    {
+        pos = str;
+    }
+
+    /* find the first char not in delimiters;
+    this will be the start of the token */
+    while (*pos != '\0' && strchr(delimiters, *pos) != NULL)
+    {
+        ++pos;
+    }
+
+    /* return a null pointer if a token could not be found */
+    if (*pos == '\0')
+    {
+        return NULL;
+    }
+
+    start = pos;
+
+    /* find a char in delimiters or a null char;
+    this will be the end of the token */
+    while (*pos != '\0' && strchr(delimiters, *pos) == NULL)
+    {
+        ++pos;
+    }
+
+    /* if the end if the string has not been found,
+    insert a null char to mark the end of the token
+    and increment pos to prepare for the next search */
+    if (*pos != '\0')
+    {
+        *pos = '\0';
+        ++pos;
+    }
+
+    return start;
 }

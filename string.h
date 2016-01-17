@@ -20,11 +20,15 @@ char* strcat(char* str1, const char* str2);
 
 char* strncat(char* str1, const char* str2, size_t num);
 
+char* strchr(const char* str, int ch);
+
 int strcmp(const char* str1, const char* str2);
 
 char* strcpy(char* dst, const char* src);
 
 size_t strlen(const char* str);
+
+char* strtok(char* str, const char* delimiters);
 
 #ifdef __cplusplus
 } /* extern "C" */
