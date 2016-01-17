@@ -31,8 +31,6 @@ void Shell::update()
     bool avail = screen.read(ch);
     while (avail)
     {
-        screen << ch;
-
         processChar(ch);
 
         avail = screen.read(ch);
@@ -48,17 +46,29 @@ void Shell::processChar(char ch)
 {
     if (ch == '\n')
     {
+        screen << ch;
         cmd[cmdIdx] = '\0';
         processCmd();
     }
+    else if (ch == '\b')
+    {
+        if (cmdIdx > 0)
+        {
+            // clear the previous char
+            screen << "\b \b";
+            --cmdIdx;
+        }
+    }
     else if (cmdIdx == CMD_MAX_SIZE)
     {
+        screen << ch;
         screen << "\nError: Command too long\n";
         resetCmd();
         prompt();
     }
     else
     {
+        screen << ch;
         cmd[cmdIdx++] = ch;
     }
 }
