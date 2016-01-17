@@ -76,6 +76,9 @@ Screen::Screen()
     csrX = 0;
     csrY = 0;
 
+    qHead = 0;
+    qTail = 0;
+
     base = 10;
     flags = BOOL_ALPHA;
     width = 0;
@@ -113,6 +116,44 @@ void Screen::setBackgroundColor(EColor color)
     temp <<= 12;
     attrib &= 0x0F00; // clear all but foreground color
     attrib |= temp; // set new background color
+}
+
+void Screen::addInput(char ch)
+{
+    // the char to the queue if it is not full
+    if ( (qTail != qHead - 1) && !(qHead == 0 && qTail == IN_QUEUE_SIZE - 1) )
+    {
+        inQueue[qTail] = ch;
+        if (qTail >= IN_QUEUE_SIZE - 1)
+        {
+            qTail = 0;
+        }
+        else
+        {
+            ++qTail;
+        }
+    }
+}
+
+bool Screen::read(char& ch)
+{
+    // if the queue is empty return false
+    if (qHead == qTail)
+    {
+        return false;
+    }
+
+    ch = inQueue[qHead];
+    if (qHead >= IN_QUEUE_SIZE - 1)
+    {
+        qHead = 0;
+    }
+    else
+    {
+        ++qHead;
+    }
+
+    return true;
 }
 
 void Screen::write(char ch)

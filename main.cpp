@@ -11,6 +11,7 @@
 #include "keyboard.h"
 #include "paging.h"
 #include "screen.h"
+#include "shell.h"
 #include "system.h"
 #include "timer.h"
 
@@ -51,9 +52,13 @@ void kernelMain(const uint32_t MULTIBOOT_MAGIC_NUM, const multiboot_info* mbootI
 
     initPaging();
 
+    Shell sh;
+
     while (true)
     {
         os::Keyboard::processQueue();
+
+        sh.update();
 
         // halt CPU until an interrupt occurs
         asm volatile ("hlt");

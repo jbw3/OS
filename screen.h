@@ -84,6 +84,10 @@ public:
 
     void setBackgroundColor(EColor color);
 
+    void addInput(char ch);
+
+    bool read(char& ch);
+
     void write(char ch);
 
     void write(const char* str);
@@ -131,6 +135,7 @@ private:
     static const int SCREEN_WIDTH;
     static const int SCREEN_HEIGHT;
     static const int TAB_SIZE;
+    static const unsigned int IN_QUEUE_SIZE = 4;
 
     static const uint8_t BOOL_ALPHA;
     static const uint8_t UPPERCASE;
@@ -143,6 +148,10 @@ private:
     uint16_t attrib;
     int csrX;
     int csrY;
+
+    unsigned int qHead;
+    unsigned int qTail;
+    char inQueue[IN_QUEUE_SIZE];
 
     int base;
     uint8_t flags;

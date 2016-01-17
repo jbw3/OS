@@ -217,7 +217,7 @@ void Keyboard::keyPress(uint16_t key)
             {
                 ch = shift(ch);
             }
-            screen.write(ch);
+            screen.addInput(ch);
         }
     }
 }
