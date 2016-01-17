@@ -1,4 +1,5 @@
 #include "debug.h"
+#include "paging.h"
 #include "screen.h"
 #include "shell.h"
 #include "stdlib.h"
@@ -150,6 +151,26 @@ void Shell::setCmd()
             {
                 screen.setForegroundColor(static_cast<os::Screen::EColor>(color));
             }
+        }
+    }
+    else if (strcmp(arg, "paging") == 0)
+    {
+        char* state = strtok(nullptr, " ");
+        if (state == nullptr)
+        {
+            screen << "No state given\n";
+        }
+        else if (strcmp(state, "off") == 0)
+        {
+            disablePaging();
+        }
+        else if (strcmp(state, "on") == 0)
+        {
+            enablePaging();
+        }
+        else
+        {
+            screen << "Invalid state\n";
         }
     }
     else

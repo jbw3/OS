@@ -31,6 +31,8 @@ void initPageTable(uint32_t addr);
 
 void enablePaging();
 
+void disablePaging();
+
 void pageFault(const registers* regs);
 
 } // extern "C"

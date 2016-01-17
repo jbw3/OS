@@ -107,3 +107,14 @@ enablePaging:
 	mov cr0, eax
 
 	ret
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+; disables paging
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+global disablePaging
+disablePaging:
+	mov eax, cr0
+	and eax, 0x7FFFFFFF
+	mov cr0, eax
+
+	ret
