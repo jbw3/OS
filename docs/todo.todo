@@ -1,8 +1,7 @@
- ☐ Write readme
- ☐ Only map kernel code and data in page table
+ ☐ Write README
  ☐ Implement filesystem
  ☐ Organize files (see notes)
- ☐ Heap
+ ☐ Create heap
  ☐ Boot on x86_64 machine
  ☐ Move multiboot header to its own file (http://os.phil-opp.com/multiboot-kernel.html)
  ☐ Create bootable HDD (Grub 2, http://wiki.osdev.org/GRUB_2)
@@ -11,6 +10,7 @@
 
 ＿＿＿＿＿＿＿＿＿＿＿＿＿＿＿＿＿＿＿
 Archive:
+ ✔ Only map kernel code and data in page table @done (16-01-16 17:48)
  ✔ Call C++ global constructors (Bare Bones Tutorial, http://wiki.osdev.org/Bare_Bones) @done (16-01-16 00:18)
  ✔ Page fault handler is not registered correctly @done (16-01-15 20:09)
  ✔ Move debugging functions to their own file @done (16-01-15 19:38)
