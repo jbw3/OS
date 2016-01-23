@@ -1,4 +1,5 @@
 Directory Structure
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 <top>
 |-- bin
@@ -24,7 +25,14 @@ Directory Structure
 
 
 Building Cross Compiler
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 Scripts are in the tools directory
 1. Run build-binutils.sh
 2. Run build-gcc.sh
+
+GRUB
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+Grub: http://wiki.osdev.org/GRUB#Installing_to_hard_disk
+Grub 2: http://wiki.osdev.org/GRUB_2
+grub-install: http://www.gnu.org/software/grub/manual/html_node/Installing-GRUB-using-grub_002dinstall.html#Installing-GRUB-using-grub_002dinstall
