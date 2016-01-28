@@ -10,6 +10,11 @@ class Command
 public:
     virtual const char* getName() = 0;
 
+    virtual void help()
+    {
+        screen << "No help for this command\n";
+    }
+
     virtual void execute() = 0;
 };
 
@@ -19,6 +24,11 @@ public:
     const char* getName() override
     {
         return "clear";
+    }
+
+    void help() override
+    {
+        screen << "Clears the screen\n";
     }
 
     void execute() override
@@ -40,6 +50,22 @@ public:
     const char* getName() override
     {
         return "set";
+    }
+
+    void help() override
+    {
+        screen <<
+R"(Changes config options:
+
+set bg <0-15>
+    Set background color
+
+set fg <0-15>
+    Set foreground color
+
+set paging <on|off>
+    Enable/disable paging
+)";
     }
 
     void execute() override
@@ -292,14 +318,22 @@ void Shell::processCmd()
     if (token != nullptr)
     {
         bool found = false;
-        for (unsigned int i = 0; i < NUM_COMMANDS; ++i)
+        if (strcmp(token, "help") == 0)
         {
-            Command* cmd = COMMANDS[i];
-            if (strcmp(token, cmd->getName()) == 0)
+            found = true;
+            displayHelp();
+        }
+        else
+        {
+            for (unsigned int i = 0; i < NUM_COMMANDS; ++i)
             {
-                cmd->execute();
-                found = true;
-                break;
+                Command* cmd = COMMANDS[i];
+                if (strcmp(token, cmd->getName()) == 0)
+                {
+                    cmd->execute();
+                    found = true;
+                    break;
+                }
             }
         }
 
@@ -311,6 +345,48 @@ void Shell::processCmd()
 
     resetCmd();
     prompt();
+}
+
+void Shell::displayHelp()
+{
+    char* arg = strtok(nullptr, " ");
+
+    // if no argument was given, list the commands
+    if (arg == nullptr)
+    {
+        screen << "Commands:\n";
+        for (unsigned int i = 0; i < NUM_COMMANDS; ++i)
+        {
+            screen << COMMANDS[i]->getName() << '\n';
+        }
+    }
+    else if (strtok(nullptr, " ") != nullptr)
+    {
+        screen << "Only expected one argument\n";
+    }
+    else if (strcmp(arg, "help") == 0)
+    {
+        screen << "Displays help for commands\n";
+    }
+    else
+    {
+        bool found = false;
+        for (unsigned int i = 0; i < NUM_COMMANDS; ++i)
+        {
+            Command* cmd = COMMANDS[i];
+            if (strcmp(arg, cmd->getName()) == 0)
+            {
+                cmd->help();
+                found = true;
+                break;
+            }
+        }
+
+        if (!found)
+        {
+            screen << '"' << arg << "\" is not a command\n";
+        }
+    }
 }
 
 void Shell::resetCmd()

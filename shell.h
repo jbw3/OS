@@ -27,6 +27,8 @@ private:
 
     void processCmd();
 
+    void displayHelp();
+
     void resetCmd();
 };
 
