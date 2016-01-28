@@ -10,10 +10,7 @@ class Command
 public:
     virtual const char* getName() = 0;
 
-    virtual void help()
-    {
-        screen << "No help for this command\n";
-    }
+    virtual const char* getHelp() = 0;
 
     virtual void execute() = 0;
 };
@@ -26,9 +23,9 @@ public:
         return "clear";
     }
 
-    void help() override
+    const char* getHelp() override
     {
-        screen << "Clears the screen\n";
+        return "Clears the screen\n";
     }
 
     void execute() override
@@ -52,9 +49,9 @@ public:
         return "set";
     }
 
-    void help() override
+    const char* getHelp() override
     {
-        screen <<
+        return
 R"(Changes config options:
 
 set bg <0-15>
@@ -160,6 +157,23 @@ public:
         return "show";
     }
 
+    const char* getHelp() override
+    {
+        return
+R"(Displays information:
+
+show mboot info
+    Display general multiboot information
+show mboot mem
+    Display multiboot memory map
+show mboot drives
+    Display multiboot drive information
+
+show pagedir <0-1023> [0-1023]
+    Display page directory entries
+)";
+    }
+
     void execute() override
     {
         char* arg1 = strtok(nullptr, " ");
@@ -216,6 +230,10 @@ public:
                 else if (endIdx < 0 || endIdx >= 1024)
                 {
                     screen << "Invalid end index\n";
+                }
+                else if (startIdx > endIdx)
+                {
+                    screen << "Start index cannot be greater than end index\n";
                 }
                 else
                 {
@@ -376,7 +394,7 @@ void Shell::displayHelp()
             Command* cmd = COMMANDS[i];
             if (strcmp(arg, cmd->getName()) == 0)
             {
-                cmd->help();
+                screen << cmd->getHelp();
                 found = true;
                 break;
             }
