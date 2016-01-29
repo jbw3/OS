@@ -169,8 +169,10 @@ show mboot mem
 show mboot drives
     Display multiboot drive information
 
-show pagedir <0-1023> [0-1023]
-    Display page directory entries
+show pagedir <start index> [end index]
+    Display page directory entries, index range: 0-1023
+show pagetab <page dir index> <start index> [end index]
+    Display page table entries, index range: 0-1023
 )";
     }
 
@@ -231,13 +233,43 @@ show pagedir <0-1023> [0-1023]
                 {
                     screen << "Invalid end index\n";
                 }
-                else if (startIdx > endIdx)
-                {
-                    screen << "Start index cannot be greater than end index\n";
-                }
                 else
                 {
                     printPageDir(startIdx, endIdx);
+                }
+            }
+        }
+        else if (strcmp(arg1, "pagetab") == 0)
+        {
+            char* arg2 = strtok(nullptr, " ");
+            char* arg3 = strtok(nullptr, " ");
+            if (arg2 == nullptr || arg3 == nullptr)
+            {
+                screen << "Not enough arguments\n";
+            }
+            else
+            {
+                int pageDirIdx = atoi(arg2);
+                int startIdx = atoi(arg3);
+                int endIdx = startIdx;
+
+                char* arg4 = strtok(nullptr, " ");
+                if (arg4 != nullptr)
+                {
+                    endIdx = atoi(arg4);
+                }
+
+                if (startIdx < 0 || startIdx >= 1024)
+                {
+                    screen << "Invalid start index\n";
+                }
+                else if (endIdx < 0 || endIdx >= 1024)
+                {
+                    screen << "Invalid end index\n";
+                }
+                else
+                {
+                    printPageTable(pageDirIdx, startIdx, endIdx);
                 }
             }
         }

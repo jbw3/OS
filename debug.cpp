@@ -189,3 +189,55 @@ void printPageDir(int startIdx, int endIdx)
     }
 
 }
+
+void printPageTable(int pageDirIdx, int startIdx, int endIdx)
+{
+    if (pageDirIdx < 0 || pageDirIdx >= 1024)
+    {
+        screen << "Page directory index out of range\n";
+        return;
+    }
+
+    if (startIdx > endIdx)
+    {
+        screen << "Start index cannot be greater than end index\n";
+        return;
+    }
+
+    const uint32_t* pageDir = getPageDirStart();
+    uint32_t pageDirEntry = pageDir[pageDirIdx];
+
+    const uint32_t* pageTable = reinterpret_cast<const uint32_t*>(pageDirEntry & PAGE_DIR_ADDRESS);
+    bool tablePresent = pageDirEntry & PAGE_DIR_PRESENT;
+    if (!tablePresent)
+    {
+        screen << "No page table is mapped at index " << pageDirIdx << '\n';
+        return;
+    }
+
+    screen << "Idx   Address   P\n"
+              "----  --------  -\n";
+
+    for (int i = startIdx; i <= endIdx; ++i)
+    {
+        uint32_t entry = pageTable[i];
+
+        uint32_t address = entry & PAGE_TABLE_ADDRESS;
+        bool present     = entry & PAGE_TABLE_PRESENT;
+
+        screen << os::Screen::noboolalpha
+               << os::Screen::setw(4)
+               << i
+
+               << "  "
+               << os::Screen::hex
+               << os::Screen::setfill('0')
+               << os::Screen::setw(8)
+               << address
+               << os::Screen::setfill(' ')
+               << os::Screen::dec
+
+               << "  " << present
+               << '\n';
+    }
+}

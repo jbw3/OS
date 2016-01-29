@@ -25,4 +25,6 @@ void printMem(const uint32_t* ptr);
 
 void printPageDir(int startIdx, int endIdx);
 
+void printPageTable(int pageDirIdx, int startIdx, int endIdx);
+
 #endif // _DEBUG_H
