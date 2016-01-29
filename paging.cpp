@@ -19,15 +19,26 @@ void mapKernel()
 }
 
 extern "C"
-void pageFault(const registers* /*regs*/)
+void pageFault(const registers* regs)
 {
     os::Screen::EColor bgColor = screen.getBackgroundColor();
     os::Screen::EColor fgColor = screen.getForegroundColor();
 
+    screen << '\n';
+
     screen.setBackgroundColor(os::Screen::EColor::eRed);
     screen.setForegroundColor(os::Screen::EColor::eWhite);
 
-    screen << "Page fault!";
+    screen << "Page fault!\n"
+           << "Error code: " << regs->errCode << '\n'
+           << "Address: "
+           << os::Screen::setw(8)
+           << os::Screen::setfill('0')
+           << os::Screen::hex
+           << getRegCR2()
+           << os::Screen::setfill(' ')
+           << os::Screen::dec
+           << '\n';
 
     screen.setBackgroundColor(bgColor);
     screen.setForegroundColor(fgColor);

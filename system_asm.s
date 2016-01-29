@@ -35,3 +35,9 @@ global getKernelEnd
 getKernelEnd:
     mov eax, end
     ret
+
+; get the CR2 register value
+global getRegCR2
+getRegCR2:
+    mov eax, cr2
+    ret
