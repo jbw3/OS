@@ -150,15 +150,42 @@ void printPageDir(int startIdx, int endIdx)
         return;
     }
 
+    screen << "Idx   Address   S  A  D  W  U  R  P\n"
+              "----  --------  -  -  -  -  -  -  -\n";
+
     const uint32_t* pageDir = getPageDirStart();
     for (int i = startIdx; i <= endIdx; ++i)
     {
-        screen << os::Screen::setw(4) << i << ": "
+        uint32_t entry = pageDir[i];
+
+        uint32_t address  = entry & PAGE_DIR_ADDRESS;
+        bool pageSize     = entry & PAGE_DIR_PAGE_SIZE;
+        bool accessed     = entry & PAGE_DIR_ACCESSED;
+        bool cacheDisable = entry & PAGE_DIR_CACHE_DISABLE;
+        bool writeThrough = entry & PAGE_DIR_WRITE_THROUGH;
+        bool user         = entry & PAGE_DIR_USER;
+        bool readWrite    = entry & PAGE_DIR_READ_WRITE;
+        bool present      = entry & PAGE_DIR_PRESENT;
+
+        screen << os::Screen::noboolalpha
+               << os::Screen::setw(4) << i
+
+               << "  "
                << os::Screen::hex
                << os::Screen::setfill('0')
                << os::Screen::setw(8)
-               << pageDir[i] << '\n'
+               << address
                << os::Screen::setfill(' ')
-               << os::Screen::dec;
+               << os::Screen::dec
+
+               << "  " << pageSize
+               << "  " << accessed
+               << "  " << cacheDisable
+               << "  " << writeThrough
+               << "  " << user
+               << "  " << readWrite
+               << "  " << present
+               << '\n';
     }
+
 }
