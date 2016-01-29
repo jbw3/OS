@@ -215,15 +215,22 @@ void printPageTable(int pageDirIdx, int startIdx, int endIdx)
         return;
     }
 
-    screen << "Idx   Address   P\n"
-              "----  --------  -\n";
+    screen << "Idx   Address   G  D  A  C  W  U  R  P\n"
+              "----  --------  -  -  -  -  -  -  -  -\n";
 
     for (int i = startIdx; i <= endIdx; ++i)
     {
         uint32_t entry = pageTable[i];
 
-        uint32_t address = entry & PAGE_TABLE_ADDRESS;
-        bool present     = entry & PAGE_TABLE_PRESENT;
+        uint32_t address  = entry & PAGE_TABLE_ADDRESS;
+        bool global       = entry & PAGE_TABLE_GLOBAL;
+        bool dirty        = entry & PAGE_TABLE_DIRTY;
+        bool accessed     = entry & PAGE_TABLE_ACCESSED;
+        bool cacheDisable = entry & PAGE_TABLE_CACHE_DISABLE;
+        bool writeThrough = entry & PAGE_TABLE_WRITE_THROUGH;
+        bool user         = entry & PAGE_TABLE_USER;
+        bool readWrite    = entry & PAGE_TABLE_READ_WRITE;
+        bool present      = entry & PAGE_TABLE_PRESENT;
 
         screen << os::Screen::noboolalpha
                << os::Screen::setw(4)
@@ -237,6 +244,13 @@ void printPageTable(int pageDirIdx, int startIdx, int endIdx)
                << os::Screen::setfill(' ')
                << os::Screen::dec
 
+               << "  " << global
+               << "  " << dirty
+               << "  " << accessed
+               << "  " << cacheDisable
+               << "  " << writeThrough
+               << "  " << user
+               << "  " << readWrite
                << "  " << present
                << '\n';
     }
