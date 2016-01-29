@@ -1,4 +1,5 @@
 #include "debug.h"
+#include "paging.h"
 #include "screen.h"
 
 struct multiboot_drives_entry
@@ -101,6 +102,8 @@ void printMemMap(uint32_t addr, uint32_t len)
 
         offset += entry->size + sizeof(entry->size);
     }
+
+    screen << os::Screen::setfill(' ');
 }
 
 void printDrives(uint32_t addr, uint32_t len)
@@ -137,4 +140,25 @@ void printMem(const uint32_t* ptr)
            << os::Screen::setw(8) << ptr << ": "
            << os::Screen::setw(8) << *ptr << '\n'
            << os::Screen::dec;
+}
+
+void printPageDir(int startIdx, int endIdx)
+{
+    if (startIdx > endIdx)
+    {
+        screen << "Start index cannot be greater than end index\n";
+        return;
+    }
+
+    const uint32_t* pageDir = getPageDirStart();
+    for (int i = startIdx; i <= endIdx; ++i)
+    {
+        screen << os::Screen::setw(4) << i << ": "
+               << os::Screen::hex
+               << os::Screen::setfill('0')
+               << os::Screen::setw(8)
+               << pageDir[i] << '\n'
+               << os::Screen::setfill(' ')
+               << os::Screen::dec;
+    }
 }

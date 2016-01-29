@@ -237,17 +237,7 @@ show pagedir <0-1023> [0-1023]
                 }
                 else
                 {
-                    const uint32_t* pageDir = getPageDirStart();
-                    for (int i = startIdx; i <= endIdx; ++i)
-                    {
-                        screen << os::Screen::setw(4) << i << ": "
-                               << os::Screen::hex
-                               << os::Screen::setfill('0')
-                               << os::Screen::setw(8)
-                               << pageDir[i] << '\n'
-                               << os::Screen::setfill(' ')
-                               << os::Screen::dec;
-                    }
+                    printPageDir(startIdx, endIdx);
                 }
             }
         }
