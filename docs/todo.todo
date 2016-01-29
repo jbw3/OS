@@ -7,7 +7,11 @@
  ☐ Move multiboot header to its own file (http://os.phil-opp.com/multiboot-kernel.html)
  ☐ Use multiple cores
  ☐ Create user processes
+ ☐ Blinking text
 
+Shell:
+ ☐ History
+ ☐ Tab complete
 
 ＿＿＿＿＿＿＿＿＿＿＿＿＿＿＿＿＿＿＿
 Archive:
