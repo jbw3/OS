@@ -1,5 +1,4 @@
  ☐ Create bootable HDD (see notes)
- ☐ Write README
  ☐ Implement filesystem
  ☐ Organize files (see notes)
  ☐ Create heap
@@ -15,6 +14,7 @@ Shell:
 
 ＿＿＿＿＿＿＿＿＿＿＿＿＿＿＿＿＿＿＿
 Archive:
+ ✔ Write README @done (16-01-31 17:46)
  ✔ Only map kernel code and data in page table @done (16-01-16 17:48)
  ✔ Call C++ global constructors (Bare Bones Tutorial, http://wiki.osdev.org/Bare_Bones) @done (16-01-16 00:18)
  ✔ Page fault handler is not registered correctly @done (16-01-15 20:09)

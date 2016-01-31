@@ -6,7 +6,7 @@ Directory Structure
 |-- obj
 |-- src
 |   |-- kernel
-|   |   |-- arch
+|   |   |-- arch libs
 |   |   |   |-- arm
 |   |   |   |   |-- CortexA7
 |   |   |   |
@@ -14,7 +14,9 @@ Directory Structure
 |   |   |       |-- 32Bit
 |   |   |       |-- 64Bit
 |   |   |
-|   |   |-- common
+|   |   |-- libcommon
+|   |   |
+|   |   |-- core
 |   |
 |   |-- lib
 |       |-- c
@@ -23,13 +25,6 @@ Directory Structure
 |
 |-- tools
 
-
-Building Cross Compiler
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-
-Scripts are in the tools directory
-1. Run build-binutils.sh
-2. Run build-gcc.sh
 
 GRUB
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
