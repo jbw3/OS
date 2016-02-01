@@ -1,5 +1,7 @@
 #include <string.h>
+
 #include "screen.h"
+#include "stringutils.h"
 #include "system.h"
 
 namespace os
@@ -226,31 +228,41 @@ Screen& Screen::operator <<(bool b)
 
 Screen& Screen::operator <<(signed char num)
 {
-    writeSigned(num);
+    char buff[sizeof(num) + 2]; // sizeof(num) + negative sign + null
+    writeSignedNum(num, buff, base, (flags & UPPERCASE));
+    write(buff);
     return *this;
 }
 
 Screen& Screen::operator <<(short num)
 {
-    writeSigned(num);
+    char buff[sizeof(num) + 2]; // sizeof(num) + negative sign + null
+    writeSignedNum(num, buff, base, (flags & UPPERCASE));
+    write(buff);
     return *this;
 }
 
 Screen& Screen::operator <<(int num)
 {
-    writeSigned(num);
+    char buff[sizeof(num) + 2]; // sizeof(num) + negative sign + null
+    writeSignedNum(num, buff, base, (flags & UPPERCASE));
+    write(buff);
     return *this;
 }
 
 Screen& Screen::operator <<(long num)
 {
-    writeSigned(num);
+    char buff[sizeof(num) + 2]; // sizeof(num) + negative sign + null
+    writeSignedNum(num, buff, base, (flags & UPPERCASE));
+    write(buff);
     return *this;
 }
 
 Screen& Screen::operator <<(long long num)
 {
-    writeSigned(num);
+    char buff[sizeof(num) + 2]; // sizeof(num) + negative sign + null
+    writeSignedNum(num, buff, base, (flags & UPPERCASE));
+    write(buff);
     return *this;
 }
 
@@ -402,39 +414,6 @@ void Screen::justify(size_t strLen)
     }
 
     width = 0;
-}
-
-template<typename T>
-void Screen::writeSigned(T num)
-{
-    // need 64 chars for max signed 64-bit number,
-    // 1 char for possible negative sign,
-    // and 1 char for null
-    char buff[66];
-    buff[65] = '\0';
-
-    int idx = 65;
-    bool negative = true;
-    if (num >= 0)
-    {
-        negative = false;
-        num = -num;
-    }
-
-    do
-    {
-        char digit = -(num % base);
-        digitToChar(digit);
-        buff[--idx] = digit;
-        num /= base;
-    } while (num < 0);
-
-    if (negative)
-    {
-        buff[--idx] = '-';
-    }
-
-    write(buff + idx);
 }
 
 template<typename T>
