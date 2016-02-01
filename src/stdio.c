@@ -1,4 +1,5 @@
 #include <stdarg.h>
+#include <stdio.h>
 #include <string.h>
 
 #include "stringutils.h"
@@ -7,6 +8,7 @@ int sprintf(char* buff, const char* fmt, ...)
 {
     const char* buffStart = buff;
     int i;
+    unsigned int ui;
     char* s;
     va_list args;
     va_start(args, fmt);
@@ -25,7 +27,7 @@ int sprintf(char* buff, const char* fmt, ...)
                 fmt += 2;
                 break;
 
-            /* output a char */
+            /* char */
             case 'c':
                 i = va_arg(args, int);
                 *buff = (char)(i);
@@ -33,7 +35,7 @@ int sprintf(char* buff, const char* fmt, ...)
                 fmt += 2;
                 break;
 
-            /* output a C-string */
+            /* C-string */
             case 's':
                 s = va_arg(args, char*);
                 while (*s != '\0')
@@ -45,11 +47,39 @@ int sprintf(char* buff, const char* fmt, ...)
                 fmt += 2;
                 break;
 
-            /* output int */
+            /* signed int */
             case 'd':
             case 'i':
                 i = va_arg(args, int);
                 buff += writeSignedNum(i, buff, 10, 0);
+                fmt += 2;
+                break;
+
+            /* octal */
+            case 'o':
+                ui = va_arg(args, unsigned int);
+                buff += writeUnsignedNum(ui, buff, 8, 0);
+                fmt += 2;
+                break;
+
+            /* lowercase hexadecimal */
+            case 'x':
+                ui = va_arg(args, unsigned int);
+                buff += writeUnsignedNum(ui, buff, 16, 0);
+                fmt += 2;
+                break;
+
+            /* uppercase hexadecimal */
+            case 'X':
+                ui = va_arg(args, unsigned int);
+                buff += writeUnsignedNum(ui, buff, 16, 1);
+                fmt += 2;
+                break;
+
+            /* unsigned int */
+            case 'u':
+                ui = va_arg(args, unsigned int);
+                buff += writeUnsignedNum(ui, buff, 10, 0);
                 fmt += 2;
                 break;
 
