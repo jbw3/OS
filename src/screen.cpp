@@ -268,37 +268,49 @@ Screen& Screen::operator <<(long long num)
 
 Screen& Screen::operator <<(unsigned char num)
 {
-    writeUnsigned(num);
+    char buff[sizeof(num) + 2]; // sizeof(num) + negative sign + null
+    writeUnsignedNum(num, buff, base, (flags & UPPERCASE));
+    write(buff);
     return *this;
 }
 
 Screen& Screen::operator <<(unsigned short num)
 {
-    writeUnsigned(num);
+    char buff[sizeof(num) + 2]; // sizeof(num) + negative sign + null
+    writeUnsignedNum(num, buff, base, (flags & UPPERCASE));
+    write(buff);
     return *this;
 }
 
 Screen& Screen::operator <<(unsigned int num)
 {
-    writeUnsigned(num);
+    char buff[sizeof(num) + 2]; // sizeof(num) + negative sign + null
+    writeUnsignedNum(num, buff, base, (flags & UPPERCASE));
+    write(buff);
     return *this;
 }
 
 Screen& Screen::operator <<(unsigned long num)
 {
-    writeUnsigned(num);
+    char buff[sizeof(num) + 2]; // sizeof(num) + negative sign + null
+    writeUnsignedNum(num, buff, base, (flags & UPPERCASE));
+    write(buff);
     return *this;
 }
 
 Screen& Screen::operator <<(unsigned long long num)
 {
-    writeUnsigned(num);
+    char buff[sizeof(num) + 2]; // sizeof(num) + negative sign + null
+    writeUnsignedNum(num, buff, base, (flags & UPPERCASE));
+    write(buff);
     return *this;
 }
 
 Screen& Screen::operator <<(const void* ptr)
 {
-    writeUnsigned((uintptr_t)ptr);
+    char buff[sizeof(ptr) + 2]; // sizeof(ptr) + negative sign + null
+    writeUnsignedNum(reinterpret_cast<uintptr_t>(ptr), buff, base, (flags & UPPERCASE));
+    write(buff);
     return *this;
 }
 
@@ -414,47 +426,6 @@ void Screen::justify(size_t strLen)
     }
 
     width = 0;
-}
-
-template<typename T>
-void Screen::writeUnsigned(T num)
-{
-    // need 64 chars for max unsigned 64-bit number
-    // and 1 char for null
-    char buff[65];
-    buff[64] = '\0';
-
-    int idx = 64;
-
-    do
-    {
-        char digit = num % base;
-        digitToChar(digit);
-        buff[--idx] = digit;
-        num /= base;
-    } while (num > 0);
-
-
-    write(buff + idx);
-}
-
-void Screen::digitToChar(char& digit)
-{
-    if (digit >= 10)
-    {
-        if ((flags & UPPERCASE) != 0)
-        {
-            digit += 'A' - 10;
-        }
-        else
-        {
-            digit += 'a' - 10;
-        }
-    }
-    else
-    {
-        digit += '0';
-    }
 }
 
 } // namespace os

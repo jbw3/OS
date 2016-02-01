@@ -57,3 +57,25 @@ int writeSignedNum(long long num, char* str, int base, int uppercase)
 
     return (BUFF_SIZE - 1) - idx;
 }
+
+int writeUnsignedNum(unsigned long long num, char* str, int base, int uppercase)
+{
+    // need sizeof(int) chars for max signed number
+    // and 1 char for null
+    const int BUFF_SIZE = sizeof(num) + 1;
+    char buff[sizeof(num) + 1];
+    buff[BUFF_SIZE - 1] = '\0';
+
+    int idx = BUFF_SIZE - 1;
+    do
+    {
+        char digit = num % base;
+        digit = digitToChar(digit, uppercase);
+        buff[--idx] = digit;
+        num /= base;
+    } while (num > 0);
+
+    strcpy(str, buff + idx);
+
+    return (BUFF_SIZE - 1) - idx;
+}

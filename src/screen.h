@@ -167,11 +167,6 @@ private:
     void rawWrite(char ch);
 
     void justify(size_t strLen);
-
-    template<typename T>
-    void writeUnsigned(T num);
-
-    void digitToChar(char& digit);
 };
 
 } // namespace os
