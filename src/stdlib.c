@@ -48,10 +48,12 @@ static char charToDigit(char ch)
     else if (ch >= 'a' && ch <= 'z')
     {
         ch -= 'a';
+        ch += 10;
     }
     else if (ch >= 'A' && ch <= 'Z')
     {
         ch -= 'A';
+        ch += 10;
     }
 
     return ch;
