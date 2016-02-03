@@ -27,7 +27,7 @@ To build the OS kernel, run `make` in the top-level directory. A GRUB-bootable I
 ### Bochs
 
 A Bochs configuration file to boot the ISO image can be found in the top-level directory.
-The command is `bochs -f bochsrc.txt`.
+The command is `bochs -f bochsrc-linux.txt`.
 
 ### QEMU
 
