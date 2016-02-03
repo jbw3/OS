@@ -1,5 +1,9 @@
-#ifndef STDLIB_H_
-#define STDLIB_H_
+#ifndef _STDLIB_H
+#define _STDLIB_H 1
+
+#ifndef NULL
+#define NULL ((void*)0)
+#endif
 
 #ifdef __cplusplus
 extern "C"
@@ -8,14 +12,16 @@ extern "C"
 
 int abs(int n);
 
-int atoi(const char* str);
-
 long labs(long n);
 
 long long llabs(long long n);
 
+int atoi(const char* str);
+
+long strtol(const char* str, char** strEnd, int base);
+
 #ifdef __cplusplus
-} // extern "C"
+} /* extern "C" */
 #endif
 
-#endif // STDLIB_H_
+#endif /* _STDLIB_H */
