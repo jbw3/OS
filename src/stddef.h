@@ -1,8 +1,10 @@
-#ifndef STDDEF_H_
-#define STDDEF_H_
+#ifndef _STDDEF_H
+#define _STDDEF_H 1
 
+#ifndef NULL
 #define NULL ((void*)0)
+#endif
 
 typedef __SIZE_TYPE__ size_t;
 
-#endif // STDDEF_H_
+#endif /* _STDDEF_H */
