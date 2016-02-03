@@ -103,10 +103,6 @@ long strtol(const char* str, char** strEnd, int base)
     {
         idx += 2;
     }
-    else if (base == 8 && str[idx] == '0')
-    {
-        ++idx;
-    }
     /* if base is 0, figure out the base from the first chars */
     else if (base == 0)
     {
@@ -118,7 +114,6 @@ long strtol(const char* str, char** strEnd, int base)
         else if (str[idx] == '0')
         {
             base = 8;
-            ++idx;
         }
         else
         {
