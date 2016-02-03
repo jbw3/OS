@@ -41,6 +41,56 @@ public:
     }
 } clearCmd;
 
+class ReadCommand : public Command
+{
+public:
+    const char* getName() override
+    {
+        return "read";
+    }
+
+    const char* getHelp() override
+    {
+        return
+R"(Reads a byte from memory
+)";
+    }
+
+    void execute() override
+    {
+        char* arg = strtok(nullptr, " ");
+        if (arg == nullptr)
+        {
+            screen << "Not enough arguments\n";
+        }
+        else if (strtok(nullptr, " ") != nullptr)
+        {
+            screen << "Too many arguments\n";
+        }
+        else
+        {
+            char* str = nullptr;
+            long addr = strtol(arg, &str, 16);
+            if (str == nullptr || *str != '\0')
+            {
+                screen << "Argument is not a valid hexadecimal number\n";
+            }
+            else
+            {
+                uint8_t* ptr = reinterpret_cast<uint8_t*>(addr);
+                uint8_t value = *ptr;
+                screen << os::Screen::hex
+                       << os::Screen::setfill('0')
+                       << os::Screen::setw(2)
+                       << value
+                       << os::Screen::setfill(' ')
+                       << os::Screen::dec
+                       << '\n';
+            }
+        }
+    }
+} readCmd;
+
 class SetCommand : public Command
 {
 public:
@@ -290,11 +340,69 @@ private:
     const multiboot_info* mbootInfo;
 } showCmd;
 
+class WriteCommand : public Command
+{
+public:
+    const char* getName() override
+    {
+        return "write";
+    }
+
+    const char* getHelp() override
+    {
+        return
+R"(Writes a byte to memory
+)";
+    }
+
+    void execute() override
+    {
+        char* addrArg = strtok(nullptr, " ");
+        char* valArg = strtok(nullptr, " ");
+        if (addrArg == nullptr || valArg == nullptr)
+        {
+            screen << "Not enough arguments\n";
+        }
+        else if (strtok(nullptr, " ") != nullptr)
+        {
+            screen << "Too many arguments\n";
+        }
+        else
+        {
+            bool ok = true;
+
+            char* str = nullptr;
+            long addr = strtol(addrArg, &str, 16);
+            if (str == nullptr || *str != '\0')
+            {
+                screen << "Address is not a valid hexadecimal number\n";
+                ok = false;
+            }
+
+            str = nullptr;
+            uint8_t val = strtol(valArg, &str, 16);
+            if (str == nullptr || *str != '\0')
+            {
+                screen << "Value is not a valid number\n";
+                ok = false;
+            }
+
+            if (ok)
+            {
+                uint8_t* ptr = reinterpret_cast<uint8_t*>(addr);
+                *ptr = val;
+            }
+        }
+    }
+} writeCmd;
+
 Command* Shell::COMMANDS[NUM_COMMANDS] =
 {
     &clearCmd,
+    &readCmd,
     &setCmd,
     &showCmd,
+    &writeCmd,
 };
 
 Shell::Shell(const multiboot_info* mbootInfoPtr)
