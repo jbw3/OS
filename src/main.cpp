@@ -1,10 +1,7 @@
 #include <stdint.h>
-#include <stdlib.h>
-#include <string.h>
 
 #include "multiboot.h"
 
-#include "debug.h"
 #include "gdt.h"
 #include "idt.h"
 #include "irq.h"
@@ -45,9 +42,9 @@ void kernelMain(const uint32_t MULTIBOOT_MAGIC_NUM, const multiboot_info* mbootI
     // enable interrupts
     asm volatile ("sti");
 
-    screen.write("Sandbox OS\n");
-
     initPaging();
+
+    screen.write("Sandbox OS\n");
 
     Shell sh(mbootInfo);
 
