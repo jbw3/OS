@@ -59,11 +59,27 @@ static char charToDigit(char ch)
     return ch;
 }
 
+/**
+ * @todo Check for num beyond max/min
+ */
 long strtol(const char* str, char** strEnd, int base)
 {
     long num = 0;
     int idx = 0;
     int negative = 0;
+
+    /* check if the base is invalid */
+    if (base < 0 || base == 1 || base > 36)
+    {
+        if (strEnd != NULL)
+        {
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wdiscarded-qualifiers"
+            *strEnd = str;
+#pragma GCC diagnostic pop
+        }
+        return 0;
+    }
 
     /* skip leading whitespace */
     while (isspace(str[idx]))
@@ -81,10 +97,39 @@ long strtol(const char* str, char** strEnd, int base)
         ++idx;
     }
 
+    /* we don't have to check the length of str before accessing
+    str[idx+1] because if this is out of range, str[idx] will be NUL */
+    if (base == 16 && str[idx] == '0' && (str[idx+1] == 'x' || str[idx+1] == 'X'))
+    {
+        idx += 2;
+    }
+    else if (base == 8 && str[idx] == '0')
+    {
+        ++idx;
+    }
+    /* if base is 0, figure out the base from the first chars */
+    else if (base == 0)
+    {
+        if (str[idx] == '0' && (str[idx+1] == 'x' || str[idx+1] == 'X'))
+        {
+            base = 16;
+            idx += 2;
+        }
+        else if (str[idx] == '0')
+        {
+            base = 8;
+            ++idx;
+        }
+        else
+        {
+            base = 10;
+        }
+    }
+
     char ch = str[idx];
     char digit = charToDigit(ch);
 
-    /* check if the first char is valid */
+    /* check if the first char is invalid */
     if (digit == ch || digit >= base)
     {
         if (strEnd != NULL)
@@ -94,31 +139,30 @@ long strtol(const char* str, char** strEnd, int base)
             *strEnd = str;
 #pragma GCC diagnostic pop
         }
+        return 0;
     }
-    else
+
+    do
     {
-        do
-        {
-            num *= base;
-            num += digit;
+        num *= base;
+        num += digit;
 
-            ++idx;
-            ch = str[idx];
-            digit = charToDigit(ch);
-        } while (digit != ch && digit < base);
+        ++idx;
+        ch = str[idx];
+        digit = charToDigit(ch);
+    } while (digit != ch && digit < base);
 
-        if (negative)
-        {
-            num = -num;
-        }
+    if (negative)
+    {
+        num = -num;
+    }
 
-        if (strEnd != NULL)
-        {
+    if (strEnd != NULL)
+    {
 #pragma GCC diagnostic push
 #pragma GCC diagnostic ignored "-Wdiscarded-qualifiers"
-            *strEnd = str + idx;
+        *strEnd = str + idx;
 #pragma GCC diagnostic pop
-        }
     }
 
     return num;
