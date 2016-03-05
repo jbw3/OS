@@ -1,6 +1,7 @@
 #include "debug.h"
 #include "paging.h"
 #include "screen.h"
+#include "system.h"
 
 struct multiboot_drives_entry
 {
@@ -84,7 +85,7 @@ void printMultibootInfo(const multiboot_info* mbootInfo)
     }
 }
 
-void printMemMap(uint32_t addr, uint32_t len)
+void printMultibootMemMap(uint32_t addr, uint32_t len)
 {
     uint32_t offset = 0;
     while (offset < len)
@@ -106,7 +107,7 @@ void printMemMap(uint32_t addr, uint32_t len)
     screen << os::Screen::setfill(' ');
 }
 
-void printDrives(uint32_t addr, uint32_t len)
+void printMultibootDrives(uint32_t addr, uint32_t len)
 {
     if (len == 0)
     {
@@ -254,4 +255,79 @@ void printPageTable(int pageDirIdx, int startIdx, int endIdx)
                << "  " << present
                << '\n';
     }
+}
+
+#define MASTER_DRIVE 0xA0
+#define SLAVE_DRIVE  0xB0
+
+#define PORT_DATA         0x1F0
+#define PORT_SECTOR_COUNT 0x1F2
+#define PORT_LBA_LO       0x1F3
+#define PORT_LBA_MID      0x1F4
+#define PORT_LBA_HI       0x1F5
+#define PORT_DRIVE_SELECT 0x1F6
+#define PORT_COMMAND      0x1F7
+#define PORT_STATUS       0x1F7
+
+#define CMD_IDENTIFY      0xEC
+
+#define STATUS_BSY        0x80
+#define STATUS_DRQ        0x08
+#define STATUS_ERR        0x01
+
+static void printDrive(uint16_t drive)
+{
+    // select target drive
+    outb(PORT_DRIVE_SELECT, drive);
+
+    // set sector count, LBAlo, LBAmid, LBAhi IO ports TO 0
+    outb(PORT_SECTOR_COUNT, 0);
+    outb(PORT_LBA_LO,       0);
+    outb(PORT_LBA_MID,      0);
+    outb(PORT_LBA_HI,       0);
+
+    // send identify command to command IO port
+    outb(PORT_COMMAND, CMD_IDENTIFY);
+
+    uint8_t status = inb(PORT_STATUS);
+
+    if (status == 0x00)
+    {
+        screen << "No drive\n";
+    }
+    else if (status == 0xFF)
+    {
+        screen << "Floating bus\n";
+    }
+    else
+    {
+        // wait for busy bit to clear
+        while (status & STATUS_BSY)
+        {
+            status = inb(PORT_STATUS);
+        }
+
+        while ( (status & STATUS_DRQ) == 0 && (status & STATUS_ERR) == 0)
+        {
+            status = inb(PORT_STATUS);
+        }
+    }
+
+    screen << "Status: "
+           << os::Screen::hex
+           << os::Screen::setw(2)
+           << os::Screen::setfill('0')
+           << status
+           << os::Screen::setfill(' ')
+           << os::Screen::dec
+           << '\n';
+}
+
+void printDrives()
+{
+    screen << "Master drive:\n";
+    printDrive(MASTER_DRIVE);
+
+    screen << "Slave drive:\n";
+    printDrive(SLAVE_DRIVE);
 }

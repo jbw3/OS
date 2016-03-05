@@ -212,6 +212,9 @@ public:
         return
 R"(Displays information:
 
+show drives
+    List drives
+
 show mboot info
     Display general multiboot information
 show mboot mem
@@ -233,6 +236,17 @@ show pagetab <page dir index> <start index> [end index]
         {
             screen << "Not enough arguments\n";
         }
+        else if (strcmp(arg1, "drives") == 0)
+        {
+            if (strtok(nullptr, " ") != nullptr)
+            {
+                screen << "Too many arguments\n";
+            }
+            else
+            {
+                printDrives();
+            }
+        }
         else if (strcmp(arg1, "mboot") == 0)
         {
             char* arg2 = strtok(nullptr, " ");
@@ -246,11 +260,11 @@ show pagetab <page dir index> <start index> [end index]
             }
             else if (strcmp(arg2, "mem") == 0)
             {
-                printMemMap(mbootInfo->mmap_addr, mbootInfo->mmap_length);
+                printMultibootMemMap(mbootInfo->mmap_addr, mbootInfo->mmap_length);
             }
             else if (strcmp(arg2, "drives") == 0)
             {
-                printDrives(mbootInfo->drives_addr, mbootInfo->drives_length);
+                printMultibootDrives(mbootInfo->drives_addr, mbootInfo->drives_length);
             }
             else
             {
