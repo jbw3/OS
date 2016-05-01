@@ -2,7 +2,8 @@
  ☐ Implement filesystem
  ☐ Organize files (see notes)
  ☐ Create heap
- ☐ Boot on x86_64 machine
+ ☐ Support 64-bit x86
+ ☐ Support Arm processor
  ☐ Move multiboot header to its own file (http://os.phil-opp.com/multiboot-kernel.html)
  ☐ Use multiple cores
  ☐ Create user processes
