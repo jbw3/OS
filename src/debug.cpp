@@ -291,10 +291,12 @@ static void printDrive(uint16_t drive)
 
     uint8_t status = inb(PORT_STATUS);
 
+    // if status is 0, there is no drive
     if (status == 0x00)
     {
         screen << "No drive\n";
     }
+    // if status is 0xFF, this is a "floating bus"
     else if (status == 0xFF)
     {
         screen << "Floating bus\n";
@@ -307,9 +309,31 @@ static void printDrive(uint16_t drive)
             status = inb(PORT_STATUS);
         }
 
+        // wait for either the data request to complete or the error bit to be set
         while ( (status & STATUS_DRQ) == 0 && (status & STATUS_ERR) == 0)
         {
             status = inb(PORT_STATUS);
+        }
+
+        // read the data if the request was successful and there were no errors
+        if ( (status & STATUS_DRQ) != 0 && (status & STATUS_ERR) == 0)
+        {
+            uint16_t data[256];
+            uint16_t* dataPortPtr = reinterpret_cast<uint16_t*>(PORT_DATA);
+
+            // read 256 16-bit values
+            screen << os::Screen::hex << os::Screen::setfill('0');
+            for (int i = 0; i < 256; ++i)
+            {
+                data[i] = *dataPortPtr;
+
+                if (i % 26 == 0)
+                {
+                    screen << '\n';
+                }
+                screen << data[i] << ' ';
+            }
+            screen << os::Screen::dec << os::Screen::setfill(' ') << '\n';
         }
     }
 
@@ -323,11 +347,17 @@ static void printDrive(uint16_t drive)
            << '\n';
 }
 
-void printDrives()
+void printDrives(bool printMaster /* = true */, bool printSlave /* = true */)
 {
-    screen << "Master drive:\n";
-    printDrive(MASTER_DRIVE);
+    if (printMaster)
+    {
+        screen << "Master drive:\n";
+        printDrive(MASTER_DRIVE);
+    }
 
-    screen << "Slave drive:\n";
-    printDrive(SLAVE_DRIVE);
+    if (printSlave)
+    {
+        screen << "Slave drive:\n";
+        printDrive(SLAVE_DRIVE);
+    }
 }

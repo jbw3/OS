@@ -212,7 +212,7 @@ public:
         return
 R"(Displays information:
 
-show drives
+show drives [all|master|slave]
     List drives
 
 show mboot info
@@ -238,13 +238,27 @@ show pagetab <page dir index> <start index> [end index]
         }
         else if (strcmp(arg1, "drives") == 0)
         {
-            if (strtok(nullptr, " ") != nullptr)
+            char* arg2 = strtok(nullptr, " ");
+            char* arg3 = strtok(nullptr, " ");
+            if (arg3 != nullptr)
             {
                 screen << "Too many arguments\n";
             }
+            else if (arg2 == nullptr || strcmp(arg2, "all") == 0)
+            {
+                printDrives(true, true);
+            }
+            else if (strcmp(arg2, "master") == 0)
+            {
+                printDrives(true, false);
+            }
+            else if (strcmp(arg2, "slave") == 0)
+            {
+                printDrives(false, true);
+            }
             else
             {
-                printDrives();
+                screen << "Unknown argument: \"" << arg2 << "\"\n";
             }
         }
         else if (strcmp(arg1, "mboot") == 0)

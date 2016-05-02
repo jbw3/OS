@@ -27,6 +27,6 @@ void printPageDir(int startIdx, int endIdx);
 
 void printPageTable(int pageDirIdx, int startIdx, int endIdx);
 
-void printDrives();
+void printDrives(bool printMaster = true, bool printSlave = true);
 
 #endif // _DEBUG_H
