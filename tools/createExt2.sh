@@ -1,6 +1,8 @@
 #!/bin/bash
 # create an ext2 image
 
+# THIS SCRIPT DOES NOT WORK YET!
+
 if [[ $# -ne 1 ]]; then
     echo "Error: expected 1 argument"
     exit 1
@@ -31,3 +33,5 @@ sudo grub-install --root-directory=/mnt --no-floppy --modules="normal part_msdos
 sync
 
 umount /mnt
+sudo losetup -d /dev/loop0
+sudo losetup -d /dev/loop1
