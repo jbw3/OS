@@ -2,3 +2,4 @@ bin/
 obj/
 bochsout.txt
 *.sublime-workspace
+*.vdi
