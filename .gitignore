@@ -1,5 +1,7 @@
 bin/
+lib/
 obj/
+.DS_Store
 bochsout.txt
 *.sublime-workspace
 *.vdi
