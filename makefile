@@ -34,12 +34,16 @@ TARGET = $(BINDIR)/kernel-x86
 TOOLSDIR = ./tools
 
 .PHONY: all
-all: init $(TARGET)
+all: init libs $(TARGET)
 
 .PHONY: init
 init:
 	mkdir -p $(OBJDIR)
 	mkdir -p $(BINDIR)
+
+.PHONY: libs
+libs:
+	cd src/libs/c; make
 
 .PHONY: install
 install: init $(TARGET)
@@ -59,4 +63,5 @@ $(OBJDIR)/%.o: %.s
 
 .PHONY: clean
 clean:
+	cd src/libs/c; make clean
 	rm -f $(OBJDIR)/*.o $(TARGET)
