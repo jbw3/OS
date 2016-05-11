@@ -1,8 +1,12 @@
 #include <string.h>
 
 #include "screen.h"
-#include "stringutils.h"
 #include "system.h"
+
+/// @todo JBW - This header file should not be
+/// referenced directly. Temporarily doing it
+/// until the Screen class is replaced by ostream
+#include "libs/c/src/stringutils.h"
 
 namespace os
 {

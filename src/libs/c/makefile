@@ -1,9 +1,13 @@
 # Makefile for C lib
 
+SRCDIR = src
 OBJDIR = obj
 BINDIR = ../../../lib
 
-INCLUDES = -I.
+# directory to search for dependencies
+VPATH = $(SRCDIR) include
+
+INCLUDES = -I$(SRCDIR) -Iinclude
 
 CC = i686-elf-gcc
 CFLAGS = $(INCLUDES) -std=c11 -ffreestanding -O2 -Wall -Wextra
