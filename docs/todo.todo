@@ -6,8 +6,24 @@
  ☐ Support Arm processor
  ☐ Move multiboot header to its own file (http://os.phil-opp.com/multiboot-kernel.html)
  ☐ Use multiple cores
- ☐ Create user processes
  ☐ Blinking text
+ ☐ Move multiboot header out of text section
+ ☐ Address NASM warnings (NASM bug?)
+
+User processes:
+ ✔ Load program as GRUB module @done (16-05-29 13:23)
+ ✔ Map kernel to "Higher Half" @done (16-06-08 20:45)
+ ✔ Convert all physical addresses to virtual addresses @done (16-06-10 00:30)
+ ✔ Remove "set paging on/off" command @done (16-06-10 19:43)
+ ✔ Remove unused functions @done (16-06-10 20:40)
+ ☐ Implement page frame allocator
+ ☐ Run C programs
+ ☐ Run C++ programs
+ ☐ System calls
+ ☐ Implement dynamic memory allocator
+ ☐ Cooperative scheduling
+ ☐ ELF format
+ ☐ Preemptive scheduling
 
 Shell:
  ☐ History

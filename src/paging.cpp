@@ -2,22 +2,6 @@
 #include "screen.h"
 #include "system.h"
 
-namespace
-{
-
-/**
- * @brief Identity map the kernel
- */
-void mapKernel()
-{
-    for (uint32_t addr = 0; addr < getKernelEnd(); addr += 4096)
-    {
-        addPage(addr);
-    }
-}
-
-}
-
 extern "C"
 void pageFault(const registers* regs)
 {
@@ -47,46 +31,29 @@ void pageFault(const registers* regs)
     while (true);
 }
 
-void initPaging()
+void configPaging()
 {
     // register page fault handler
     registerIsrHandler(ISR_PAGE_FAULT, pageFault);
-
-    // initialize the page driectory
-    initPageDir();
-
-    // add a page table after the kernel
-    uint32_t pageAddr = getKernelEnd();
-    if ((pageAddr & 0xFFF) != 0)
-    {
-        pageAddr &= 0xFFFF'F000;
-        pageAddr += 4096;
-    }
-    initPageTable(pageAddr);
-    addPageTable(0, pageAddr);
-
-    mapKernel();
-
-    enablePaging();
 }
 
 void addPageTable(int idx, uint32_t pageTableAddr)
 {
-    uint32_t* pageDir = getPageDirStart();
+    uint32_t* pageDir = getKernelPageDirStart();
 
     // get the page directory entry from the page directory
     uint32_t pageDirEntry = pageDir[idx];
 
     // add the page table address to the page directory
-    pageDirEntry &= ~PAGE_DIR_ADDRESS;
-    pageDirEntry |= (pageTableAddr & PAGE_DIR_ADDRESS);
-    pageDirEntry |= PAGE_DIR_PRESENT;
+    pageDirEntry &= ~PAGE_DIR_ADDRESS;                      // clear previous address
+    pageDirEntry |= pageTableAddr & PAGE_DIR_ADDRESS;       // add new address
+    pageDirEntry |= PAGE_DIR_READ_WRITE | PAGE_DIR_PRESENT; // set read/write and present bits
     pageDir[idx] = pageDirEntry;
 }
 
 void addPage(uint32_t pageAddr)
 {
-    uint32_t* pageDir = getPageDirStart();
+    uint32_t* pageDir = getKernelPageDirStart();
 
     // calculate the page directory and page table indexes
     int pageDirIdx = pageAddr >> 22;
@@ -100,8 +67,8 @@ void addPage(uint32_t pageAddr)
     uint32_t pageTableEntry = pageTable[pageTableIdx];
 
     // add the page address to the page table
-    pageTableEntry &= ~PAGE_TABLE_ADDRESS;
-    pageTableEntry |= (pageAddr & PAGE_TABLE_ADDRESS);
-    pageTableEntry |= PAGE_TABLE_PRESENT;
+    pageTableEntry &= ~PAGE_TABLE_ADDRESS;                        // clear previous address
+    pageTableEntry |= pageAddr & PAGE_TABLE_ADDRESS;              // add new address
+    pageTableEntry |= PAGE_TABLE_READ_WRITE | PAGE_TABLE_PRESENT; // set read/write and present bits
     pageTable[pageTableIdx] = pageTableEntry;
 }

@@ -27,9 +27,9 @@
 extern "C"
 {
 
-uint32_t* getPageDirStart();
+uint32_t* getKernelPageDirStart();
 
-uint32_t* getPageDirEnd();
+uint32_t* getKernelPageDirEnd();
 
 /**
  * @brief Initialize the page directory
@@ -46,11 +46,13 @@ void enablePaging();
 
 void disablePaging();
 
+bool isPagingEnabled();
+
 void pageFault(const registers* regs);
 
 } // extern "C"
 
-void initPaging();
+void configPaging();
 
 /**
  * @brief Add a page table to the page directory

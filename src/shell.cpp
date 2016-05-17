@@ -4,6 +4,7 @@
 #include "shell.h"
 #include "stdlib.h"
 #include "string.h"
+#include "timer.h"
 
 class Command
 {
@@ -109,9 +110,6 @@ set bg <0-15>
 
 set fg <0-15>
     Set foreground color
-
-set paging <on|off>
-    Enable/disable paging
 )";
     }
 
@@ -162,26 +160,6 @@ set paging <on|off>
                 }
             }
         }
-        else if (strcmp(arg, "paging") == 0)
-        {
-            char* state = strtok(nullptr, " ");
-            if (state == nullptr)
-            {
-                screen << "No state given\n";
-            }
-            else if (strcmp(state, "off") == 0)
-            {
-                disablePaging();
-            }
-            else if (strcmp(state, "on") == 0)
-            {
-                enablePaging();
-            }
-            else
-            {
-                screen << "Invalid state\n";
-            }
-        }
         else
         {
             screen << "Unexpected argument\n";
@@ -217,6 +195,8 @@ show drives [all|master|slave]
 
 show mboot info
     Display general multiboot information
+show mboot mod
+    Display multiboot module information
 show mboot mem
     Display multiboot memory map
 show mboot drives
@@ -226,6 +206,9 @@ show pagedir <start index> [end index]
     Display page directory entries, index range: 0-1023
 show pagetab <page dir index> <start index> [end index]
     Display page table entries, index range: 0-1023
+
+show ticks
+    Display timer ticks since system boot
 )";
     }
 
@@ -275,6 +258,10 @@ show pagetab <page dir index> <start index> [end index]
             else if (strcmp(arg2, "mem") == 0)
             {
                 printMultibootMemMap(mbootInfo->mmap_addr, mbootInfo->mmap_length);
+            }
+            else if (strcmp(arg2, "mod") == 0)
+            {
+                printMultibootModules(mbootInfo->mods_addr, mbootInfo->mods_count);
             }
             else if (strcmp(arg2, "drives") == 0)
             {
@@ -358,6 +345,18 @@ show pagetab <page dir index> <start index> [end index]
                 screen << "\1 \2 ";
             }
         }
+        else if (strcmp(arg1, "ticks") == 0)
+        {
+            char* arg2 = strtok(nullptr, " ");
+            if (arg2 != nullptr)
+            {
+                screen << "Unexpected argument \"" << arg2 << "\"\n";
+            }
+            else
+            {
+                screen << os::Timer::getTicks() << '\n';
+            }
+        }
         else
         {
             screen << "Unexpected argument\n";
@@ -433,9 +432,10 @@ Command* Shell::COMMANDS[NUM_COMMANDS] =
     &writeCmd,
 };
 
-Shell::Shell(const multiboot_info* mbootInfoPtr)
+Shell::Shell(const multiboot_info* mbootInfoPtr) :
+    mbootInfo(mbootInfoPtr)
 {
-    showCmd.setMbootInfo(mbootInfoPtr);
+    showCmd.setMbootInfo(mbootInfo);
 
     prompt();
 }
@@ -499,7 +499,9 @@ void Shell::processCmd()
             found = true;
             displayHelp();
         }
-        else
+
+        // look for command object
+        if (!found)
         {
             for (unsigned int i = 0; i < NUM_COMMANDS; ++i)
             {
@@ -511,6 +513,18 @@ void Shell::processCmd()
                     break;
                 }
             }
+
+        }
+
+        // look for program
+        if (!found)
+        {
+            uint32_t progAddr = 0;
+            found = findProgram(token, progAddr);
+            if (found)
+            {
+                runProgram(progAddr);
+            }
         }
 
         if (!found)
@@ -521,6 +535,39 @@ void Shell::processCmd()
 
     resetCmd();
     prompt();
+}
+
+bool Shell::findProgram(const char* name, uint32_t& progAddr)
+{
+    bool found = false;
+    uint32_t addr = mbootInfo->mods_addr;
+    uint32_t count = mbootInfo->mods_count;
+
+    for (uint32_t i = 0; i < count; ++i)
+    {
+        // get module info struct
+        const multiboot_mod_list* module = reinterpret_cast<const multiboot_mod_list*>(addr);
+
+        // check if name matches
+        const char* modName = reinterpret_cast<const char*>(module->cmdline);
+        if (strcmp(name, modName) == 0)
+        {
+            progAddr = module->mod_start;
+            found = true;
+            break;
+        }
+
+        addr += sizeof(multiboot_mod_list);
+    }
+
+    return found;
+}
+
+void Shell::runProgram(uint32_t addr)
+{
+    programPtr program = reinterpret_cast<programPtr>(addr);
+    int rc = program();
+    screen << "Return code: " << rc << '\n';
 }
 
 void Shell::displayHelp()

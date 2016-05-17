@@ -1,33 +1,47 @@
-/* Link.ld
- * Linker script for the kernel.
- * Original file taken from Bran's Kernel Development
- * tutorials: http://www.osdever.net/bkerndev/index.php.
+/*
+ * Linker script for the kernel
  */
 
+KERNEL_VIRTUAL_BASE = 0xC0000000;
+KERNEL_TEXT_OFFSET  = 0x00100000;
+
 ENTRY(start)
+
 SECTIONS
 {
-  .text 0x100000 :
-  {
-    code = .; _code = .; __code = .;
-    *(.text)
-    . = ALIGN(4096);
-  }
+    . = (KERNEL_VIRTUAL_BASE + KERNEL_TEXT_OFFSET);
 
-  .data :
-  {
-     data = .; _data = .; __data = .;
-     *(.data)
-     *(.rodata)
-     . = ALIGN(4096);
-  }
+    kernelVirtualStart = .;
+    kernelPhysicalStart = . - KERNEL_VIRTUAL_BASE;
 
-  .bss :
-  {
-    bss = .; _bss = .; __bss = .;
-    *(.bss)
-    . = ALIGN(4096);
-  }
+    loadStartAddr = . - KERNEL_VIRTUAL_BASE;
 
-  end = .; _end = .; __end = .;
+    .text ALIGN(4096) : AT(ADDR(.text) - KERNEL_VIRTUAL_BASE)
+    {
+        *(.text)  /* text sections from all files */
+        *(.ctors) /* table of pointers for global C++ constructors */
+        *(.dtors) /* table of pointers for global C++ destructors */
+    }
+
+    .rodata ALIGN(4096) : AT(ADDR(.rodata) - KERNEL_VIRTUAL_BASE)
+    {
+        *(.rodata) /* read-only data from all files */
+    }
+
+    .data ALIGN(4096) : AT(ADDR(.data) - KERNEL_VIRTUAL_BASE)
+    {
+        *(.data) /* data sections from all files */
+    }
+
+    loadEndAddr = . - KERNEL_VIRTUAL_BASE;
+
+    .bss ALIGN(4096) : AT(ADDR(.bss) - KERNEL_VIRTUAL_BASE)
+    {
+        *(.bss) /* BSS sections from all files */
+    }
+
+    bssEndAddr = . - KERNEL_VIRTUAL_BASE;
+
+    kernelVirtualEnd = .;
+    kernelPhysicalEnd = . - KERNEL_VIRTUAL_BASE;
 }

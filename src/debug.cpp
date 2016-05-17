@@ -42,11 +42,16 @@ void printMultibootInfo(const multiboot_info* mbootInfo)
                 break;
 
             case MULTIBOOT_INFO_CMDLINE:
-                screen << reinterpret_cast<const char*>(mbootInfo->cmdline) << '\n';
+            {
+                if (!isPagingEnabled())
+                {
+                    screen << reinterpret_cast<const char*>(mbootInfo->cmdline) << '\n';
+                }
                 break;
+            }
 
             case MULTIBOOT_INFO_MODS:
-                screen << mbootInfo->mods_count << " boot module" << (mbootInfo->mods_count == 1 ? "" : "s") << " were loaded\n";
+                screen << mbootInfo->mods_count << " module" << (mbootInfo->mods_count == 1 ? "" : "s") << " loaded\n";
                 break;
 
             case MULTIBOOT_INFO_AOUT_SYMS:
@@ -72,8 +77,11 @@ void printMultibootInfo(const multiboot_info* mbootInfo)
                 break;
 
             case MULTIBOOT_INFO_BOOT_LOADER_NAME:
-                screen << reinterpret_cast<const char*>(mbootInfo->boot_loader_name) << '\n';
+            {
+                const char* bootLoaderName = reinterpret_cast<const char*>(mbootInfo->boot_loader_name + KERNEL_VIRTUAL_BASE);
+                screen << bootLoaderName << '\n';
                 break;
+            }
 
             default:
                 screen << '\n';
@@ -85,8 +93,25 @@ void printMultibootInfo(const multiboot_info* mbootInfo)
     }
 }
 
+void printMultibootModules(uint32_t addr, uint32_t len)
+{
+    addr += KERNEL_VIRTUAL_BASE;
+
+    for (uint32_t i = 0; i < len; ++i)
+    {
+        const multiboot_mod_list* module = reinterpret_cast<const multiboot_mod_list*>(addr);
+
+        const char* modName = reinterpret_cast<const char*>(module->cmdline + KERNEL_VIRTUAL_BASE);
+        screen << modName << '\n';
+
+        addr += sizeof(multiboot_mod_list);
+    }
+}
+
 void printMultibootMemMap(uint32_t addr, uint32_t len)
 {
+    addr += KERNEL_VIRTUAL_BASE;
+
     uint32_t offset = 0;
     while (offset < len)
     {
@@ -154,7 +179,7 @@ void printPageDir(int startIdx, int endIdx)
     screen << "Idx   Address   S  A  D  W  U  R  P\n"
               "----  --------  -  -  -  -  -  -  -\n";
 
-    const uint32_t* pageDir = getPageDirStart();
+    const uint32_t* pageDir = getKernelPageDirStart();
     for (int i = startIdx; i <= endIdx; ++i)
     {
         uint32_t entry = pageDir[i];
@@ -205,7 +230,7 @@ void printPageTable(int pageDirIdx, int startIdx, int endIdx)
         return;
     }
 
-    const uint32_t* pageDir = getPageDirStart();
+    const uint32_t* pageDir = getKernelPageDirStart();
     uint32_t pageDirEntry = pageDir[pageDirIdx];
 
     const uint32_t* pageTable = reinterpret_cast<const uint32_t*>(pageDirEntry & PAGE_DIR_ADDRESS);

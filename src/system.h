@@ -3,6 +3,8 @@
 
 #include <stdint.h>
 
+#define KERNEL_VIRTUAL_BASE 0xC0000000
+
 #ifdef __cplusplus
 extern "C"
 {
@@ -20,7 +22,7 @@ const void* getStackEnd();
 
 uint32_t getStackOffset();
 
-uint32_t getKernelEnd();
+uint32_t getKernelPhysicalEnd();
 
 /**
  * @brief Gets the value of the CR2 register

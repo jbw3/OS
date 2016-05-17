@@ -17,8 +17,8 @@ void initGdt()
     gdtPtr.base = (uint32_t)&gdtEntries;
 
     gdtSetGate(0, 0, 0, 0, 0);                // null segment
-    gdtSetGate(1, 0, 0xFFFFFFFF, 0x9A, 0xCF); // code segment
-    gdtSetGate(2, 0, 0xFFFFFFFF, 0x92, 0xCF); // data segment
+    gdtSetGate(1, 0, 0xFFFFFFFF, 0x9A, 0xCF); // kernel code segment
+    gdtSetGate(2, 0, 0xFFFFFFFF, 0x92, 0xCF); // kernel data segment
     gdtSetGate(3, 0, 0xFFFFFFFF, 0xFA, 0xCF); // user mode code segment
     gdtSetGate(4, 0, 0xFFFFFFFF, 0xF2, 0xCF); // user mode data segment
 
