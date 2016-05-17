@@ -26,6 +26,11 @@ void Timer::init(unsigned int freq)
     outb(0x40, divisor >> 8);
 }
 
+uint64_t Timer::getTicks()
+{
+    return ticks;
+}
+
 void Timer::interruptHandler(const registers* /*regs*/)
 {
     ++ticks;

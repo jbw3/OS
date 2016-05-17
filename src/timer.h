@@ -5,7 +5,7 @@
 
 #include "irq.h"
 
-#define PIT_FREQUENCY 1193180
+#define PIT_FREQUENCY 1'193'180
 
 namespace os
 {
@@ -13,7 +13,13 @@ namespace os
 class Timer
 {
 public:
+    /**
+     * @brief Initialize the timer with the frequency at which to interrupt
+     * @param freq the timer frequency in Hz, this must be greater than 19
+     */
     static void init(unsigned int freq);
+
+    static uint64_t getTicks();
 
     static void interruptHandler(const struct registers* regs);
 

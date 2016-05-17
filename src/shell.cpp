@@ -4,6 +4,7 @@
 #include "shell.h"
 #include "stdlib.h"
 #include "string.h"
+#include "timer.h"
 
 class Command
 {
@@ -226,6 +227,9 @@ show pagedir <start index> [end index]
     Display page directory entries, index range: 0-1023
 show pagetab <page dir index> <start index> [end index]
     Display page table entries, index range: 0-1023
+
+show ticks
+    Display timer ticks since system boot
 )";
     }
 
@@ -356,6 +360,18 @@ show pagetab <page dir index> <start index> [end index]
             for (int i = 0; i < 20; ++i)
             {
                 screen << "\1 \2 ";
+            }
+        }
+        else if (strcmp(arg1, "ticks") == 0)
+        {
+            char* arg2 = strtok(nullptr, " ");
+            if (arg2 != nullptr)
+            {
+                screen << "Unexpected argument \"" << arg2 << "\"\n";
+            }
+            else
+            {
+                screen << os::Timer::getTicks() << '\n';
             }
         }
         else
