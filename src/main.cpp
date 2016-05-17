@@ -35,7 +35,7 @@ void kernelMain(const uint32_t MULTIBOOT_MAGIC_NUM, const multiboot_info* mbootI
     initIdt();
     initIrq();
 
-    os::Timer::init(18);
+    os::Timer::init(20);
 
     os::Keyboard::init();
 
