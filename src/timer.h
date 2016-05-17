@@ -15,7 +15,7 @@ class Timer
 public:
     /**
      * @brief Initialize the timer with the frequency at which to interrupt
-     * @param freq the timer frequency in Hz, this must be greater than 19
+     * @param freq the timer frequency in Hz, this cannot be less than 19
      */
     static void init(unsigned int freq);
 
