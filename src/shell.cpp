@@ -218,6 +218,8 @@ show drives [all|master|slave]
 
 show mboot info
     Display general multiboot information
+show mboot mod
+    Display multiboot module information
 show mboot mem
     Display multiboot memory map
 show mboot drives
@@ -279,6 +281,10 @@ show ticks
             else if (strcmp(arg2, "mem") == 0)
             {
                 printMultibootMemMap(mbootInfo->mmap_addr, mbootInfo->mmap_length);
+            }
+            else if (strcmp(arg2, "mod") == 0)
+            {
+                printMultibootModules(mbootInfo->mods_addr, mbootInfo->mods_count);
             }
             else if (strcmp(arg2, "drives") == 0)
             {

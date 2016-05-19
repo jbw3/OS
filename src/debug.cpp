@@ -55,7 +55,7 @@ void printMultibootInfo(const multiboot_info* mbootInfo)
             }
 
             case MULTIBOOT_INFO_MODS:
-                screen << mbootInfo->mods_count << " boot module" << (mbootInfo->mods_count == 1 ? "" : "s") << " were loaded\n";
+                screen << mbootInfo->mods_count << " module" << (mbootInfo->mods_count == 1 ? "" : "s") << " loaded\n";
                 break;
 
             case MULTIBOOT_INFO_AOUT_SYMS:
@@ -91,6 +91,19 @@ void printMultibootInfo(const multiboot_info* mbootInfo)
         }
 
         bit <<= 1;
+    }
+}
+
+void printMultibootModules(uint32_t addr, uint32_t len)
+{
+    for (uint32_t i = 0; i < len; ++i)
+    {
+        const multiboot_mod_list* module = reinterpret_cast<const multiboot_mod_list*>(addr);
+
+        const char* modName = reinterpret_cast<const char*>(module->cmdline);
+        screen << modName << '\n';
+
+        addr += sizeof(multiboot_mod_list);
     }
 }
 

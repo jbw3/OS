@@ -15,6 +15,12 @@
  */
 void printMultibootInfo(const multiboot_info* mbootInfo);
 
+/**
+ * @brief Debugging function to print modules in Multiboot info
+ * @details [long description]
+ */
+void printMultibootModules(uint32_t addr, uint32_t len);
+
 void printMultibootMemMap(uint32_t addr, uint32_t len);
 
 void printMultibootDrives(uint32_t addr, uint32_t len);
