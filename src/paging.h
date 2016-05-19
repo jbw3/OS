@@ -46,6 +46,8 @@ void enablePaging();
 
 void disablePaging();
 
+bool isPagingEnabled();
+
 void pageFault(const registers* regs);
 
 } // extern "C"
