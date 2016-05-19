@@ -6,8 +6,16 @@
  ☐ Support Arm processor
  ☐ Move multiboot header to its own file (http://os.phil-opp.com/multiboot-kernel.html)
  ☐ Use multiple cores
- ☐ Create user processes
  ☐ Blinking text
+
+Create user processes:
+ ☐ Load program as GRUB module
+ ☐ Map kernel to "Higher Half"
+ ☐ C/C++ programs
+ ☐ System calls
+ ☐ Cooperative scheduling
+ ☐ ELF format
+ ☐ Preemptive scheduling
 
 Shell:
  ☐ History
