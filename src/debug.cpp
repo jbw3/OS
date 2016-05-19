@@ -42,8 +42,17 @@ void printMultibootInfo(const multiboot_info* mbootInfo)
                 break;
 
             case MULTIBOOT_INFO_CMDLINE:
-                screen << reinterpret_cast<const char*>(mbootInfo->cmdline) << '\n';
+            {
+                if (isPagingEnabled())
+                {
+                    screen << "<< CANNOT PRINT WHEN PAGING IS ENABLED >>\n";
+                }
+                else
+                {
+                    screen << reinterpret_cast<const char*>(mbootInfo->cmdline) << '\n';
+                }
                 break;
+            }
 
             case MULTIBOOT_INFO_MODS:
                 screen << mbootInfo->mods_count << " boot module" << (mbootInfo->mods_count == 1 ? "" : "s") << " were loaded\n";
