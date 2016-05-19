@@ -118,3 +118,13 @@ disablePaging:
 	mov cr0, eax
 
 	ret
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+; check whether paging is enabled
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+global isPagingEnabled
+isPagingEnabled:
+	mov eax, cr0
+	shr eax, 31
+
+	ret
