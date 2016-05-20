@@ -48,7 +48,7 @@ libs:
 	cd src/libs/c; make
 
 .PHONY: install
-install: init $(TARGET)
+install: init libs $(TARGET)
 	$(TOOLSDIR)/createIso.sh x86
 
 $(TARGET): $(BUILD_OBJ)
