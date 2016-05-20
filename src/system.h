@@ -12,13 +12,13 @@ uint8_t inb(uint16_t port);
 
 void outb(uint16_t port, uint8_t value);
 
-extern const void* getStackPointer();
+const void* getStackPointer();
 
-extern const void* getStackStart();
+const void* getStackStart();
 
-extern const void* getStackEnd();
+const void* getStackEnd();
 
-extern uint32_t getStackOffset();
+uint32_t getStackOffset();
 
 uint32_t getKernelEnd();
 
