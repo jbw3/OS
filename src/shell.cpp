@@ -455,9 +455,10 @@ Command* Shell::COMMANDS[NUM_COMMANDS] =
     &writeCmd,
 };
 
-Shell::Shell(const multiboot_info* mbootInfoPtr)
+Shell::Shell(const multiboot_info* mbootInfoPtr) :
+    mbootInfo(mbootInfoPtr)
 {
-    showCmd.setMbootInfo(mbootInfoPtr);
+    showCmd.setMbootInfo(mbootInfo);
 
     prompt();
 }
@@ -521,7 +522,9 @@ void Shell::processCmd()
             found = true;
             displayHelp();
         }
-        else
+
+        // look for command object
+        if (!found)
         {
             for (unsigned int i = 0; i < NUM_COMMANDS; ++i)
             {
@@ -533,6 +536,18 @@ void Shell::processCmd()
                     break;
                 }
             }
+
+        }
+
+        // look for program
+        if (!found)
+        {
+            uint32_t progAddr = 0;
+            found = findProgram(token, progAddr);
+            if (found)
+            {
+                runProgram(progAddr);
+            }
         }
 
         if (!found)
@@ -543,6 +558,39 @@ void Shell::processCmd()
 
     resetCmd();
     prompt();
+}
+
+bool Shell::findProgram(const char* name, uint32_t& progAddr)
+{
+    bool found = false;
+    uint32_t addr = mbootInfo->mods_addr;
+    uint32_t count = mbootInfo->mods_count;
+
+    for (uint32_t i = 0; i < count; ++i)
+    {
+        // get module info struct
+        const multiboot_mod_list* module = reinterpret_cast<const multiboot_mod_list*>(addr);
+
+        // check if name matches
+        const char* modName = reinterpret_cast<const char*>(module->cmdline);
+        if (strcmp(name, modName) == 0)
+        {
+            progAddr = module->mod_start;
+            found = true;
+            break;
+        }
+
+        addr += sizeof(multiboot_mod_list);
+    }
+
+    return found;
+}
+
+void Shell::runProgram(uint32_t addr)
+{
+    programPtr program = reinterpret_cast<programPtr>(addr);
+    int rc = program();
+    screen << "Return code: " << rc << '\n';
 }
 
 void Shell::displayHelp()
