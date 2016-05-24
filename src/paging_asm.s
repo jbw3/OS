@@ -1,5 +1,5 @@
-extern pageDirStart
-extern pageDirEnd
+extern kernelPageDirStart
+extern kernelPageDirEnd
 
 PAGE_DIR_ADDRESS	equ 0xFFFFF000
 PAGE_DIR_RW			equ 0x00000002
@@ -17,18 +17,18 @@ PAGE_TABLE_INIT_ENTRY equ PAGE_TABLE_RW
 ; get the address of the start of
 ; the page dir
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-global getPageDirStart
-getPageDirStart:
-	mov eax, pageDirStart
+global getKernelPageDirStart
+getKernelPageDirStart:
+	mov eax, kernelPageDirStart
 	ret
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ; get the address of the end of
 ; the page dir
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-global getPageDirEnd
-getPageDirEnd:
-	mov eax, pageDirEnd
+global getKernelPageDirEnd
+getKernelPageDirEnd:
+	mov eax, kernelPageDirEnd
 	ret
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
@@ -36,7 +36,7 @@ getPageDirEnd:
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 global initPageDir
 initPageDir:
-	mov eax, pageDirStart
+	mov eax, kernelPageDirStart
 .Lstart:
 	mov dword [eax   ], PAGE_DIR_INIT_ENTRY
 	mov dword [eax+ 4], PAGE_DIR_INIT_ENTRY
@@ -55,7 +55,7 @@ initPageDir:
 	mov dword [eax+56], PAGE_DIR_INIT_ENTRY
 	mov dword [eax+60], PAGE_DIR_INIT_ENTRY
 	add eax, 64
-	cmp eax, pageDirEnd
+	cmp eax, kernelPageDirEnd
 	jl .Lstart
 
 	ret
@@ -98,7 +98,7 @@ initPageTable:
 global enablePaging
 enablePaging:
 	; load the page directory address
-	mov eax, pageDirStart
+	mov eax, kernelPageDirStart
 	mov cr3, eax
 
 	; enable paging

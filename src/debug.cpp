@@ -176,7 +176,7 @@ void printPageDir(int startIdx, int endIdx)
     screen << "Idx   Address   S  A  D  W  U  R  P\n"
               "----  --------  -  -  -  -  -  -  -\n";
 
-    const uint32_t* pageDir = getPageDirStart();
+    const uint32_t* pageDir = getKernelPageDirStart();
     for (int i = startIdx; i <= endIdx; ++i)
     {
         uint32_t entry = pageDir[i];
@@ -227,7 +227,7 @@ void printPageTable(int pageDirIdx, int startIdx, int endIdx)
         return;
     }
 
-    const uint32_t* pageDir = getPageDirStart();
+    const uint32_t* pageDir = getKernelPageDirStart();
     uint32_t pageDirEntry = pageDir[pageDirIdx];
 
     const uint32_t* pageTable = reinterpret_cast<const uint32_t*>(pageDirEntry & PAGE_DIR_ADDRESS);

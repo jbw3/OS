@@ -91,9 +91,9 @@ kernel_stack_end:
 	resb 4096			; reserve 4 KiB of memory
 kernel_stack_start:
 
-global pageDirStart
-global pageDirEnd
+global kernelPageDirStart
+global kernelPageDirEnd
 alignb 4096
-pageDirStart:
+kernelPageDirStart:
 	resb 4096
-pageDirEnd:
+kernelPageDirEnd:
