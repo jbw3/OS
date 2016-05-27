@@ -26,7 +26,23 @@ DEPS = debug.h gdt.h idt.h irq.h isr.h keyboard.h paging.h screen.h shell.h syst
 
 CRTBEGIN_OBJ = $(shell $(CXX) $(CXXFLAGS) -print-file-name=crtbegin.o)
 CRTEND_OBJ = $(shell $(CXX) $(CXXFLAGS) -print-file-name=crtend.o)
-_OBJ = boot.o debug.o gdt.o idt.o interrupt.o irq.o isr.o keyboard.o main.o paging.o paging_asm.o screen.o shell.o system.o system_asm.o timer.o
+_OBJ =  boot.o \
+		cpuid.o \
+		debug.o \
+		gdt.o \
+		idt.o \
+		interrupt.o \
+		irq.o \
+		isr.o \
+		keyboard.o \
+		main.o \
+		paging.o \
+		paging_asm.o \
+		screen.o \
+		shell.o \
+		system.o \
+		system_asm.o \
+		timer.o
 OBJ = $(patsubst %,$(OBJDIR)/%,$(_OBJ))
 BUILD_OBJ = $(OBJDIR)/crti.o $(OBJ) $(OBJDIR)/crtn.o
 LINK_OBJ = $(OBJDIR)/crti.o $(CRTBEGIN_OBJ) $(OBJ) $(CRTEND_OBJ) $(OBJDIR)/crtn.o

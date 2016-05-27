@@ -15,7 +15,7 @@ public:
 private:
     static const unsigned int CMD_MAX_SIZE = 64;
 
-    static constexpr unsigned int NUM_COMMANDS = 5;
+    static constexpr unsigned int NUM_COMMANDS = 6;
     static Command* COMMANDS[NUM_COMMANDS];
 
     unsigned int cmdIdx = 0;

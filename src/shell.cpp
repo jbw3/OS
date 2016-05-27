@@ -424,6 +424,38 @@ R"(Writes a byte to memory
     }
 } writeCmd;
 
+struct cpuinfo_x86_t
+{
+    //uint32_t highestBasicValue;
+    char* vendorIdString;
+} __attribute__((packed));
+
+extern "C" void getCpuInfo_x86(cpuinfo_x86_t*);  // cpuid.s
+
+class CpuInfoCommand : public Command
+{
+public:
+    const char* getName() override
+    {
+        return "cpuinfo";
+    }
+
+    const char* getHelp() override
+    {
+        return
+R"(Displays information about the CPU.
+)";
+    }
+
+    void execute() override
+    {
+        cpuinfo_x86_t cpuInfo;
+        cpuInfo.vendorIdString = "123456789abc";
+        getCpuInfo_x86(&cpuInfo);
+        screen << cpuInfo.vendorIdString << "\n";
+    }
+} cpuInfoCmd;
+
 Command* Shell::COMMANDS[NUM_COMMANDS] =
 {
     &clearCmd,
@@ -431,6 +463,7 @@ Command* Shell::COMMANDS[NUM_COMMANDS] =
     &setCmd,
     &showCmd,
     &writeCmd,
+    &cpuInfoCmd,
 };
 
 Shell::Shell(const multiboot_info* mbootInfoPtr)
