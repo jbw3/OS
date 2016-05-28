@@ -18,6 +18,19 @@
 extern "C"
 void kernelMain(const uint32_t MULTIBOOT_MAGIC_NUM, const multiboot_info* mbootInfo)
 {
+    initGdt();
+    initIdt();
+    initIrq();
+
+    os::Timer::init(20);
+
+    os::Keyboard::init();
+
+    // initPaging();
+
+    // enable interrupts
+    asm volatile ("sti");
+
     screen.setBackgroundColor(os::Screen::EColor::eBlack);
     screen.setForegroundColor(os::Screen::EColor::eLightGreen);
     screen.clear();
@@ -31,20 +44,12 @@ void kernelMain(const uint32_t MULTIBOOT_MAGIC_NUM, const multiboot_info* mbootI
         return;
     }
 
-    initGdt();
-    initIdt();
-    initIrq();
-
-    os::Timer::init(20);
-
-    os::Keyboard::init();
-
-    // enable interrupts
-    asm volatile ("sti");
-
-    initPaging();
-
     screen.write("Sandbox OS\n");
+
+    screen << os::Screen::hex
+           << "Kernel page dir start: " << getKernelPageDirStart() << '\n'
+           << "Kernel page dir end:   " << getKernelPageDirEnd() << '\n'
+           << os::Screen::dec;
 
     Shell sh(mbootInfo);
 

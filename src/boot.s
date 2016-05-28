@@ -1,11 +1,16 @@
 ; boot.s
 
+%include "paging.inc"
+
 MBOOT_PAGE_ALIGN	equ 1 << 0 		; load kernel and modules on a page boundary
 MBOOT_MEM_INFO		equ 1 << 1 		; provide kernel with memory info
 MBOOT_HEADER_MAGIC	equ 0x1BADB002	; multiboot magic number
 
 MBOOT_HEADER_FLAGS	equ MBOOT_PAGE_ALIGN | MBOOT_MEM_INFO
 MBOOT_CHECKSUM		equ -(MBOOT_HEADER_MAGIC + MBOOT_HEADER_FLAGS)
+
+KERNEL_VIRTUAL_BASE equ 0x0
+KERNEL_PAGE_TABLE_IDX equ (KERNEL_VIRTUAL_BASE >> 22)
 
 ; instructions are 32-bit
 [BITS 32]
@@ -34,6 +39,24 @@ extern _init				; global variable initialization
 extern kernelMain			; C code entry point
 
 start:
+	; set up paging directory
+	mov ecx, (kernelPageDirStart - KERNEL_VIRTUAL_BASE)
+	mov cr3, ecx
+
+	; enable paging
+	mov ecx, cr0
+	or ecx, 0x80000000
+	mov cr0, ecx
+
+	; jump to the higher half
+	lea ecx, [higherHalf]
+	jmp ecx
+
+higherHalf:
+	; TODO: unmap temporary identity mapped page
+	; mov dword [kernelPageDirStart + 0], 0
+	; invlpg [0]
+
 	mov esp, kernel_stack_start	; this points the stack to the new stack area
 	push ebx				; push multiboot header location (kernelMain param)
 	push eax				; push multiboot magic number (kernelMain param)
@@ -79,21 +102,55 @@ idtFlush:
 	lidt [eax]			; load the IDT pointer
 	ret
 
-; definition of BSS section that stores the stack
-; and page table
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+; Data Section
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+section .data
+
+; kernel page directory
+global kernelPageDirStart
+global kernelPageDirEnd
+
+align 4096
+kernelPageDirStart:
+dd (tempPageTableStart + (PAGE_DIR_RW | PAGE_DIR_PRESENT))
+times (PAGE_TABLE_ENTRIES - 1) dd 0
+kernelPageDirEnd:
+
+; kernel page table
+extern end
+align 4096
+kernelPageTableStart:
+%assign address KERNEL_VIRTUAL_BASE
+%rep 768
+dd (address | (PAGE_TABLE_RW | PAGE_TABLE_PRESENT))
+%assign address address + 4096
+%endrep
+times (PAGE_TABLE_ENTRIES - 768) dd 0
+kernelPageTableEnd:
+
+; temporary page table for identity mapping the kernel
+; until we jump to the higher half
+align 4096
+tempPageTableStart:
+%assign address 0
+%rep 1024
+dd (address + (PAGE_TABLE_RW | PAGE_TABLE_PRESENT))
+%assign address address + 4096
+%endrep
+tempPageTableEnd:
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+; BSS Section
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 section .bss
 
+; kernel stack
 global kernel_stack_start
 global kernel_stack_end
 ; the stack grows downward in memory so the start
 ; is at a higher address than the end
+alignb 4
 kernel_stack_end:
 	resb 4096			; reserve 4 KiB of memory
 kernel_stack_start:
-
-global kernelPageDirStart
-global kernelPageDirEnd
-alignb 4096
-kernelPageDirStart:
-	resb 4096
-kernelPageDirEnd:

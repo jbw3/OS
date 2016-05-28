@@ -17,7 +17,7 @@ CXX = i686-elf-g++
 CXXFLAGS = $(INCLUDES) -std=c++14 -ffreestanding -O2 -Wall -Wextra -fno-exceptions -fno-rtti
 
 AS = nasm
-ASFLAGS = -f elf32
+ASFLAGS = -f elf32 -I$(SRCDIR)/
 
 LIBS = -L$(LIBDIR) -lc -lgcc
 LDFLAGS = -T $(SRCDIR)/link.ld -ffreestanding -O2 -nostdlib $(LIBS)

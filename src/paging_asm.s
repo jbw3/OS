@@ -1,17 +1,10 @@
+%include "paging.inc"
+
 extern kernelPageDirStart
 extern kernelPageDirEnd
 
-PAGE_DIR_ADDRESS	equ 0xFFFFF000
-PAGE_DIR_RW			equ 0x00000002
-PAGE_DIR_PRESENT	equ 0x00000001
-
-PAGE_DIR_INIT_ENTRY	equ PAGE_DIR_RW
-
-PAGE_TABLE_ADDRESS	equ 0xFFFFF000
-PAGE_TABLE_RW		equ 0x00000002
-PAGE_TABLE_PRESENT	equ 0x00000001
-
-PAGE_TABLE_INIT_ENTRY equ PAGE_TABLE_RW
+PAGE_DIR_INIT_ENTRY		equ PAGE_DIR_RW
+PAGE_TABLE_INIT_ENTRY	equ PAGE_TABLE_RW
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ; get the address of the start of
