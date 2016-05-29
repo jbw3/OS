@@ -78,7 +78,7 @@ Screen::Manip<size_t> Screen::setw(size_t width)
 
 Screen::Screen()
 {
-    textMem = (uint16_t*)(0xB8000);
+    textMem = (uint16_t*)(0xB8000 + KERNEL_VIRTUAL_BASE);
     csrX = 0;
     csrY = 0;
 

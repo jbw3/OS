@@ -3,6 +3,8 @@
 
 #include <stdint.h>
 
+#define KERNEL_VIRTUAL_BASE 0xC0000000
+
 #ifdef __cplusplus
 extern "C"
 {
