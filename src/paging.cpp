@@ -10,7 +10,7 @@ namespace
  */
 void mapKernel()
 {
-    for (uint32_t addr = 0; addr < getKernelEnd(); addr += 4096)
+    for (uint32_t addr = 0; addr < getKernelPhysicalEnd(); addr += 4096)
     {
         addPage(addr);
     }
@@ -56,7 +56,7 @@ void initPaging()
     initPageDir();
 
     // add a page table after the kernel
-    uint32_t pageAddr = getKernelEnd();
+    uint32_t pageAddr = getKernelPhysicalEnd();
     if ((pageAddr & 0xFFF) != 0)
     {
         pageAddr &= 0xFFFF'F000;

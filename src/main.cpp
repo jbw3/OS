@@ -26,6 +26,7 @@ void kernelMain(const uint32_t MULTIBOOT_MAGIC_NUM, const multiboot_info* mbootI
 
     os::Keyboard::init();
 
+    /// @todo set up page fault ISR
     // initPaging();
 
     // enable interrupts
