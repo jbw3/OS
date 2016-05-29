@@ -55,7 +55,10 @@ higherHalf:
 	mov dword [kernelPageDirStart + 0], 0
 	invlpg [0]
 
+	; set up stack
 	mov esp, kernel_stack_start	; this points the stack to the new stack area
+
+	add ebx, KERNEL_VIRTUAL_BASE	; add virtual address offset to multiboot header pointer
 	push ebx				; push multiboot header location (kernelMain param)
 	push eax				; push multiboot magic number (kernelMain param)
 
