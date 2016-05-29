@@ -21,13 +21,11 @@ void kernelMain(const uint32_t MULTIBOOT_MAGIC_NUM, const multiboot_info* mbootI
     initGdt();
     initIdt();
     initIrq();
+    configPaging();
 
     os::Timer::init(20);
 
     os::Keyboard::init();
-
-    /// @todo set up page fault ISR
-    // initPaging();
 
     // enable interrupts
     asm volatile ("sti");
@@ -46,11 +44,6 @@ void kernelMain(const uint32_t MULTIBOOT_MAGIC_NUM, const multiboot_info* mbootI
     }
 
     screen.write("Sandbox OS\n");
-
-    screen << os::Screen::hex
-           << "Kernel page dir start: " << getKernelPageDirStart() << '\n'
-           << "Kernel page dir end:   " << getKernelPageDirEnd() << '\n'
-           << os::Screen::dec;
 
     Shell sh(mbootInfo);
 

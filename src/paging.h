@@ -52,7 +52,7 @@ void pageFault(const registers* regs);
 
 } // extern "C"
 
-void initPaging();
+void configPaging();
 
 /**
  * @brief Add a page table to the page directory

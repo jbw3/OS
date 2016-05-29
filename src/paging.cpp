@@ -47,27 +47,10 @@ void pageFault(const registers* regs)
     while (true);
 }
 
-void initPaging()
+void configPaging()
 {
     // register page fault handler
     registerIsrHandler(ISR_PAGE_FAULT, pageFault);
-
-    // initialize the page driectory
-    initPageDir();
-
-    // add a page table after the kernel
-    uint32_t pageAddr = getKernelPhysicalEnd();
-    if ((pageAddr & 0xFFF) != 0)
-    {
-        pageAddr &= 0xFFFF'F000;
-        pageAddr += 4096;
-    }
-    initPageTable(pageAddr);
-    addPageTable(0, pageAddr);
-
-    mapKernel();
-
-    enablePaging();
 }
 
 void addPageTable(int idx, uint32_t pageTableAddr)
