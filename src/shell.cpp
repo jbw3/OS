@@ -452,7 +452,12 @@ R"(Displays information about the CPU.
         cpuinfo_x86_t cpuInfo;
         cpuInfo.vendorIdString = "123456789abc";
         getCpuInfo_x86(&cpuInfo);
-        screen << cpuInfo.vendorIdString << "\n";
+        printCpuInfo(&cpuInfo);
+    }
+
+    void printCpuInfo(cpuinfo_x86_t* info)
+    {
+        screen << "Vendor Id: " << info->vendorIdString << "\n";
     }
 } cpuInfoCmd;
 

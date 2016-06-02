@@ -30,6 +30,7 @@ getCpuInfo_x86:
 
     add esp, 0x4    ; "pop stack"
 
+    ret
     ; restore registers
     ;pop edx
     ;pop ecx
