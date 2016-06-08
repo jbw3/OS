@@ -9,7 +9,7 @@
  ☐ Blinking text
 
 Create user processes:
- ☐ Load program as GRUB module
+ ✔ Load program as GRUB module @done (16-05-29 13:23)
  ☐ Map kernel to "Higher Half"
  ☐ C/C++ programs
  ☐ System calls
