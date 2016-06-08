@@ -142,14 +142,14 @@ times (PAGE_TABLE_ENTRIES - 768) dd 0
 kernelPageTableEnd:
 
 ; temporary page table for identity mapping the kernel
-; until we jump to the higher half
+; until we jump to the higher half; we only need to
+; map the first page in the kernel which starts at
+; physical address 0x100000 (1 MiB)
 align 4096
 tempPageTableStart:
-%assign address 0
-%rep 1024
-dd (address | (PAGE_TABLE_RW | PAGE_TABLE_PRESENT))
-%assign address address + 4096
-%endrep
+times 256 dd 0
+dd (0x100000 | (PAGE_TABLE_RW | PAGE_TABLE_PRESENT))
+times (1024 - 256 - 1) dd 0
 tempPageTableEnd:
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
