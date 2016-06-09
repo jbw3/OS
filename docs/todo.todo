@@ -7,10 +7,13 @@
  ☐ Move multiboot header to its own file (http://os.phil-opp.com/multiboot-kernel.html)
  ☐ Use multiple cores
  ☐ Blinking text
+ ☐ Move multiboot header out of text section
 
 Create user processes:
  ✔ Load program as GRUB module @done (16-05-29 13:23)
- ☐ Map kernel to "Higher Half"
+ ✔ Map kernel to "Higher Half" @done (16-06-08 20:45)
+ ☐ Remove "set paging on/off" command
+ ☐ Convert all physical addresses to virtual addresses
  ☐ C/C++ programs
  ☐ System calls
  ☐ Cooperative scheduling
