@@ -110,9 +110,6 @@ set bg <0-15>
 
 set fg <0-15>
     Set foreground color
-
-set paging <on|off>
-    Enable/disable paging
 )";
     }
 
@@ -161,26 +158,6 @@ set paging <on|off>
                 {
                     screen.setForegroundColor(static_cast<os::Screen::EColor>(color));
                 }
-            }
-        }
-        else if (strcmp(arg, "paging") == 0)
-        {
-            char* state = strtok(nullptr, " ");
-            if (state == nullptr)
-            {
-                screen << "No state given\n";
-            }
-            else if (strcmp(state, "off") == 0)
-            {
-                disablePaging();
-            }
-            else if (strcmp(state, "on") == 0)
-            {
-                enablePaging();
-            }
-            else
-            {
-                screen << "Invalid state\n";
             }
         }
         else
