@@ -81,8 +81,11 @@ void printMultibootInfo(const multiboot_info* mbootInfo)
                 break;
 
             case MULTIBOOT_INFO_BOOT_LOADER_NAME:
-                screen << reinterpret_cast<const char*>(mbootInfo->boot_loader_name) << '\n';
+            {
+                const char* bootLoaderName = reinterpret_cast<const char*>(mbootInfo->boot_loader_name + KERNEL_VIRTUAL_BASE);
+                screen << bootLoaderName << '\n';
                 break;
+            }
 
             default:
                 screen << '\n';
@@ -96,11 +99,13 @@ void printMultibootInfo(const multiboot_info* mbootInfo)
 
 void printMultibootModules(uint32_t addr, uint32_t len)
 {
+    addr += KERNEL_VIRTUAL_BASE;
+
     for (uint32_t i = 0; i < len; ++i)
     {
         const multiboot_mod_list* module = reinterpret_cast<const multiboot_mod_list*>(addr);
 
-        const char* modName = reinterpret_cast<const char*>(module->cmdline);
+        const char* modName = reinterpret_cast<const char*>(module->cmdline + KERNEL_VIRTUAL_BASE);
         screen << modName << '\n';
 
         addr += sizeof(multiboot_mod_list);
@@ -109,6 +114,8 @@ void printMultibootModules(uint32_t addr, uint32_t len)
 
 void printMultibootMemMap(uint32_t addr, uint32_t len)
 {
+    addr += KERNEL_VIRTUAL_BASE;
+
     uint32_t offset = 0;
     while (offset < len)
     {
