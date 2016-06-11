@@ -2,22 +2,6 @@
 #include "screen.h"
 #include "system.h"
 
-namespace
-{
-
-/**
- * @brief Identity map the kernel
- */
-void mapKernel()
-{
-    for (uint32_t addr = 0; addr < getKernelPhysicalEnd(); addr += 4096)
-    {
-        addPage(addr);
-    }
-}
-
-}
-
 extern "C"
 void pageFault(const registers* regs)
 {

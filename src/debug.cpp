@@ -43,11 +43,7 @@ void printMultibootInfo(const multiboot_info* mbootInfo)
 
             case MULTIBOOT_INFO_CMDLINE:
             {
-                if (isPagingEnabled())
-                {
-                    screen << "<< CANNOT PRINT WHEN PAGING IS ENABLED >>\n";
-                }
-                else
+                if (!isPagingEnabled())
                 {
                     screen << reinterpret_cast<const char*>(mbootInfo->cmdline) << '\n';
                 }

@@ -66,7 +66,7 @@ _start:
 	invlpg [0]
 
 	; set up stack
-	mov esp, kernel_stack_start	; this points the stack to the new stack area
+	mov esp, kernelStackStart	; this points the stack to the new stack area
 
 	add ebx, KERNEL_VIRTUAL_BASE	; add virtual address offset to multiboot header pointer
 	push ebx				; push multiboot header location (kernelMain param)
@@ -158,11 +158,11 @@ tempPageTableEnd:
 section .bss
 
 ; kernel stack
-global kernel_stack_start
-global kernel_stack_end
+global kernelStackStart
+global kernelStackEnd
 ; the stack grows downward in memory so the start
 ; is at a higher address than the end
 alignb 4
-kernel_stack_end:
+kernelStackEnd:
 	resb 4096			; reserve 4 KiB of memory
-kernel_stack_start:
+kernelStackStart:
