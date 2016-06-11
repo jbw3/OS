@@ -5,6 +5,10 @@
 
 #include "isr.h"
 
+#define PAGE_SIZE          4096
+#define PAGE_BOUNDARY_MASK (~(PAGE_SIZE - 1))
+#define PAGE_SIZE_MASK     (PAGE_SIZE - 1)
+
 #define PAGE_DIR_ADDRESS       0xFFFFF000
 #define PAGE_DIR_PAGE_SIZE     0x00000080
 #define PAGE_DIR_ACCESSED      0x00000020
@@ -56,12 +60,19 @@ void configPaging();
 
 /**
  * @brief Add a page table to the page directory
+ * @todo remove
  */
 void addPageTable(int idx, uint32_t pageTableAddr);
 
 /**
  * @brief Add a page to a page table
+ * @todo remove
  */
 void addPage(uint32_t pageAddr);
+
+/**
+ * @brief Map a page in the page table
+ */
+void mapPage(const uint32_t* pageDir, uint32_t virtualAddr, uint32_t physicalAddr);
 
 #endif // PAGING_H_

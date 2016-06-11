@@ -3,5 +3,6 @@ lib/
 obj/
 .DS_Store
 bochsout.txt
+*.gdb
 *.sublime-workspace
 *.vdi
