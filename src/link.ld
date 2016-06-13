@@ -2,46 +2,46 @@
  * Linker script for the kernel
  */
 
-KERNEL_VIRTUAL_BASE = 0xC0000000;
-KERNEL_TEXT_OFFSET  = 0x00100000;
-
 ENTRY(start)
 
 SECTIONS
 {
-    . = (KERNEL_VIRTUAL_BASE + KERNEL_TEXT_OFFSET);
+    kernelVirtualBase = 0xC0000000;
+    kernelTextOffset  = 0x00100000;
+
+    . = (kernelVirtualBase + kernelTextOffset);
 
     kernelVirtualStart = .;
-    kernelPhysicalStart = . - KERNEL_VIRTUAL_BASE;
+    kernelPhysicalStart = . - kernelVirtualBase;
 
-    loadStartAddr = . - KERNEL_VIRTUAL_BASE;
+    loadStartAddr = . - kernelVirtualBase;
 
-    .text ALIGN(4096) : AT(ADDR(.text) - KERNEL_VIRTUAL_BASE)
+    .text ALIGN(4096) : AT(ADDR(.text) - kernelVirtualBase)
     {
         *(.text)  /* text sections from all files */
         *(.ctors) /* table of pointers for global C++ constructors */
         *(.dtors) /* table of pointers for global C++ destructors */
     }
 
-    .rodata ALIGN(4096) : AT(ADDR(.rodata) - KERNEL_VIRTUAL_BASE)
+    .rodata ALIGN(4096) : AT(ADDR(.rodata) - kernelVirtualBase)
     {
         *(.rodata) /* read-only data from all files */
     }
 
-    .data ALIGN(4096) : AT(ADDR(.data) - KERNEL_VIRTUAL_BASE)
+    .data ALIGN(4096) : AT(ADDR(.data) - kernelVirtualBase)
     {
         *(.data) /* data sections from all files */
     }
 
-    loadEndAddr = . - KERNEL_VIRTUAL_BASE;
+    loadEndAddr = . - kernelVirtualBase;
 
-    .bss ALIGN(4096) : AT(ADDR(.bss) - KERNEL_VIRTUAL_BASE)
+    .bss ALIGN(4096) : AT(ADDR(.bss) - kernelVirtualBase)
     {
         *(.bss) /* BSS sections from all files */
     }
 
-    bssEndAddr = . - KERNEL_VIRTUAL_BASE;
+    bssEndAddr = . - kernelVirtualBase;
 
     kernelVirtualEnd = .;
-    kernelPhysicalEnd = . - KERNEL_VIRTUAL_BASE;
+    kernelPhysicalEnd = . - kernelVirtualBase;
 }

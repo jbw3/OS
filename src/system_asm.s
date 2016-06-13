@@ -2,7 +2,6 @@
 
 extern kernelStackStart
 extern kernelStackEnd
-extern kernelPhysicalEnd
 
 ; get the stack pointer
 global getStackPointer
@@ -28,12 +27,6 @@ global getStackOffset
 getStackOffset:
     mov eax, kernelStackStart
     sub eax, esp
-    ret
-
-; get the kernel's physical end address
-global getKernelPhysicalEnd
-getKernelPhysicalEnd:
-    mov eax, kernelPhysicalEnd
     ret
 
 ; get the CR2 register value
