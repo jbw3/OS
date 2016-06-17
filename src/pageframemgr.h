@@ -8,7 +8,7 @@
 #include "stdint.h"
 
 // forward declarations
-class multiboot_mmap_entry;
+struct multiboot_info;
 
 /**
  * @brief Page frame manager
@@ -16,9 +16,28 @@ class multiboot_mmap_entry;
 class PageFrameMgr
 {
 public:
-    PageFrameMgr(const multiboot_mmap_entry* mmapStart, uint32_t mmapLen);
+    PageFrameMgr(const multiboot_info* mbootInfo);
 
 private:
+    /**
+     * @brief A block of contiguous page frames in memory
+     */
+    struct PageFrameBlock
+    {
+        /// physical address of the first page in the block
+        uint32_t startAddr;
+
+        /// number of pages in block
+        uint32_t numPages;
+
+        /// pointer to array of bits that indicate whether each
+        /// page in the block is allocated or free
+        uint32_t* isAlloc;
+
+        /// pointer to the next page frame block
+        PageFrameBlock* nextBlock;
+    };
+    PageFrameBlock* firstBlock;
 };
 
 #endif // PAGE_FRAME_MGR_H_
