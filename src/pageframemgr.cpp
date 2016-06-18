@@ -53,13 +53,16 @@ void PageFrameMgr::getMultibootMMapInfo(const multiboot_info* mbootInfo, uint32_
             }
 
             // find nearest page frame boundary
-            pfStart += PAGE_SIZE;
-            pfStart &= PAGE_SIZE_MASK;
+            if ((pfStart & ~PAGE_SIZE_MASK) != 0)
+            {
+                pfStart += PAGE_SIZE;
+                pfStart &= PAGE_SIZE_MASK;
+            }
 
             // ensure the start is still within the mmap entry bounds
             if (pfStart <= entryEnd)
             {
-                numPageFrames += (entryEnd - pfStart) / PAGE_SIZE;
+                numPageFrames += (entryEnd + 1 - pfStart) / PAGE_SIZE;
             }
         }
 
