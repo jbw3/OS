@@ -124,7 +124,24 @@ void printMultibootMemMap(uint32_t addr, uint32_t len)
                << "0x" << os::Screen::setw(8) << startAddr
                << " - " << "0x" << os::Screen::setw(8) << endAddr
                << os::Screen::dec
-               << " (" << (entry->len / 1024) << " KB)\n";
+               << " (";
+
+        uint64_t entryLen = entry->len;
+
+        if (entryLen >= 1'048'576 && entryLen % 1'048'576 == 0)
+        {
+            screen << (entryLen / 1'048'576) << " MiB";
+        }
+        else if (entryLen >= 1024 && entryLen % 1024 == 0)
+        {
+            screen << (entryLen / 1024) << " KiB";
+        }
+        else
+        {
+            screen << entryLen << " B";
+        }
+
+        screen << ")\n";
 
         offset += entry->size + sizeof(entry->size);
     }
