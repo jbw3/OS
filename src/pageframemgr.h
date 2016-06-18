@@ -37,7 +37,16 @@ private:
         /// pointer to the next page frame block
         PageFrameBlock* nextBlock;
     };
+
     PageFrameBlock* firstBlock;
+
+    /**
+     * @brief get number of page frames from the Multiboot
+     * mem map
+     * @param mbootInfo pointer to multiboot info
+     * @param [out] numPageFrames the number of page frames
+     */
+    void getMultibootMMapInfo(const multiboot_info* mbootInfo, uint32_t& numPageFrames);
 };
 
 #endif // PAGE_FRAME_MGR_H_
