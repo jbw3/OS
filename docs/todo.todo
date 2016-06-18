@@ -8,6 +8,7 @@
  ☐ Blinking text
  ☐ Move multiboot header out of text section
  ☐ Address NASM warnings (NASM bug?)
+ ☐ CMOS clock (http://wiki.osdev.org/CMOS)
 
 Rework project structure:
  ☐ Move kernel code to its own directory (see notes)
