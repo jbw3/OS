@@ -19,6 +19,12 @@ public:
     PageFrameMgr(const multiboot_info* mbootInfo);
 
 private:
+    struct MemBlock
+    {
+        uint32_t startAddr;
+        uint32_t numPages;
+    };
+
     /**
      * @brief A block of contiguous page frames in memory
      */
@@ -33,12 +39,11 @@ private:
         /// pointer to array of bits that indicate whether each
         /// page in the block is allocated or free
         uint32_t* isAlloc;
-
-        /// pointer to the next page frame block
-        PageFrameBlock* nextBlock;
     };
 
-    PageFrameBlock* firstBlock;
+    PageFrameBlock* blocks;
+
+    void initMemBlocks(const multiboot_info* mbootInfo, MemBlock* memBlocks, unsigned int memBlocksSize, unsigned int& numMemBlocks);
 
     /**
      * @brief get number of page frames from the Multiboot
@@ -47,6 +52,11 @@ private:
      * @param [out] numPageFrames the number of page frames
      */
     void getMultibootMMapInfo(const multiboot_info* mbootInfo, uint32_t& numPageFrames);
+
+    /**
+     * @brief Allocate the page frame data structure
+     */
+    void allocDataStruct(uint32_t numPageFrames);
 };
 
 #endif // PAGE_FRAME_MGR_H_
