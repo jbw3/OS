@@ -11,3 +11,8 @@ void outb(uint16_t port, uint8_t value)
 {
     __asm volatile ("outb %1, %0" : : "dN" (port), "a" (value));
 }
+
+void __cxa_pure_virtual()
+{
+    while (1);
+}

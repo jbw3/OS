@@ -40,6 +40,11 @@ uint32_t getStackOffset();
  */
 uint32_t getRegCR2();
 
+/**
+ * @todo move this to libstdc++
+ */
+void __cxa_pure_virtual();
+
 #ifdef __cplusplus
 } // extern "C"
 #endif
