@@ -38,8 +38,8 @@ PageFrameMgr::PageFrameMgr(const multiboot_info* mbootInfo)
 
     screen << "numPageFrames = " << numPageFrames << '\n';
 
-    // allocate all needed page frame blocks at the end of the kernel
-    allocDataStruct(numPageFrames);
+    // allocate and initialize all needed page frame blocks at the end of the kernel
+    initDataStruct(memBlocks, numMemBlocks);
 
     /// @todo get mem segment containing the end of the kernel
 
@@ -108,6 +108,7 @@ void PageFrameMgr::initMemBlocks(const multiboot_info* mbootInfo, MemBlock* memB
     }
 }
 
+/// @todo Is this function needed?
 void PageFrameMgr::getMultibootMMapInfo(const multiboot_info* mbootInfo, uint32_t& numPageFrames)
 {
     numPageFrames = 0;
@@ -149,7 +150,70 @@ void PageFrameMgr::getMultibootMMapInfo(const multiboot_info* mbootInfo, uint32_
     }
 }
 
-void PageFrameMgr::allocDataStruct(uint32_t numPageFrames)
+/// @todo This function currently makes the simplifying
+/// assumption that the data struct will fit in memory
+/// right after the kernel
+void PageFrameMgr::initDataStruct(const MemBlock* memBlocks, unsigned int numMemBlocks)
 {
+    // get kernel physical end aligned on a 4-byte boundary
+    uint32_t alignedEnd = KERNEL_PHYSICAL_END;
+    if ( (alignedEnd & 0x3) != 0)
+    {
+        alignedEnd = (alignedEnd & ~0x3) + 4;
+    }
 
+    blocks = reinterpret_cast<PageFrameBlock*>(alignedEnd + KERNEL_VIRTUAL_BASE);
+
+    // find the last kernel page
+    uint32_t physicalEnd = alignedEnd;
+    if ( (physicalEnd & ~PAGE_SIZE_MASK) != 0 )
+    {
+        physicalEnd = (physicalEnd & PAGE_SIZE_MASK) + PAGE_SIZE;
+    }
+
+    uint32_t blocksEnd = alignedEnd;
+
+    // init PageFrameBlock structs
+    numBlocks = 0;
+    for (unsigned int i = 0; i < numMemBlocks; ++i)
+    {
+        blocksEnd += sizeof(PageFrameBlock);
+        if (blocksEnd >= physicalEnd)
+        {
+            mapPage(getKernelPageDirStart(), physicalEnd + KERNEL_VIRTUAL_BASE, physicalEnd);
+            physicalEnd += PAGE_SIZE;
+        }
+
+        blocks[i].startAddr = memBlocks[i].startAddr;
+        blocks[i].numPages = memBlocks[i].numPages;
+        ++numBlocks;
+    }
+
+    // init isAlloc arrays in each PageFrameBlock struct
+    unsigned int totalArraySize = 0;
+    uint32_t arrayPtr = blocksEnd;
+    for (unsigned int i = 0; i < numBlocks; ++i)
+    {
+        unsigned int arraySize = blocks[i].numPages / sizeof(uint32_t);
+
+        blocks[i].isAlloc = reinterpret_cast<uint32_t*>(arrayPtr + KERNEL_VIRTUAL_BASE);
+
+        arrayPtr += arraySize;
+        totalArraySize += arraySize;
+    }
+
+    // calculate number of pages needed for the isAlloc arrays
+    unsigned int memNeeded = totalArraySize - (physicalEnd - blocksEnd);
+    unsigned int pagesNeeded = memNeeded / PAGE_SIZE;
+    if (memNeeded % PAGE_SIZE > 0)
+    {
+        ++pagesNeeded;
+    }
+
+    // map pages containing the isAlloc arrays
+    for (unsigned int i = 0; i < pagesNeeded; ++i)
+    {
+        mapPage(getKernelPageDirStart(), physicalEnd + KERNEL_VIRTUAL_BASE, physicalEnd);
+        physicalEnd += PAGE_SIZE;
+    }
 }

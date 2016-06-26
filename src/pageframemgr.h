@@ -37,11 +37,13 @@ private:
         uint32_t numPages;
 
         /// pointer to array of bits that indicate whether each
-        /// page in the block is allocated or free
+        /// page in the block is free or allocated (0 = free,
+        /// 1 = allocated)
         uint32_t* isAlloc;
     };
 
     PageFrameBlock* blocks;
+    unsigned int numBlocks;
 
     void initMemBlocks(const multiboot_info* mbootInfo, MemBlock* memBlocks, unsigned int memBlocksSize, unsigned int& numMemBlocks);
 
@@ -54,9 +56,9 @@ private:
     void getMultibootMMapInfo(const multiboot_info* mbootInfo, uint32_t& numPageFrames);
 
     /**
-     * @brief Allocate the page frame data structure
+     * @brief Allocate and initialize the page frame data structure
      */
-    void allocDataStruct(uint32_t numPageFrames);
+    void initDataStruct(const MemBlock* memBlocks, unsigned int numMemBlocks);
 };
 
 #endif // PAGE_FRAME_MGR_H_
