@@ -1,6 +1,5 @@
  ☐ Create bootable HDD (see notes)
  ☐ Implement filesystem
- ☐ Organize files (see notes)
  ☐ Create heap
  ☐ Support 64-bit x86
  ☐ Support Arm processor
@@ -9,6 +8,12 @@
  ☐ Blinking text
  ☐ Move multiboot header out of text section
  ☐ Address NASM warnings (NASM bug?)
+
+Rework project structure:
+ ☐ Move kernel code to its own directory (see notes)
+ ☐ Create debug and release builds
+ ☐ stringutils should use templates instead of macros
+ ☐ add *.o after extension (e.g. .cpp.o)
 
 User processes:
  ✔ Load program as GRUB module @done (16-05-29 13:23)

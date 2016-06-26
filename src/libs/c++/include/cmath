@@ -1,0 +1,20 @@
+#ifndef _CMATH
+#define _CMATH
+
+namespace std
+{
+
+#include "math.h"
+
+// undefine all math.h macros that will conflict with function declarations
+#undef isnan
+
+bool isnan(float n);
+
+bool isnan(double n);
+
+bool isnan(long double n);
+
+} // namespace std
+
+#endif // _CMATH

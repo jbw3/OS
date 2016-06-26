@@ -8,6 +8,87 @@
 /// until the Screen class is replaced by ostream
 #include "libs/c/src/stringutils.h"
 
+namespace
+{
+
+template<typename T>
+const T FLOAT_MAX_ORDER = 1;
+
+
+/// @todo temporary max order
+template<>
+const float FLOAT_MAX_ORDER<float> = 1e20f;
+
+/// @todo temporary max order
+template<>
+const double FLOAT_MAX_ORDER<double> = 1e100;
+
+/// @todo temporary max order
+template<>
+const long double FLOAT_MAX_ORDER<long double> = 1e200l;
+
+/// @todo handle infinity and NaN
+/// @todo move this to stringutils
+template<typename T>
+void writeFixedFloat(T num, char* str, unsigned int precision)
+{
+    int idx = 0;
+
+    if (num < static_cast<T>(0))
+    {
+        str[idx++] = '-';
+        num = -num;
+    }
+
+    T order = FLOAT_MAX_ORDER<T>;
+
+    bool outputPoint = false;
+    bool outputZeros = false;
+    unsigned int fractionDigits = 0;
+    while (fractionDigits < precision)
+    {
+        /// @todo Check order/10. If > 7, subtract 1 from that order
+        T result = num / order;
+        result += static_cast<T>(0.001); /// @todo this sometimes causes incorrect behavior (e.g. 999.999)
+        int digit = static_cast<int>(result);
+
+        if (outputZeros || digit != 0)
+        {
+            char ch = '0' + digit;
+            str[idx++] = ch;
+            outputZeros = true;
+        }
+
+        if (outputPoint)
+        {
+            ++fractionDigits;
+        }
+
+        T sub = digit * order;
+        num -= sub;
+        if (num < static_cast<T>(0))
+        {
+            num = static_cast<T>(0);
+        }
+
+        order /= static_cast<T>(10);
+        if (!outputPoint && order < static_cast<T>(1))
+        {
+            if (!outputZeros)
+            {
+                str[idx++] = '0';
+                outputZeros = true;
+            }
+            str[idx++] = '.';
+            outputPoint = true;
+        }
+    }
+
+    str[idx] = '\0';
+}
+
+} // anonymous namespace
+
 namespace os
 {
 
@@ -89,6 +170,7 @@ Screen::Screen()
     flags = BOOL_ALPHA;
     width = 0;
     fill = ' ';
+    precision = 10;
 
     setBackgroundColor(EColor::eBlack);
     setForegroundColor(EColor::eWhite);
@@ -314,6 +396,33 @@ Screen& Screen::operator <<(const void* ptr)
 {
     char buff[sizeof(ptr) + 2]; // sizeof(ptr) + negative sign + null
     writeUnsignedNum(reinterpret_cast<uintptr_t>(ptr), buff, base, (flags & UPPERCASE));
+    write(buff);
+    return *this;
+}
+
+Screen& Screen::operator <<(float num)
+{
+    /// @todo calculate max buffer size
+    char buff[128];
+    writeFixedFloat(num, buff, precision);
+    write(buff);
+    return *this;
+}
+
+Screen& Screen::operator <<(double num)
+{
+    /// @todo calculate max buffer size
+    char buff[128];
+    writeFixedFloat(num, buff, precision);
+    write(buff);
+    return *this;
+}
+
+Screen& Screen::operator <<(long double num)
+{
+    /// @todo calculate max buffer size
+    char buff[128];
+    writeFixedFloat(num, buff, precision);
     write(buff);
     return *this;
 }
