@@ -59,12 +59,19 @@ void configPaging();
 
 /**
  * @brief Add a page table to the page directory
+ * @todo remove
  */
 void addPageTable(int idx, uint32_t pageTableAddr);
 
 /**
  * @brief Add a page to a page table
+ * @todo remove
  */
 void addPage(uint32_t pageAddr);
+
+/**
+ * @brief Map a page in the page table
+ */
+void mapPage(const uint32_t* pageDir, uint32_t virtualAddr, uint32_t physicalAddr);
 
 #endif // PAGING_H_
