@@ -122,6 +122,12 @@ public:
 
     os::Screen& operator <<(const void* ptr);
 
+    os::Screen& operator <<(float num);
+
+    os::Screen& operator <<(double num);
+
+    os::Screen& operator <<(long double num);
+
     os::Screen& operator <<(os::Screen& (*fPtr)(os::Screen&));
 
     template<typename T>
@@ -157,6 +163,7 @@ private:
     uint8_t flags;
     size_t width;
     char fill;
+    unsigned int precision;
 
     void outputChar(char ch);
 
