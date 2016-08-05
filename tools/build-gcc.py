@@ -89,7 +89,7 @@ class Builder(object):
 def parseArgs():
     import argparse
 
-    parser = argparse.ArgumentParser(description='Tool to build binutils and GCC')
+    parser = argparse.ArgumentParser(description='Tool to build Binutils and GCC. Binutils can be downloaded at https://www.gnu.org/software/binutils/. GCC can be downloaded at https://gcc.gnu.org/.')
     parser.add_argument('binutilsSrc', metavar='BINUTILS', help='the binutils source')
     parser.add_argument('gccSrc', metavar='GCC', help='the GCC source')
     parser.add_argument('-t', '--target', default='i686-elf', help='the target processor')
