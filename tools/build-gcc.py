@@ -86,6 +86,9 @@ class Builder(object):
         self._buildBinutils()
         self._buildGcc()
 
+        print('Binutils and GCC were installed in the following directory:', end='\n\n')
+        print('  ', os.path.join(self.args.output, 'bin'), sep='', end='\n\n')
+
 def parseArgs():
     import argparse
 
