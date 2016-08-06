@@ -126,7 +126,30 @@ class Builder(object):
 def parseArgs():
     import argparse
 
-    parser = argparse.ArgumentParser(description='Tool to build Binutils and GCC. Binutils can be downloaded at https://www.gnu.org/software/binutils/. GCC can be downloaded at https://gcc.gnu.org/.')
+    DESCRIPTION = '''
+Tool to build Binutils and GCC. The Binutils and GCC source
+code are required arguments. They can be specified either
+as directories or compressed files (.zip, .tar.gz, etc.).
+
+Source code can be downloaded at the following links:
+https://www.gnu.org/software/binutils/
+https://gcc.gnu.org/
+'''
+    EPILOG = '''Examples:
+
+1. Build from source code in compressed archives:
+
+  build-gcc.py binutils-2.27.tar.gz gcc-5.4.0.tar.bz2
+
+2. Build from source code in directories. The target
+architecture is i686-elf:
+
+  build-gcc.py binutils-2.27 gcc-6.1.0 -t i686-elf
+'''
+
+    parser = argparse.ArgumentParser(description=DESCRIPTION,
+                                     epilog=EPILOG,
+                                     formatter_class=argparse.RawTextHelpFormatter)
     parser.add_argument('binutilsSrc', metavar='BINUTILS', help='the binutils source')
     parser.add_argument('gccSrc', metavar='GCC', help='the GCC source')
     parser.add_argument('-t', '--target', default='i686-elf', help='the target processor')
