@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 
-import os, shutil, subprocess, tempfile
+import os, shutil, subprocess, sys, tempfile
 
 def stripPackExt(name):
     for fmt in shutil.get_unpack_formats():
@@ -38,6 +38,16 @@ class Builder(object):
         self.tmpDirs.append(path)
 
         return path
+
+    def _checkArgs(self):
+        if os.path.exists(self.args.output) and len(os.listdir(self.args.output)) > 0:
+            if self.args.force:
+                shutil.rmtree(self.args.output)
+            else:
+                print('The following directory is not empty:')
+                print(self.args.output)
+                print('Add the --force option to overwrite the existing installation')
+                sys.exit(1)
 
     def _buildBinutils(self):
         srcPath = self._processSrc(self.args.binutilsSrc)
@@ -105,6 +115,7 @@ class Builder(object):
         self.tmpDirs = []
 
     def build(self):
+        self._checkArgs()
         self._buildBinutils()
         self._buildGcc()
         self._cleanUp()
@@ -120,6 +131,7 @@ def parseArgs():
     parser.add_argument('gccSrc', metavar='GCC', help='the GCC source')
     parser.add_argument('-t', '--target', default='i686-elf', help='the target processor')
     parser.add_argument('-o', '--output', default=None, help='the output directory where GCC will be installed')
+    parser.add_argument('-f', '--force', action='store_true', default=False, help='force the installation over an existing one')
 
     args = parser.parse_args()
 
