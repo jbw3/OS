@@ -1,14 +1,31 @@
 #!/usr/bin/env python3
 
-import os, shutil, subprocess
+import os, shutil, subprocess, tempfile
+
+def stripPackExt(name):
+    for fmt in shutil.get_unpack_formats():
+        for ext in fmt[1]:
+            if name.endswith(ext):
+                return name.rstrip(ext)
+    return name
 
 class Builder(object):
     def __init__(self, args):
         self.args = args
+        self.tmpDirs = []
+
+    def _processSrc(self, src):
+        if os.path.isdir(src):
+            return src
+        else:
+            shutil.unpack_archive(src, tempfile.gettempdir())
+            extractDir = os.path.join(tempfile.gettempdir(), stripPackExt(os.path.basename(src)))
+            self.tmpDirs.append(extractDir)
+            return extractDir
 
     def _makeTempDir(self, name):
         # set path in temp directory
-        path = os.path.join('/tmp', name)
+        path = os.path.join(tempfile.gettempdir(), name)
 
         # remove path if it already exits
         if os.path.exists(path):
@@ -17,13 +34,17 @@ class Builder(object):
         # create the directory
         os.makedirs(path)
 
+        # save directory so we can delete it later
+        self.tmpDirs.append(path)
+
         return path
 
     def _buildBinutils(self):
-        buildPath = self._makeTempDir('build-binutils')
+        srcPath = self._processSrc(self.args.binutilsSrc)
+        buildPath = self._makeTempDir('build-' + stripPackExt(os.path.basename(self.args.binutilsSrc)))
 
         # configure
-        configCmd = [os.path.join(self.args.binutilsSrc, 'configure'),
+        configCmd = [os.path.join(srcPath, 'configure'),
                      '--target={}'.format(self.args.target),
                      '--prefix={}'.format(self.args.output),
                      '--with-sysroot',
@@ -40,11 +61,9 @@ class Builder(object):
         proc = subprocess.Popen(['make', 'install'], cwd=buildPath)
         proc.wait()
 
-        # delete build directory
-        shutil.rmtree(buildPath)
-
     def _buildGcc(self):
-        buildPath = self._makeTempDir('build-gcc')
+        srcPath = self._processSrc(self.args.gccSrc)
+        buildPath = self._makeTempDir('build-' + stripPackExt(os.path.basename(self.args.gccSrc)))
 
         # set environment vars
         binutilsBinDir = os.path.join(self.args.output, 'bin')
@@ -52,11 +71,11 @@ class Builder(object):
         env['PATH'] = binutilsBinDir + ':' + env['PATH']
 
         # get dependencies
-        proc = subprocess.Popen(['./contrib/download_prerequisites'], cwd=self.args.gccSrc)
+        proc = subprocess.Popen([os.path.join('.', 'contrib', 'download_prerequisites')], cwd=srcPath)
         proc.wait()
 
         # configure
-        configCmd = [os.path.join(self.args.gccSrc, 'configure'),
+        configCmd = [os.path.join(srcPath, 'configure'),
                      '--target={}'.format(self.args.target),
                      '--prefix={}'.format(self.args.output),
                      '--disable-nls',
@@ -79,12 +98,16 @@ class Builder(object):
         proc = subprocess.Popen(['make', 'install-target-libgcc'], cwd=buildPath, env=env)
         proc.wait()
 
-        # delete build directory
-        shutil.rmtree(buildPath)
+    def _cleanUp(self):
+        # delete temp dirs
+        for d in self.tmpDirs:
+            shutil.rmtree(d)
+        self.tmpDirs = []
 
     def build(self):
         self._buildBinutils()
         self._buildGcc()
+        self._cleanUp()
 
         print('Binutils and GCC were installed in the following directory:', end='\n\n')
         print('  ', os.path.join(self.args.output, 'bin'), sep='', end='\n\n')
@@ -100,15 +123,18 @@ def parseArgs():
 
     args = parser.parse_args()
 
-    # check binutils path
+    # expand binutils path
+    args.binutilsSrc = os.path.expanduser(args.binutilsSrc)
     args.binutilsSrc = os.path.abspath(args.binutilsSrc)
 
-    # check GCC path
+    # expand GCC path
+    args.gccSrc = os.path.expanduser(args.gccSrc)
     args.gccSrc = os.path.abspath(args.gccSrc)
 
-    # check output path
+    # expand output path
     if args.output is None:
         outDir = os.path.basename(args.gccSrc)
+        outDir = stripPackExt(outDir)
         args.output = os.path.join('~', 'opt', 'cross', outDir)
     args.output = os.path.expanduser(args.output)
     args.output = os.path.abspath(args.output)
