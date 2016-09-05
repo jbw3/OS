@@ -47,7 +47,7 @@ PageFrameMgr::PageFrameMgr(const multiboot_info* mbootInfo)
 
     /// @todo ensure this is in a block
     /// @todo map if necessary
-    blocks = reinterpret_cast<PageFrameBlock*>(KERNEL_VIRTUAL_END);
+    // blocks = reinterpret_cast<PageFrameBlock*>(KERNEL_VIRTUAL_END);
 }
 
 void PageFrameMgr::initMemBlocks(const multiboot_info* mbootInfo, MemBlock* memBlocks, unsigned int memBlocksSize, unsigned int& numMemBlocks)
@@ -91,10 +91,10 @@ void PageFrameMgr::initMemBlocks(const multiboot_info* mbootInfo, MemBlock* memB
             }
 
             // find nearest page frame boundary
-            if ((pfStart & ~PAGE_SIZE_MASK) != 0)
+            if ((pfStart & ~PAGE_BOUNDARY_MASK) != 0)
             {
                 pfStart += PAGE_SIZE;
-                pfStart &= PAGE_SIZE_MASK;
+                pfStart &= PAGE_BOUNDARY_MASK;
             }
 
             // ensure the start is still within the mmap entry bounds
@@ -133,10 +133,10 @@ void PageFrameMgr::getMultibootMMapInfo(const multiboot_info* mbootInfo, uint32_
             }
 
             // find nearest page frame boundary
-            if ((pfStart & ~PAGE_SIZE_MASK) != 0)
+            if ((pfStart & ~PAGE_BOUNDARY_MASK) != 0)
             {
                 pfStart += PAGE_SIZE;
-                pfStart &= PAGE_SIZE_MASK;
+                pfStart &= PAGE_BOUNDARY_MASK;
             }
 
             // ensure the start is still within the mmap entry bounds
@@ -165,23 +165,31 @@ void PageFrameMgr::initDataStruct(const MemBlock* memBlocks, unsigned int numMem
     blocks = reinterpret_cast<PageFrameBlock*>(alignedEnd + KERNEL_VIRTUAL_BASE);
 
     // find the last kernel page
-    uint32_t physicalEnd = alignedEnd;
-    if ( (physicalEnd & ~PAGE_SIZE_MASK) != 0 )
+    uint32_t pageEnd = alignedEnd;
+    if ( (pageEnd & ~PAGE_BOUNDARY_MASK) != 0 )
     {
-        physicalEnd = (physicalEnd & PAGE_SIZE_MASK) + PAGE_SIZE;
+        pageEnd = (pageEnd & PAGE_BOUNDARY_MASK) + PAGE_SIZE;
     }
 
     uint32_t blocksEnd = alignedEnd;
+
+    screen << os::Screen::hex
+           << os::Screen::setfill('0')
+           << "KERNEL_PHYSICAL_END: " << os::Screen::setw(8) << KERNEL_PHYSICAL_END << '\n'
+           << "alignedEnd         : " << os::Screen::setw(8) << alignedEnd << '\n'
+           << "pageEnd            : " << os::Screen::setw(8) << pageEnd << '\n'
+           << os::Screen::dec
+           << os::Screen::setfill(' ');
 
     // init PageFrameBlock structs
     numBlocks = 0;
     for (unsigned int i = 0; i < numMemBlocks; ++i)
     {
         blocksEnd += sizeof(PageFrameBlock);
-        if (blocksEnd >= physicalEnd)
+        if (blocksEnd >= pageEnd)
         {
-            mapPage(getKernelPageDirStart(), physicalEnd + KERNEL_VIRTUAL_BASE, physicalEnd);
-            physicalEnd += PAGE_SIZE;
+            mapPage(getKernelPageDirStart(), pageEnd + KERNEL_VIRTUAL_BASE, pageEnd);
+            pageEnd += PAGE_SIZE;
         }
 
         blocks[i].startAddr = memBlocks[i].startAddr;
@@ -203,7 +211,7 @@ void PageFrameMgr::initDataStruct(const MemBlock* memBlocks, unsigned int numMem
     }
 
     // calculate number of pages needed for the isAlloc arrays
-    unsigned int memNeeded = totalArraySize - (physicalEnd - blocksEnd);
+    unsigned int memNeeded = totalArraySize - (pageEnd - blocksEnd);
     unsigned int pagesNeeded = memNeeded / PAGE_SIZE;
     if (memNeeded % PAGE_SIZE > 0)
     {
@@ -213,7 +221,7 @@ void PageFrameMgr::initDataStruct(const MemBlock* memBlocks, unsigned int numMem
     // map pages containing the isAlloc arrays
     for (unsigned int i = 0; i < pagesNeeded; ++i)
     {
-        mapPage(getKernelPageDirStart(), physicalEnd + KERNEL_VIRTUAL_BASE, physicalEnd);
-        physicalEnd += PAGE_SIZE;
+        mapPage(getKernelPageDirStart(), pageEnd + KERNEL_VIRTUAL_BASE, pageEnd);
+        pageEnd += PAGE_SIZE;
     }
 }

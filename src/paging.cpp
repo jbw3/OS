@@ -75,8 +75,6 @@ void addPage(uint32_t pageAddr)
 
 void mapPage(const uint32_t* pageDir, uint32_t virtualAddr, uint32_t physicalAddr)
 {
-    screen << __func__ << '\n';
-
     // calculate the page directory and page table indexes
     int pageDirIdx = virtualAddr >> 22;
     int pageTableIdx = (virtualAddr >> 12) & PAGE_SIZE_MASK;
@@ -94,6 +92,4 @@ void mapPage(const uint32_t* pageDir, uint32_t virtualAddr, uint32_t physicalAdd
     pageTableEntry |= physicalAddr & PAGE_TABLE_ADDRESS;          // add new address
     pageTableEntry |= PAGE_TABLE_READ_WRITE | PAGE_TABLE_PRESENT; // set read/write and present bits
     pageTable[pageTableIdx] = pageTableEntry;
-
-    screen << __func__ << '\n';
 }

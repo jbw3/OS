@@ -5,8 +5,9 @@
 
 #include "isr.h"
 
-#define PAGE_SIZE      4096
-#define PAGE_SIZE_MASK (~(PAGE_SIZE - 1))
+#define PAGE_SIZE          4096
+#define PAGE_BOUNDARY_MASK (~(PAGE_SIZE - 1))
+#define PAGE_SIZE_MASK     (PAGE_SIZE - 1)
 
 #define PAGE_DIR_ADDRESS       0xFFFFF000
 #define PAGE_DIR_PAGE_SIZE     0x00000080
