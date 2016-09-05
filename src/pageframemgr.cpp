@@ -5,6 +5,7 @@
 #include "multiboot.h"
 #include "pageframemgr.h"
 #include "paging.h"
+#include "string.h"
 #include "system.h"
 
 /// @todo temporary
@@ -173,14 +174,6 @@ void PageFrameMgr::initDataStruct(const MemBlock* memBlocks, unsigned int numMem
 
     uint32_t blocksEnd = alignedEnd;
 
-    screen << os::Screen::hex
-           << os::Screen::setfill('0')
-           << "KERNEL_PHYSICAL_END: " << os::Screen::setw(8) << KERNEL_PHYSICAL_END << '\n'
-           << "alignedEnd         : " << os::Screen::setw(8) << alignedEnd << '\n'
-           << "pageEnd            : " << os::Screen::setw(8) << pageEnd << '\n'
-           << os::Screen::dec
-           << os::Screen::setfill(' ');
-
     // init PageFrameBlock structs
     numBlocks = 0;
     for (unsigned int i = 0; i < numMemBlocks; ++i)
@@ -223,5 +216,78 @@ void PageFrameMgr::initDataStruct(const MemBlock* memBlocks, unsigned int numMem
     {
         mapPage(getKernelPageDirStart(), pageEnd + KERNEL_VIRTUAL_BASE, pageEnd);
         pageEnd += PAGE_SIZE;
+    }
+
+    // set isAlloc arrays to 0 (unallocated)
+    for (unsigned int i = 0; i < numBlocks; ++i)
+    {
+        memset(blocks[i].isAlloc, 0, blocks[i].numPages * sizeof(uint32_t));
+    }
+}
+
+uint32_t PageFrameMgr::allocPageFrame()
+{
+    for (unsigned int blockIdx = 0; blockIdx < numBlocks; ++blockIdx)
+    {
+        uint32_t addr = blocks[blockIdx].startAddr;
+        unsigned int allocSize = blocks[blockIdx].numPages / sizeof(uint32_t);
+        for (unsigned int allocIdx = 0; allocIdx < allocSize; ++allocIdx)
+        {
+            for (uint32_t allocBit = 1u; allocBit != 0; allocBit <<= 1)
+            {
+                uint32_t* bitField = &(blocks[blockIdx].isAlloc[allocIdx]);
+                if ( (*bitField & allocBit) == 0 )
+                {
+                    *bitField |= allocBit;
+                    return addr;
+                }
+                addr += PAGE_SIZE;
+            }
+        }
+    }
+
+    return 0;
+}
+
+// ------ Debugging ------
+
+bool PageFrameMgr::isPageFrameAlloc(uint32_t addr) const
+{
+    unsigned int blockIdx = 0;
+    for ( ; blockIdx < numBlocks; ++blockIdx)
+    {
+        uint32_t startAddr = blocks[blockIdx].startAddr;
+        uint32_t endAddr = startAddr + PAGE_SIZE * blocks[blockIdx].numPages;
+        if (addr >= startAddr && addr < endAddr)
+        {
+            break;
+        }
+    }
+
+    if (blockIdx == numBlocks)
+    {
+        return false;
+    }
+
+    unsigned int pfBit = (addr - blocks[blockIdx].startAddr) / PAGE_SIZE;
+    unsigned int allocIdx = pfBit / (sizeof(uint32_t) * 8);
+    unsigned int bitOffset = pfBit % (sizeof(uint32_t) * 8);
+
+    uint32_t allocBitField = blocks[blockIdx].isAlloc[allocIdx];
+    uint32_t bitMask = 1u << bitOffset;
+    return (allocBitField & bitMask) != 0;
+}
+
+void PageFrameMgr::printBlocks() const
+{
+    for (unsigned int i = 0; i < numBlocks; ++i)
+    {
+        screen << "Block " << i << ": "
+               << os::Screen::hex
+               << os::Screen::setw(8)
+               << os::Screen::setfill('0')
+               << blocks[i].startAddr << '\n'
+               << os::Screen::dec
+               << os::Screen::setfill(' ');
     }
 }

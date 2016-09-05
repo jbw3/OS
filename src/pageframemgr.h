@@ -5,6 +5,7 @@
 #ifndef PAGE_FRAME_MGR_H_
 #define PAGE_FRAME_MGR_H_
 
+#include "stddef.h"
 #include "stdint.h"
 
 // forward declarations
@@ -17,6 +18,19 @@ class PageFrameMgr
 {
 public:
     PageFrameMgr(const multiboot_info* mbootInfo);
+
+    /**
+     * @brief Allocate a page frame
+     * @return the physical address of the allocated memory or
+     * zero if no memory could be allocated
+     */
+    uint32_t allocPageFrame();
+
+    // ------ Debugging ------
+
+    bool isPageFrameAlloc(uint32_t addr) const;
+
+    void printBlocks() const;
 
 private:
     struct MemBlock
