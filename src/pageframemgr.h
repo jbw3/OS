@@ -26,6 +26,11 @@ public:
      */
     uint32_t allocPageFrame();
 
+    /**
+     * @brief Free a page frame
+     */
+    void freePageFrame(uint32_t addr);
+
     // ------ Debugging ------
 
     bool isPageFrameAlloc(uint32_t addr) const;
@@ -73,6 +78,8 @@ private:
      * @brief Allocate and initialize the page frame data structure
      */
     void initDataStruct(const MemBlock* memBlocks, unsigned int numMemBlocks);
+
+    bool findPageFrame(uint32_t addr, unsigned int& blockIdx, unsigned int& allocIdx, uint32_t& bitMask) const;
 };
 
 #endif // PAGE_FRAME_MGR_H_

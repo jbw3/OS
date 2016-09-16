@@ -225,6 +225,33 @@ void PageFrameMgr::initDataStruct(const MemBlock* memBlocks, unsigned int numMem
     }
 }
 
+bool PageFrameMgr::findPageFrame(uint32_t addr, unsigned int& blockIdx, unsigned int& allocIdx, uint32_t& bitMask) const
+{
+    blockIdx = 0;
+    for ( ; blockIdx < numBlocks; ++blockIdx)
+    {
+        uint32_t startAddr = blocks[blockIdx].startAddr;
+        uint32_t endAddr = startAddr + PAGE_SIZE * blocks[blockIdx].numPages;
+        if (addr >= startAddr && addr < endAddr)
+        {
+            break;
+        }
+    }
+
+    if (blockIdx == numBlocks)
+    {
+        return false;
+    }
+
+    unsigned int pfBit = (addr - blocks[blockIdx].startAddr) / PAGE_SIZE;
+    allocIdx = pfBit / (sizeof(uint32_t) * 8);
+    unsigned int bitOffset = pfBit % (sizeof(uint32_t) * 8);
+
+    bitMask = 1u << bitOffset;
+
+    return true;
+}
+
 uint32_t PageFrameMgr::allocPageFrame()
 {
     for (unsigned int blockIdx = 0; blockIdx < numBlocks; ++blockIdx)
@@ -249,32 +276,34 @@ uint32_t PageFrameMgr::allocPageFrame()
     return 0;
 }
 
+void PageFrameMgr::freePageFrame(uint32_t addr)
+{
+    unsigned int blockIdx = 0;
+    unsigned int allocIdx = 0;
+    uint32_t bitMask = 0;
+
+    bool found = findPageFrame(addr, blockIdx, allocIdx, bitMask);
+    if (found)
+    {
+        blocks[blockIdx].isAlloc[allocIdx] &= ~bitMask;
+    }
+}
+
 // ------ Debugging ------
 
 bool PageFrameMgr::isPageFrameAlloc(uint32_t addr) const
 {
     unsigned int blockIdx = 0;
-    for ( ; blockIdx < numBlocks; ++blockIdx)
-    {
-        uint32_t startAddr = blocks[blockIdx].startAddr;
-        uint32_t endAddr = startAddr + PAGE_SIZE * blocks[blockIdx].numPages;
-        if (addr >= startAddr && addr < endAddr)
-        {
-            break;
-        }
-    }
+    unsigned int allocIdx = 0;
+    uint32_t bitMask = 0;
 
-    if (blockIdx == numBlocks)
+    bool found = findPageFrame(addr, blockIdx, allocIdx, bitMask);
+    if (!found)
     {
         return false;
     }
 
-    unsigned int pfBit = (addr - blocks[blockIdx].startAddr) / PAGE_SIZE;
-    unsigned int allocIdx = pfBit / (sizeof(uint32_t) * 8);
-    unsigned int bitOffset = pfBit % (sizeof(uint32_t) * 8);
-
     uint32_t allocBitField = blocks[blockIdx].isAlloc[allocIdx];
-    uint32_t bitMask = 1u << bitOffset;
     return (allocBitField & bitMask) != 0;
 }
 
