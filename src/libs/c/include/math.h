@@ -15,12 +15,33 @@
 #define M_SQRT2    1.414213562373095048801688724210
 #define M_SQRT1_2  0.707106781186547524436104145140
 
+#define isnan(n) \
+( \
+     sizeof(n) == sizeof(float) ? isnan_f(n) : \
+     sizeof(n) == sizeof(double) ? isnan_d(n) : \
+     isnan_ld(n) \
+)
+
 #ifdef __cplusplus
 extern "C"
 {
 #endif
 
+/***************************************
+ Implementation specific
+***************************************/
 
+int isnan_f(float n);
+
+int isnan_d(double n);
+
+int isnan_ld(long double n);
+
+/***************************************
+ Standard library
+***************************************/
+
+// TODO
 
 #ifdef __cplusplus
 } /* extern "C" */

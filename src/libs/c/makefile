@@ -12,9 +12,9 @@ INCLUDES = -I$(SRCDIR) -Iinclude
 CC = i686-elf-gcc
 CFLAGS = $(INCLUDES) -std=c11 -ffreestanding -O2 -Wall -Wextra
 
-DEPS = ctype.h stddef.h stdint.h stdio.h stdlib.h string.h stringutils.h
+DEPS = ctype.h math.h stddef.h stdint.h stdio.h stdlib.h string.h stringutils.h
 
-_OBJ = ctype.o stdlib.o stdio.o string.o stringutils.o
+_OBJ = ctype.o math.o stdlib.o stdio.o string.o stringutils.o
 OBJ = $(patsubst %,$(OBJDIR)/%,$(_OBJ))
 
 TARGET = $(BINDIR)/libc.a
