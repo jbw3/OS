@@ -18,12 +18,21 @@ Directory Structure
 |   |   |
 |   |   |-- core
 |   |
-|   |-- lib
-|       |-- c
-|       |-- c++
-|       |-- posix
+|   |-- libs
+|   |   |-- c
+|   |   |-- c++
+|   |   |-- posix
+|   |
+|   |-- programs
 |
 |-- tools
+
+
+Transferring to new directory structure
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+* Create kernel dir
+* Move stringutils to utils lib
+* Add halt(), enableInterrupts(), and disableInterrupts() to system.h
 
 
 GRUB

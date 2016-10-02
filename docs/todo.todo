@@ -1,3 +1,5 @@
+ ☐ stringutils should use templates instead of macros
+ ☐ add *.o after extension (e.g. .cpp.o)
  ☐ Create bootable HDD (see notes)
  ☐ Implement filesystem
  ☐ Organize files (see notes)
