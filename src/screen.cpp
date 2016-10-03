@@ -47,8 +47,9 @@ void writeFixedFloat(T num, char* str, unsigned int precision)
     unsigned int fractionDigits = 0;
     while (fractionDigits < precision)
     {
+        /// @todo Check order/10. If > 7, subtract 1 from that order
         T result = num / order;
-        result += static_cast<T>(0.001); /// @todo this sometimes causes incorrect behavior (e.g. 89.1)
+        result += static_cast<T>(0.001); /// @todo this sometimes causes incorrect behavior (e.g. 999.999)
         int digit = static_cast<int>(result);
 
         if (outputZeros || digit != 0)
