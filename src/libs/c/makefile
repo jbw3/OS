@@ -7,7 +7,7 @@ BINDIR = ../../../lib
 # directory to search for dependencies
 VPATH = $(SRCDIR) include
 
-INCLUDES = -I$(SRCDIR) -Iinclude
+INCLUDES = -I$(SRCDIR) -Iinclude -I../c++/include
 
 CC = i686-elf-gcc
 CFLAGS = $(INCLUDES) -std=c11 -ffreestanding -O2 -Wall -Wextra

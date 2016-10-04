@@ -8,7 +8,7 @@ BINDIR = bin
 # directory to search for dependencies
 VPATH = $(SRCDIR)
 
-INCLUDES = -I$(SRCDIR) -I$(SRCDIR)/libs/c/include
+INCLUDES = -I$(SRCDIR) -I$(SRCDIR)/libs/c/include -I$(SRCDIR)/libs/c++/include
 
 CC = i686-elf-gcc
 CFLAGS = $(INCLUDES) -std=c11 -ffreestanding -O2 -Wall -Wextra
@@ -19,7 +19,7 @@ CXXFLAGS = $(INCLUDES) -std=c++14 -ffreestanding -O2 -Wall -Wextra -fno-exceptio
 AS = nasm
 ASFLAGS = -f elf32 -I$(SRCDIR)/
 
-LIBS = -L$(LIBDIR) -lc -lgcc
+LIBS = -L$(LIBDIR) -lc -lc++ -lgcc
 LDFLAGS = -T $(SRCDIR)/link.ld -ffreestanding -O2 -nostdlib $(LIBS)
 
 DEPS = debug.h gdt.h idt.h irq.h isr.h keyboard.h paging.h screen.h shell.h system.h timer.h
@@ -45,6 +45,7 @@ init:
 
 .PHONY: libs
 libs:
+	cd src/libs/c++; make
 	cd src/libs/c; make
 
 .PHONY: install
@@ -65,5 +66,6 @@ $(OBJDIR)/%.o: %.s
 
 .PHONY: clean
 clean:
+	cd src/libs/c++; make clean
 	cd src/libs/c; make clean
 	rm -f $(OBJDIR)/*.o $(TARGET)

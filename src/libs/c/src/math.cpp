@@ -1,21 +1,21 @@
-#include <math.h>
+#include <cmath>
 
 extern "C"
 {
 
 int isnan_f(float n)
 {
-    return n != n;
+    return std::isnan(n);
 }
 
 int isnan_d(double n)
 {
-    return n != n;
+    return std::isnan(n);
 }
 
 int isnan_ld(long double n)
 {
-    return n != n;
+    return std::isnan(n);
 }
 
 } // extern "C"
