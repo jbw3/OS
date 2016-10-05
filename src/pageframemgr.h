@@ -79,6 +79,11 @@ private:
      */
     void initDataStruct(const MemBlock* memBlocks, unsigned int numMemBlocks);
 
+    /**
+     * @brief Mark the page frames in use by the kernel
+     */
+    void markKernel();
+
     bool findPageFrame(uint32_t addr, unsigned int& blockIdx, unsigned int& allocIdx, uint32_t& bitMask) const;
 };
 

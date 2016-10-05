@@ -11,6 +11,9 @@
 /// @todo temporary
 #include "screen.h"
 
+typedef unsigned int uint;
+
+/// @todo use uintptr_t in this class
 PageFrameMgr::PageFrameMgr(const multiboot_info* mbootInfo)
 {
     constexpr unsigned int MAX_MEM_BLOCKS = 32;
@@ -42,9 +45,8 @@ PageFrameMgr::PageFrameMgr(const multiboot_info* mbootInfo)
     // allocate and initialize all needed page frame blocks at the end of the kernel
     initDataStruct(memBlocks, numMemBlocks);
 
-    /// @todo get mem segment containing the end of the kernel
-
-    /// @todo mark kernel in page frame blocks
+    // mark page frame blocks used by kernel
+    markKernel();
 
     /// @todo ensure this is in a block
     /// @todo map if necessary
@@ -222,6 +224,45 @@ void PageFrameMgr::initDataStruct(const MemBlock* memBlocks, unsigned int numMem
     for (unsigned int i = 0; i < numBlocks; ++i)
     {
         memset(blocks[i].isAlloc, 0, blocks[i].numPages * sizeof(uint32_t));
+    }
+}
+
+void PageFrameMgr::markKernel()
+{
+    uintptr_t start = KERNEL_PHYSICAL_START;
+    uintptr_t end = KERNEL_PHYSICAL_END; ///< @todo add memory used by data structure
+
+    // find nearest page frame boundary
+    if ((end & ~PAGE_BOUNDARY_MASK) != 0)
+    {
+        end += PAGE_SIZE;
+        end &= PAGE_BOUNDARY_MASK;
+    }
+
+    uint numKernelPages = (end - start) / PAGE_SIZE;
+
+    // find the kernel start address in the data structure
+    uint blockIdx = 0;
+    uint allocIdx = 0;
+    uint32_t bitMask = 0;
+    findPageFrame(start, blockIdx, allocIdx, bitMask);
+
+    // mark page frames
+    for (uint i = 0; i < numKernelPages; ++i)
+    {
+        blocks[blockIdx].isAlloc[allocIdx] |= bitMask;
+
+        bitMask <<= 1;
+        if (bitMask == 0)
+        {
+            bitMask = 1;
+            ++allocIdx;
+        }
+        if (allocIdx >= blocks[blockIdx].numPages / (sizeof(uint32_t) * 8))
+        {
+            allocIdx = 0;
+            ++blockIdx;
+        }
     }
 }
 
