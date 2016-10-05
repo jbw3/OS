@@ -56,14 +56,14 @@ void PageFrameMgr::initMemBlocks(const multiboot_info* mbootInfo, MemBlock* memB
 {
     numMemBlocks = 0;
 
-    uintptr_t mmapAddr = mbootInfo->mmap_addr + KERNEL_VIRTUAL_BASE;
+    uint32_t mmapAddr = mbootInfo->mmap_addr + KERNEL_VIRTUAL_BASE;
     uint32_t mmapLen = mbootInfo->mmap_length;
     uint32_t offset = 0;
     while (offset < mmapLen && numMemBlocks < memBlocksSize)
     {
         const multiboot_mmap_entry* entry = reinterpret_cast<const multiboot_mmap_entry*>(mmapAddr + offset);
-        uintptr_t memBlockStart = entry->addr;
-        uintptr_t memBlockEnd = entry->addr + entry->len;
+        uint64_t memBlockStart = entry->addr;
+        uint64_t memBlockEnd = entry->addr + entry->len;
 
         // check if this entry is adjacent to the next entry
         offset += entry->size + sizeof(entry->size);
@@ -86,7 +86,7 @@ void PageFrameMgr::initMemBlocks(const multiboot_info* mbootInfo, MemBlock* memB
         if (memBlockEnd > 0x10'0000)
         {
             // skip page frames below 1 MiB
-            uintptr_t pfStart = memBlockStart;
+            uint32_t pfStart = memBlockStart;
             if (pfStart < 0x10'0000)
             {
                 pfStart = 0x10'0000;
@@ -297,7 +297,7 @@ uintptr_t PageFrameMgr::allocPageFrame()
     for (unsigned int blockIdx = 0; blockIdx < numBlocks; ++blockIdx)
     {
         uintptr_t addr = blocks[blockIdx].startAddr;
-        unsigned int allocSize = blocks[blockIdx].numPages / sizeof(uint32_t); /// @todo * 8
+        unsigned int allocSize = blocks[blockIdx].numPages / (sizeof(uint32_t) * 8);
         for (unsigned int allocIdx = 0; allocIdx < allocSize; ++allocIdx)
         {
             for (uint32_t allocBit = 1u; allocBit != 0; allocBit <<= 1)

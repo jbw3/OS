@@ -40,7 +40,7 @@ public:
 private:
     struct MemBlock
     {
-        uintptr_t startAddr;
+        uint32_t startAddr;
         uint32_t numPages;
     };
 
