@@ -13,7 +13,6 @@
 
 typedef unsigned int uint;
 
-/// @todo use uintptr_t in this class
 PageFrameMgr::PageFrameMgr(const multiboot_info* mbootInfo)
 {
     constexpr unsigned int MAX_MEM_BLOCKS = 32;
@@ -57,14 +56,14 @@ void PageFrameMgr::initMemBlocks(const multiboot_info* mbootInfo, MemBlock* memB
 {
     numMemBlocks = 0;
 
-    uint32_t mmapAddr = mbootInfo->mmap_addr + KERNEL_VIRTUAL_BASE;
+    uintptr_t mmapAddr = mbootInfo->mmap_addr + KERNEL_VIRTUAL_BASE;
     uint32_t mmapLen = mbootInfo->mmap_length;
     uint32_t offset = 0;
     while (offset < mmapLen && numMemBlocks < memBlocksSize)
     {
         const multiboot_mmap_entry* entry = reinterpret_cast<const multiboot_mmap_entry*>(mmapAddr + offset);
-        uint64_t memBlockStart = entry->addr;
-        uint64_t memBlockEnd = entry->addr + entry->len;
+        uintptr_t memBlockStart = entry->addr;
+        uintptr_t memBlockEnd = entry->addr + entry->len;
 
         // check if this entry is adjacent to the next entry
         offset += entry->size + sizeof(entry->size);
@@ -87,7 +86,7 @@ void PageFrameMgr::initMemBlocks(const multiboot_info* mbootInfo, MemBlock* memB
         if (memBlockEnd > 0x10'0000)
         {
             // skip page frames below 1 MiB
-            uint32_t pfStart = memBlockStart;
+            uintptr_t pfStart = memBlockStart;
             if (pfStart < 0x10'0000)
             {
                 pfStart = 0x10'0000;
@@ -266,13 +265,13 @@ void PageFrameMgr::markKernel()
     }
 }
 
-bool PageFrameMgr::findPageFrame(uint32_t addr, unsigned int& blockIdx, unsigned int& allocIdx, uint32_t& bitMask) const
+bool PageFrameMgr::findPageFrame(uintptr_t addr, unsigned int& blockIdx, unsigned int& allocIdx, uint32_t& bitMask) const
 {
     blockIdx = 0;
     for ( ; blockIdx < numBlocks; ++blockIdx)
     {
-        uint32_t startAddr = blocks[blockIdx].startAddr;
-        uint32_t endAddr = startAddr + PAGE_SIZE * blocks[blockIdx].numPages;
+        uintptr_t startAddr = blocks[blockIdx].startAddr;
+        uintptr_t endAddr = startAddr + PAGE_SIZE * blocks[blockIdx].numPages;
         if (addr >= startAddr && addr < endAddr)
         {
             break;
@@ -293,12 +292,12 @@ bool PageFrameMgr::findPageFrame(uint32_t addr, unsigned int& blockIdx, unsigned
     return true;
 }
 
-uint32_t PageFrameMgr::allocPageFrame()
+uintptr_t PageFrameMgr::allocPageFrame()
 {
     for (unsigned int blockIdx = 0; blockIdx < numBlocks; ++blockIdx)
     {
-        uint32_t addr = blocks[blockIdx].startAddr;
-        unsigned int allocSize = blocks[blockIdx].numPages / sizeof(uint32_t);
+        uintptr_t addr = blocks[blockIdx].startAddr;
+        unsigned int allocSize = blocks[blockIdx].numPages / sizeof(uint32_t); /// @todo * 8
         for (unsigned int allocIdx = 0; allocIdx < allocSize; ++allocIdx)
         {
             for (uint32_t allocBit = 1u; allocBit != 0; allocBit <<= 1)
@@ -317,7 +316,7 @@ uint32_t PageFrameMgr::allocPageFrame()
     return 0;
 }
 
-void PageFrameMgr::freePageFrame(uint32_t addr)
+void PageFrameMgr::freePageFrame(uintptr_t addr)
 {
     unsigned int blockIdx = 0;
     unsigned int allocIdx = 0;
@@ -332,7 +331,7 @@ void PageFrameMgr::freePageFrame(uint32_t addr)
 
 // ------ Debugging ------
 
-bool PageFrameMgr::isPageFrameAlloc(uint32_t addr) const
+bool PageFrameMgr::isPageFrameAlloc(uintptr_t addr) const
 {
     unsigned int blockIdx = 0;
     unsigned int allocIdx = 0;

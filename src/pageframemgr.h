@@ -24,23 +24,23 @@ public:
      * @return the physical address of the allocated memory or
      * zero if no memory could be allocated
      */
-    uint32_t allocPageFrame();
+    uintptr_t allocPageFrame();
 
     /**
      * @brief Free a page frame
      */
-    void freePageFrame(uint32_t addr);
+    void freePageFrame(uintptr_t addr);
 
     // ------ Debugging ------
 
-    bool isPageFrameAlloc(uint32_t addr) const;
+    bool isPageFrameAlloc(uintptr_t addr) const;
 
     void printBlocks() const;
 
 private:
     struct MemBlock
     {
-        uint32_t startAddr;
+        uintptr_t startAddr;
         uint32_t numPages;
     };
 
@@ -50,7 +50,7 @@ private:
     struct PageFrameBlock
     {
         /// physical address of the first page in the block
-        uint32_t startAddr;
+        uintptr_t startAddr;
 
         /// number of pages in block
         uint32_t numPages;
@@ -84,7 +84,7 @@ private:
      */
     void markKernel();
 
-    bool findPageFrame(uint32_t addr, unsigned int& blockIdx, unsigned int& allocIdx, uint32_t& bitMask) const;
+    bool findPageFrame(uintptr_t addr, unsigned int& blockIdx, unsigned int& allocIdx, uint32_t& bitMask) const;
 };
 
 #endif // PAGE_FRAME_MGR_H_
