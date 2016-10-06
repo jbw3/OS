@@ -69,10 +69,11 @@ private:
     /**
      * @brief get number of page frames from the Multiboot
      * mem map
+     * @details This is for debugging
      * @param mbootInfo pointer to multiboot info
      * @param [out] numPageFrames the number of page frames
      */
-    void getMultibootMMapInfo(const multiboot_info* mbootInfo, uint32_t& numPageFrames);
+    void getMultibootMMapInfo(const multiboot_info* mbootInfo, uint32_t& numPageFrames) const;
 
     /**
      * @brief Allocate and initialize the page frame data structure

@@ -110,48 +110,6 @@ void PageFrameMgr::initMemBlocks(const multiboot_info* mbootInfo, MemBlock* memB
     }
 }
 
-/// @todo Is this function needed?
-void PageFrameMgr::getMultibootMMapInfo(const multiboot_info* mbootInfo, uint32_t& numPageFrames)
-{
-    numPageFrames = 0;
-
-    uint32_t mmapAddr = mbootInfo->mmap_addr + KERNEL_VIRTUAL_BASE;
-    uint32_t mmapLen = mbootInfo->mmap_length;
-    uint32_t offset = 0;
-    while (offset < mmapLen)
-    {
-        const multiboot_mmap_entry* entry = reinterpret_cast<const multiboot_mmap_entry*>(mmapAddr + offset);
-        uint64_t entryStart = entry->addr;
-        uint64_t entryEnd = entry->addr + entry->len - 1;
-
-        // skip map entries below 1 MiB
-        if (entryEnd >= 0x10'0000)
-        {
-            // skip page frames below 1 MiB
-            uint32_t pfStart = entryStart;
-            if (pfStart < 0x10'0000)
-            {
-                pfStart = 0x10'0000;
-            }
-
-            // find nearest page frame boundary
-            if ((pfStart & ~PAGE_BOUNDARY_MASK) != 0)
-            {
-                pfStart += PAGE_SIZE;
-                pfStart &= PAGE_BOUNDARY_MASK;
-            }
-
-            // ensure the start is still within the mmap entry bounds
-            if (pfStart <= entryEnd)
-            {
-                numPageFrames += (entryEnd + 1 - pfStart) / PAGE_SIZE;
-            }
-        }
-
-        offset += entry->size + sizeof(entry->size);
-    }
-}
-
 /// @todo This function currently makes the simplifying
 /// assumption that the data struct will fit in memory
 /// right after the kernel
@@ -330,6 +288,47 @@ void PageFrameMgr::freePageFrame(uintptr_t addr)
 }
 
 // ------ Debugging ------
+
+void PageFrameMgr::getMultibootMMapInfo(const multiboot_info* mbootInfo, uint32_t& numPageFrames) const
+{
+    numPageFrames = 0;
+
+    uint32_t mmapAddr = mbootInfo->mmap_addr + KERNEL_VIRTUAL_BASE;
+    uint32_t mmapLen = mbootInfo->mmap_length;
+    uint32_t offset = 0;
+    while (offset < mmapLen)
+    {
+        const multiboot_mmap_entry* entry = reinterpret_cast<const multiboot_mmap_entry*>(mmapAddr + offset);
+        uint64_t entryStart = entry->addr;
+        uint64_t entryEnd = entry->addr + entry->len - 1;
+
+        // skip map entries below 1 MiB
+        if (entryEnd >= 0x10'0000)
+        {
+            // skip page frames below 1 MiB
+            uint32_t pfStart = entryStart;
+            if (pfStart < 0x10'0000)
+            {
+                pfStart = 0x10'0000;
+            }
+
+            // find nearest page frame boundary
+            if ((pfStart & ~PAGE_BOUNDARY_MASK) != 0)
+            {
+                pfStart += PAGE_SIZE;
+                pfStart &= PAGE_BOUNDARY_MASK;
+            }
+
+            // ensure the start is still within the mmap entry bounds
+            if (pfStart <= entryEnd)
+            {
+                numPageFrames += (entryEnd + 1 - pfStart) / PAGE_SIZE;
+            }
+        }
+
+        offset += entry->size + sizeof(entry->size);
+    }
+}
 
 bool PageFrameMgr::isPageFrameAlloc(uintptr_t addr) const
 {
