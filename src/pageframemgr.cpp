@@ -13,8 +13,6 @@
 
 typedef unsigned int uint;
 
-/// @todo Use getIsAllocSize()
-
 PageFrameMgr::PageFrameMgr(const multiboot_info* mbootInfo)
 {
     constexpr unsigned int MAX_MEM_BLOCKS = 32;
@@ -182,7 +180,7 @@ void PageFrameMgr::initDataStruct(const MemBlock* memBlocks, unsigned int numMem
     // set isAlloc arrays to 0 (unallocated)
     for (unsigned int i = 0; i < numBlocks; ++i)
     {
-        memset(blocks[i].isAlloc, 0, blocks[i].numPages * sizeof(uint32_t));
+        memset(blocks[i].isAlloc, 0, getIsAllocSize(blocks[i]) * sizeof(uint32_t));
     }
 }
 
@@ -284,18 +282,23 @@ uintptr_t PageFrameMgr::allocPageFrame()
     for (unsigned int blockIdx = 0; blockIdx < numBlocks; ++blockIdx)
     {
         uintptr_t addr = blocks[blockIdx].startAddr;
-        unsigned int allocSize = blocks[blockIdx].numPages / (sizeof(uint32_t) * 8);
-        for (unsigned int allocIdx = 0; allocIdx < allocSize; ++allocIdx)
+        uint allocIdx = 0;
+        uint32_t allocBit = 1;
+        for (uint pageIdx = 0; pageIdx < blocks[blockIdx].numPages; ++pageIdx)
         {
-            for (uint32_t allocBit = 1u; allocBit != 0; allocBit <<= 1)
+            uint32_t* bitField = &(blocks[blockIdx].isAlloc[allocIdx]);
+            if ( (*bitField & allocBit) == 0 )
             {
-                uint32_t* bitField = &(blocks[blockIdx].isAlloc[allocIdx]);
-                if ( (*bitField & allocBit) == 0 )
-                {
-                    *bitField |= allocBit;
-                    return addr;
-                }
-                addr += PAGE_SIZE;
+                *bitField |= allocBit;
+                return addr;
+            }
+            addr += PAGE_SIZE;
+
+            allocBit <<= 1;
+            if (allocBit == 0)
+            {
+                allocBit = 1;
+                ++allocIdx;
             }
         }
     }
