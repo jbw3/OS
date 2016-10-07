@@ -8,9 +8,6 @@
 #include "string.h"
 #include "system.h"
 
-/// @todo temporary
-#include "screen.h"
-
 typedef unsigned int uint;
 
 PageFrameMgr::PageFrameMgr(const multiboot_info* mbootInfo)
@@ -22,24 +19,9 @@ PageFrameMgr::PageFrameMgr(const multiboot_info* mbootInfo)
     unsigned int numMemBlocks = 0;
     initMemBlocks(mbootInfo, memBlocks, MAX_MEM_BLOCKS, numMemBlocks);
 
-    screen << "numMemBlocks  = " << numMemBlocks << '\n';
-    for (unsigned int i = 0; i < numMemBlocks; ++i)
-    {
-        screen << os::Screen::hex
-               << os::Screen::setw(8)
-               << os::Screen::setfill('0')
-               << memBlocks[i].startAddr
-               << os::Screen::dec
-               << os::Screen::setfill(' ')
-               << "  " << memBlocks[i].numPages
-               << '\n';
-    }
-
     // get number of page frames
     uint32_t numPageFrames = 0;
     getMultibootMMapInfo(mbootInfo, numPageFrames);
-
-    screen << "numPageFrames = " << numPageFrames << '\n';
 
     // allocate and initialize all needed page frame blocks at the end of the kernel
     initDataStruct(memBlocks, numMemBlocks);
@@ -195,12 +177,6 @@ void PageFrameMgr::markKernel()
     // note that the end address is the address right after the end of kernel memory
     uintptr_t end = reinterpret_cast<uintptr_t>(lastBlock.isAlloc) + lastIsAllocSize;
     end -= KERNEL_VIRTUAL_BASE; // translate from virtual address to physical address
-
-    screen << os::Screen::hex << os::Screen::setfill('0')
-           << __FUNCTION__ << '\n'
-           << os::Screen::setw(8) << start << '\n'
-           << os::Screen::setw(8) << end   << '\n'
-           << os::Screen::dec << os::Screen::setfill(' ');
 
     // find nearest page frame boundary
     if ((end & ~PAGE_BOUNDARY_MASK) != 0)
@@ -380,6 +356,7 @@ bool PageFrameMgr::isPageFrameAlloc(uintptr_t addr) const
 
 void PageFrameMgr::printBlocks() const
 {
+#if 0
     for (unsigned int i = 0; i < numBlocks; ++i)
     {
         screen << "Block " << i << ": "
@@ -390,4 +367,5 @@ void PageFrameMgr::printBlocks() const
                << os::Screen::dec
                << os::Screen::setfill(' ');
     }
+#endif
 }
