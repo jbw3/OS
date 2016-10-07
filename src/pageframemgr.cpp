@@ -13,6 +13,8 @@
 
 typedef unsigned int uint;
 
+/// @todo Use getIsAllocSize()
+
 PageFrameMgr::PageFrameMgr(const multiboot_info* mbootInfo)
 {
     constexpr unsigned int MAX_MEM_BLOCKS = 32;
@@ -154,7 +156,7 @@ void PageFrameMgr::initDataStruct(const MemBlock* memBlocks, unsigned int numMem
     uint32_t arrayPtr = blocksEnd;
     for (unsigned int i = 0; i < numBlocks; ++i)
     {
-        unsigned int arraySize = blocks[i].numPages / sizeof(uint32_t);
+        unsigned int arraySize = getIsAllocSize(blocks[i]);
 
         blocks[i].isAlloc = reinterpret_cast<uint32_t*>(arrayPtr + KERNEL_VIRTUAL_BASE);
 
@@ -187,7 +189,20 @@ void PageFrameMgr::initDataStruct(const MemBlock* memBlocks, unsigned int numMem
 void PageFrameMgr::markKernel()
 {
     uintptr_t start = KERNEL_PHYSICAL_START;
-    uintptr_t end = KERNEL_PHYSICAL_END; ///< @todo add memory used by data structure
+
+    // the last occupied address is the end of the last isAlloc array
+    const PageFrameBlock& lastBlock = blocks[numBlocks - 1];
+    uint lastIsAllocSize = getIsAllocSize(lastBlock);
+
+    // note that the end address is the address right after the end of kernel memory
+    uintptr_t end = reinterpret_cast<uintptr_t>(lastBlock.isAlloc) + lastIsAllocSize;
+    end -= KERNEL_VIRTUAL_BASE; // translate from virtual address to physical address
+
+    screen << os::Screen::hex << os::Screen::setfill('0')
+           << __FUNCTION__ << '\n'
+           << os::Screen::setw(8) << start << '\n'
+           << os::Screen::setw(8) << end   << '\n'
+           << os::Screen::dec << os::Screen::setfill(' ');
 
     // find nearest page frame boundary
     if ((end & ~PAGE_BOUNDARY_MASK) != 0)
@@ -202,23 +217,27 @@ void PageFrameMgr::markKernel()
     uint blockIdx = 0;
     uint allocIdx = 0;
     uint32_t bitMask = 0;
-    findPageFrame(start, blockIdx, allocIdx, bitMask);
+    findPageFrame(start, blockIdx, allocIdx, bitMask); /// @todo kernel panic if this returns false
 
     // mark page frames
+    uint numMarkedInBlock = 0; // number of pages marked in the current block
     for (uint i = 0; i < numKernelPages; ++i)
     {
         blocks[blockIdx].isAlloc[allocIdx] |= bitMask;
-
+        ++numMarkedInBlock;
         bitMask <<= 1;
-        if (bitMask == 0)
+
+        if (numMarkedInBlock >= blocks[blockIdx].numPages)
+        {
+            numMarkedInBlock = 0;
+            ++blockIdx;
+            allocIdx = 0;
+            bitMask = 1;
+        }
+        else if (bitMask == 0)
         {
             bitMask = 1;
             ++allocIdx;
-        }
-        if (allocIdx >= blocks[blockIdx].numPages / (sizeof(uint32_t) * 8))
-        {
-            allocIdx = 0;
-            ++blockIdx;
         }
     }
 }
@@ -248,6 +267,16 @@ bool PageFrameMgr::findPageFrame(uintptr_t addr, unsigned int& blockIdx, unsigne
     bitMask = 1u << bitOffset;
 
     return true;
+}
+
+unsigned int PageFrameMgr::getIsAllocSize(const PageFrameBlock& pfBlock) const
+{
+    uint allocSize = pfBlock.numPages / (sizeof(uint32_t) * 8);
+    if (pfBlock.numPages % (sizeof(uint32_t) * 8) != 0)
+    {
+        ++allocSize;
+    }
+    return allocSize;
 }
 
 uintptr_t PageFrameMgr::allocPageFrame()

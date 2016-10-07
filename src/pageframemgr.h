@@ -86,6 +86,8 @@ private:
     void markKernel();
 
     bool findPageFrame(uintptr_t addr, unsigned int& blockIdx, unsigned int& allocIdx, uint32_t& bitMask) const;
+
+    unsigned int getIsAllocSize(const PageFrameBlock& pfBlock) const;
 };
 
 #endif // PAGE_FRAME_MGR_H_
