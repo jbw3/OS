@@ -9,6 +9,7 @@
  ☐ Move multiboot header out of text section
  ☐ Address NASM warnings (NASM bug?)
  ☐ CMOS clock (http://wiki.osdev.org/CMOS)
+ ☐ Kernel end is greater with -O2 than with -O0. Why?
 
 Rework project structure:
  ☐ Move kernel code to its own directory (see notes)
