@@ -19,6 +19,9 @@ OBJ = $(patsubst %,$(OBJDIR)/%,$(_OBJ))
 
 TARGET = $(BINDIR)/libc++.a
 
+# don't use default rules
+.SUFFIXES:
+
 .PHONY: all
 all: init $(TARGET)
 

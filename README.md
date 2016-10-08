@@ -28,6 +28,13 @@ This project uses the NASM assembler.
 
 To build the OS kernel, run `make` in the top-level directory. A GRUB-bootable ISO image can also be created by running `make install`. Both the kernel binary and ISO image will be placed in the bin directory.
 
+Note: The `xorriso` and `grub-pc-bin` packages may be needed to create the ISO image.
+On Ubuntu, they can be installed as follows:
+```
+sudo apt install xorriso 
+sudo apt install grub-pc-bin
+```
+
 
 ## Running
 
