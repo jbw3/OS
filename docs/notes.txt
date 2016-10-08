@@ -29,14 +29,6 @@ Directory Structure
 |-- tools
 
 
-Transferring to new directory structure
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-* Create kernel dir
-* Move stringutils to utils lib
-* Add halt(), enableInterrupts(), and disableInterrupts() to system.h
-* Debug and release builds
-
-
 GRUB
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 Grub: http://wiki.osdev.org/GRUB#Installing_to_hard_disk
