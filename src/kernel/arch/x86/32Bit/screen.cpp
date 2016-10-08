@@ -6,7 +6,7 @@
 /// @todo JBW - This header file should not be
 /// referenced directly. Temporarily doing it
 /// until the Screen class is replaced by ostream
-#include "libs/c/src/stringutils.h"
+#include "../../../../libs/c/src/stringutils.h"
 
 namespace
 {

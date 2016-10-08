@@ -1,14 +1,15 @@
 # Makefile for kernel
 
-SRCDIR = src
+SRCDIR = src/kernel/arch/x86/32Bit
 OBJDIR = obj
+LIBSRCDIR = src/libs
 LIBDIR = lib
 BINDIR = bin
 
 # directory to search for dependencies
 VPATH = $(SRCDIR)
 
-INCLUDES = -I$(SRCDIR) -I$(SRCDIR)/libs/c/include -I$(SRCDIR)/libs/c++/include
+INCLUDES = -I$(SRCDIR) -I$(LIBSRCDIR)/c/include -I$(LIBSRCDIR)/c++/include
 
 CC = i686-elf-gcc
 CFLAGS = $(INCLUDES) -std=c11 -ffreestanding -O2 -Wall -Wextra
