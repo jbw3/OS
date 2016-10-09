@@ -27,10 +27,26 @@ DEPS = debug.h gdt.h idt.h irq.h isr.h keyboard.h pageframemgr.h paging.h screen
 
 CRTBEGIN_OBJ = $(shell $(CXX) $(CXXFLAGS) -print-file-name=crtbegin.o)
 CRTEND_OBJ = $(shell $(CXX) $(CXXFLAGS) -print-file-name=crtend.o)
-_OBJ = boot.o debug.o gdt.o idt.o interrupt.o irq.o isr.o keyboard.o main.o pageframemgr.o paging.o paging_asm.o screen.o shell.o system.o system_asm.o timer.o
+_OBJ = boot.s.o \
+	   debug.cpp.o \
+	   gdt.c.o \
+	   idt.c.o \
+	   interrupt.s.o \
+	   irq.cpp.o \
+	   isr.cpp.o \
+	   keyboard.cpp.o \
+	   main.cpp.o \
+	   pageframemgr.cpp.o \
+	   paging.cpp.o \
+	   paging_asm.s.o \
+	   screen.cpp.o \
+	   shell.cpp.o \
+	   system.c.o \
+	   system_asm.s.o \
+	   timer.cpp.o
 OBJ = $(patsubst %,$(OBJDIR)/%,$(_OBJ))
-BUILD_OBJ = $(OBJDIR)/crti.o $(OBJ) $(OBJDIR)/crtn.o
-LINK_OBJ = $(OBJDIR)/crti.o $(CRTBEGIN_OBJ) $(OBJ) $(CRTEND_OBJ) $(OBJDIR)/crtn.o
+BUILD_OBJ = $(OBJDIR)/crti.s.o $(OBJ) $(OBJDIR)/crtn.s.o
+LINK_OBJ = $(OBJDIR)/crti.s.o $(CRTBEGIN_OBJ) $(OBJ) $(CRTEND_OBJ) $(OBJDIR)/crtn.s.o
 
 TARGET = $(BINDIR)/kernel-x86
 
@@ -56,13 +72,13 @@ install: init libs $(TARGET)
 $(TARGET): $(BUILD_OBJ)
 	$(CXX) $(LINK_OBJ) -o $(TARGET) $(LDFLAGS)
 
-$(OBJDIR)/%.o: %.c $(DEPS)
+$(OBJDIR)/%.c.o: %.c $(DEPS)
 	$(CC) $(CFLAGS) -c $< -o $@
 
-$(OBJDIR)/%.o: %.cpp $(DEPS)
+$(OBJDIR)/%.cpp.o: %.cpp $(DEPS)
 	$(CXX) $(CXXFLAGS) -c $< -o $@
 
-$(OBJDIR)/%.o: %.s
+$(OBJDIR)/%.s.o: %.s
 	$(AS) $(ASFLAGS) $< -o $@
 
 .PHONY: clean

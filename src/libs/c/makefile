@@ -17,7 +17,7 @@ CXXFLAGS = $(INCLUDES) -std=c++14 -ffreestanding -O2 -Wall -Wextra -fno-exceptio
 
 DEPS = ctype.h math.h stddef.h stdint.h stdio.h stdlib.h string.h stringutils.h
 
-_OBJ = ctype.o math.o stdlib.o stdio.o string.o stringutils.o
+_OBJ = ctype.c.o math.cpp.o stdio.c.o stdlib.c.o string.c.o stringutils.c.o
 OBJ = $(patsubst %,$(OBJDIR)/%,$(_OBJ))
 
 TARGET = $(BINDIR)/libc.a
@@ -33,10 +33,10 @@ init:
 $(TARGET): $(OBJ)
 	ar rcs $(TARGET) $(OBJ)
 
-$(OBJDIR)/%.o: %.c $(DEPS)
+$(OBJDIR)/%.c.o: %.c $(DEPS)
 	$(CC) $(CFLAGS) -c $< -o $@
 
-$(OBJDIR)/%.o: %.cpp $(DEPS)
+$(OBJDIR)/%.cpp.o: %.cpp $(DEPS)
 	$(CXX) $(CXXFLAGS) -c $< -o $@
 
 .PHONY: clean
