@@ -38,11 +38,11 @@ _OBJ = boot.s.o \
 	   main.cpp.o \
 	   pageframemgr.cpp.o \
 	   paging.cpp.o \
-	   paging_asm.s.o \
+	   paging.s.o \
 	   screen.cpp.o \
 	   shell.cpp.o \
 	   system.c.o \
-	   system_asm.s.o \
+	   system.s.o \
 	   timer.cpp.o
 OBJ = $(patsubst %,$(OBJDIR)/%,$(_OBJ))
 BUILD_OBJ = $(OBJDIR)/crti.s.o $(OBJ) $(OBJDIR)/crtn.s.o
