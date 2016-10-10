@@ -66,7 +66,7 @@ libs:
 
 .PHONY: install
 install: init libs $(TARGET)
-	bash -v $(TOOLSDIR)/createIso.sh x86
+	$(TOOLSDIR)/createIso.sh x86
 
 $(TARGET): $(BUILD_OBJ)
 	$(CXX) $(LINK_OBJ) -o $(TARGET) $(LDFLAGS)
