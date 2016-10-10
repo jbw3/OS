@@ -1,10 +1,11 @@
 # Makefile for kernel
 
-SRCDIR = src/kernel/arch/x86/32Bit
+SRCDIR = .
 OBJDIR = obj
-LIBSRCDIR = src/libs
-LIBDIR = lib
-BINDIR = bin
+LIBSRCDIR = ../../../../libs
+LIBDIR = ../../../../../lib
+BINDIR = ../../../../../bin
+TOOLSDIR = ../../../../../tools
 
 # directory to search for dependencies
 VPATH = $(SRCDIR)
@@ -50,8 +51,6 @@ LINK_OBJ = $(OBJDIR)/crti.s.o $(CRTBEGIN_OBJ) $(OBJ) $(CRTEND_OBJ) $(OBJDIR)/crt
 
 TARGET = $(BINDIR)/kernel-x86
 
-TOOLSDIR = ./tools
-
 .PHONY: all
 all: init libs $(TARGET)
 
@@ -62,12 +61,12 @@ init:
 
 .PHONY: libs
 libs:
-	cd src/libs/c++; make
-	cd src/libs/c; make
+	cd $(LIBSRCDIR)/c++; make
+	cd $(LIBSRCDIR)/c; make
 
 .PHONY: install
 install: init libs $(TARGET)
-	$(TOOLSDIR)/createIso.sh x86
+	bash -v $(TOOLSDIR)/createIso.sh x86
 
 $(TARGET): $(BUILD_OBJ)
 	$(CXX) $(LINK_OBJ) -o $(TARGET) $(LDFLAGS)
@@ -83,6 +82,6 @@ $(OBJDIR)/%.s.o: %.s
 
 .PHONY: clean
 clean:
-	cd src/libs/c++; make clean
-	cd src/libs/c; make clean
+	cd $(LIBSRCDIR)/c++; make clean
+	cd $(LIBSRCDIR)/c; make clean
 	rm -f $(OBJDIR)/*.o $(TARGET)

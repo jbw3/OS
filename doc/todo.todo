@@ -17,6 +17,7 @@ Rework project structure:
  ✔ Move kernel code to its own directory (see notes) @done (16-10-07 22:32)
  ✔ add *.o after extension (e.g. .cpp.o) @done (16-10-09 18:28)
  ✔ Rename *_asm.s to *.s @done (16-10-09 18:38)
+ ☐ Document possible need for xorriso and grub-pc-bin
  ☐ Add halt(), enableInterrupts(), and disableInterrupts() to system.h
  ☐ Create debug and release builds
  ☐ Move stringutils to utils lib
