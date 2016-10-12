@@ -1,18 +1,31 @@
 # OS
 
+## Quick Start
+
+Install and build cross-compiler
+
+`make install-gcc32`
+
+Build OS (as iso image)
+
+`make iso`
+
+Run in QEMU!
+
+`qemu-system-i386 bin/SandboxOS-x86.iso`
 
 ## Requirements
 
-### Compiler
+### Understanding the Cross-Compiler (reference)
 
 To build the OS kernel you will need a cross-compiler.
 GCC 5.4.0 is the compiler currently being used.
 Some other compilers or GCC versions will probably work, but note that support for the C11 and C++14 standards is required.
 Scripts to build a GCC cross-compiler and the binutils library (needed to build GCC) can be found in the tools directory.
 A tutorial (from which these scripts were taken) can be found at [OSDev](http://wiki.osdev.org/GCC_Cross-Compiler).
-Following are the steps to build GCC:
+Following are the manual steps to build GCC:
 
-1. Download [Binutils](https://www.gnu.org/software/binutils/)
+1. Download [Binutils main page](https://www.gnu.org/software/binutils/) [FTP download](http://ftp.gnu.org/gnu/binutils/)
 2. Configure variables in build-binutils.sh
 3. Build Binutils (run build-binutils.sh)
 4. Download [GCC](https://gcc.gnu.org/)
@@ -31,7 +44,7 @@ To build the OS kernel, run `make` in the top-level directory. A GRUB-bootable I
 Note: The `xorriso` and `grub-pc-bin` packages may be needed to create the ISO image.
 On Ubuntu, they can be installed as follows:
 ```
-sudo apt install xorriso 
+sudo apt install xorriso
 sudo apt install grub-pc-bin
 ```
 
