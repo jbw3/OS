@@ -7,9 +7,9 @@ X86_32_PATH = $(ARCH_PATH)/x86/32Bit
 all:
 	cd $(X86_32_PATH); make
 
-.PHONY: install
-install:
-	cd $(X86_32_PATH); make install
+.PHONY: iso
+iso:
+	cd $(X86_32_PATH); make iso
 
 .PHONY: clean
 clean:

@@ -64,8 +64,8 @@ libs:
 	cd $(LIBSRCDIR)/c++; make
 	cd $(LIBSRCDIR)/c; make
 
-.PHONY: install
-install: init libs $(TARGET)
+.PHONY: iso
+iso: init libs $(TARGET)
 	$(TOOLSDIR)/createIso.sh x86
 
 $(TARGET): $(BUILD_OBJ)
