@@ -28,10 +28,6 @@ PageFrameMgr::PageFrameMgr(const multiboot_info* mbootInfo)
 
     // mark page frame blocks used by kernel
     markKernel();
-
-    /// @todo ensure this is in a block
-    /// @todo map if necessary
-    // blocks = reinterpret_cast<PageFrameBlock*>(KERNEL_VIRTUAL_END);
 }
 
 void PageFrameMgr::initMemBlocks(const multiboot_info* mbootInfo, MemBlock* memBlocks, unsigned int memBlocksSize, unsigned int& numMemBlocks)
@@ -191,7 +187,11 @@ void PageFrameMgr::markKernel()
     uint blockIdx = 0;
     uint allocIdx = 0;
     uint32_t bitMask = 0;
-    findPageFrame(start, blockIdx, allocIdx, bitMask); /// @todo kernel panic if this returns false
+    bool ok = findPageFrame(start, blockIdx, allocIdx, bitMask);
+    if (!ok)
+    {
+        PANIC("Could not find start of kernel");
+    }
 
     // mark page frames
     uint numMarkedInBlock = 0; // number of pages marked in the current block
