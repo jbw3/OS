@@ -27,8 +27,7 @@ void pageFault(const registers* regs)
     screen.setBackgroundColor(bgColor);
     screen.setForegroundColor(fgColor);
 
-    // hang
-    while (true);
+    PANIC("Page fault!");
 }
 
 void configPaging()

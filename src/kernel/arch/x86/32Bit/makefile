@@ -51,6 +51,7 @@ _OBJ = boot.s.o \
 	   screen.cpp.o \
 	   shell.cpp.o \
 	   system.c.o \
+	   system.cpp.o \
 	   system.s.o \
 	   timer.cpp.o
 OBJ = $(patsubst %,$(OBJDIR)/%,$(_OBJ))

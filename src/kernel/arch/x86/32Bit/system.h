@@ -55,6 +55,17 @@ uint32_t getRegCR2();
  */
 void __cxa_pure_virtual();
 
+/**
+ * @brief Called when something really, really bad happens...
+ * @param file the file in which the error occurred
+ * @param line the line on which the error occurred
+ * @param function the name of the function in which the error occurred
+ * @param message error message
+ */
+void panic(const char* file, unsigned long line, const char* function, const char* message);
+
+#define PANIC(message) panic(__FILE__, __LINE__, __func__, message)
+
 #ifdef __cplusplus
 } // extern "C"
 #endif
