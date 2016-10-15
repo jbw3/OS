@@ -8,7 +8,7 @@ void panic(const char* file, unsigned long line, const char* function, const cha
 
     screen << "Kernel panic!!!\n"
            << file << ", line " << line << '\n'
-           << function << "()\n"
+           << function << '\n'
            << message;
 
     /// @todo What should we do here? Maybe hang in debug

@@ -64,7 +64,7 @@ void __cxa_pure_virtual();
  */
 void panic(const char* file, unsigned long line, const char* function, const char* message);
 
-#define PANIC(message) panic(__FILE__, __LINE__, __func__, message)
+#define PANIC(message) panic(__FILE__, __LINE__, __PRETTY_FUNCTION__, message)
 
 #ifdef __cplusplus
 } // extern "C"
