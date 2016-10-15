@@ -191,7 +191,11 @@ void PageFrameMgr::markKernel()
     uint blockIdx = 0;
     uint allocIdx = 0;
     uint32_t bitMask = 0;
-    findPageFrame(start, blockIdx, allocIdx, bitMask); /// @todo kernel panic if this returns false
+    bool ok = findPageFrame(start, blockIdx, allocIdx, bitMask);
+    if (!ok)
+    {
+        PANIC("Could not find start of kernel");
+    }
 
     // mark page frames
     uint numMarkedInBlock = 0; // number of pages marked in the current block
