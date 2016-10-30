@@ -1,4 +1,5 @@
 #include "debug.h"
+#include "memoryunits.h"
 #include "paging.h"
 #include "screen.h"
 #include "system.h"
@@ -128,13 +129,13 @@ void printMultibootMemMap(uint32_t addr, uint32_t len)
 
         uint64_t entryLen = entry->len;
 
-        if (entryLen >= 1'048'576 && entryLen % 1'048'576 == 0)
+        if (entryLen >= 1_MiB && entryLen % 1_MiB == 0)
         {
-            screen << (entryLen / 1'048'576) << " MiB";
+            screen << (entryLen / 1_MiB) << " MiB";
         }
-        else if (entryLen >= 1024 && entryLen % 1024 == 0)
+        else if (entryLen >= 1_KiB && entryLen % 1_KiB == 0)
         {
-            screen << (entryLen / 1024) << " KiB";
+            screen << (entryLen / 1_KiB) << " KiB";
         }
         else
         {
