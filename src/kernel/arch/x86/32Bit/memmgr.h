@@ -2,6 +2,9 @@
  * @brief Memory manager
  */
 
+#ifndef MEM_MGR_H_
+#define MEM_MGR_H_
+
 #include <stddef.h>
 #include <stdint.h>
 
@@ -11,7 +14,13 @@ public:
     /**
      * @brief Constructor
      */
-    MemMgr();
+    MemMgr(uintptr_t heapStartAddr);
+
+    void setHeapStart(uintptr_t heapStartAddr = 0);
+
+    void* alloc(size_t size);
+
+    void free(void* ptr);
 
 private:
     /**
@@ -32,4 +41,9 @@ private:
 
     /// first node of linked list
     MemBlockInfo* head;
+
+    /// virtual start address of heap
+    uintptr_t heapStart;
 };
+
+#endif // MEM_MGR_H_
