@@ -38,6 +38,19 @@ User processes:
  ☐ ELF format
  ☐ Preemptive scheduling
 
+Basic disk driver:
+  ☐ Get basic AHCI working
+
+AHCI:
+  ☐ Find AHCI devices using PCIe
+
+PCIe:
+  ☐ Read configuration info Enhanced Configuration Mechanism (ACPI 'MCFG' table)
+
+ACPI:
+  ☐ **CLS NEXT STEP** Find RSDP location
+  ☐ Find MCFG table
+
 Shell:
  ☐ History
  ☐ Tab complete
