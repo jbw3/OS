@@ -1,8 +1,10 @@
 #include "memmgr.h"
+#include "pageframemgr.h"
 
-MemMgr::MemMgr(uintptr_t heapStartAddr)
+MemMgr::MemMgr(PageFrameMgr* pageFrameManager, uintptr_t heapStartAddr)
 {
     head = nullptr;
+    pageFrameMgr = pageFrameManager;
     setHeapStart(heapStartAddr);
 }
 

@@ -8,13 +8,15 @@
 #include <stddef.h>
 #include <stdint.h>
 
+class PageFrameMgr;
+
 class MemMgr
 {
 public:
     /**
      * @brief Constructor
      */
-    MemMgr(uintptr_t heapStartAddr);
+    MemMgr(PageFrameMgr* pageFrameManager, uintptr_t heapStartAddr);
 
     void setHeapStart(uintptr_t heapStartAddr = 0);
 
@@ -42,8 +44,14 @@ private:
     /// first node of linked list
     MemBlockInfo* head;
 
+    /// page frame manager
+    PageFrameMgr* pageFrameMgr;
+
     /// virtual start address of heap
     uintptr_t heapStart;
+
+    /// virtual end address of heap
+    uintptr_t heapEnd;
 };
 
 #endif // MEM_MGR_H_
