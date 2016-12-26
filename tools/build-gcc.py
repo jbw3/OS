@@ -41,12 +41,10 @@ class Builder(object):
 
     def _checkArgs(self):
         if os.path.exists(self.args.output) and len(os.listdir(self.args.output)) > 0:
-            if self.args.force:
-                shutil.rmtree(self.args.output)
-            else:
+            if not self.args.force:
                 print('The following directory is not empty:')
                 print(self.args.output)
-                print('Add the --force option to overwrite the existing installation')
+                print('Add the --force option to install anyway')
                 sys.exit(1)
 
     def _buildBinutils(self):
@@ -152,7 +150,7 @@ architecture is i686-elf:
                                      formatter_class=argparse.RawTextHelpFormatter)
     parser.add_argument('binutilsSrc', metavar='BINUTILS', help='the binutils source')
     parser.add_argument('gccSrc', metavar='GCC', help='the GCC source')
-    parser.add_argument('-t', '--target', default='i686-elf', help='the target processor')
+    parser.add_argument('-t', '--target', default='i686-elf', help='the target processor (e.g. i686-elf, x86_64-elf)')
     parser.add_argument('-o', '--output', default=None, help='the output directory where GCC will be installed')
     parser.add_argument('-f', '--force', action='store_true', default=False, help='force the installation over an existing one')
 

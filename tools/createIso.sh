@@ -17,4 +17,4 @@ ARCH_NAME=$1
 mkdir -p ${BIN_DIR}/isodir-${ARCH_NAME}/boot/grub
 cp ${BIN_DIR}/kernel-${ARCH_NAME} ${BIN_DIR}/isodir-${ARCH_NAME}/boot/kernel
 cp ${TOP_DIR}/grub.cfg ${BIN_DIR}/isodir-${ARCH_NAME}/boot/grub/grub.cfg
-grub-mkrescue /usr/lib/grub/i386-pc ${BIN_DIR}/isodir-${ARCH_NAME} -o ${BIN_DIR}/SandboxOS-${ARCH_NAME}.iso
+grub-mkrescue ${BIN_DIR}/isodir-${ARCH_NAME} -d /usr/lib/grub/i386-pc -o ${BIN_DIR}/SandboxOS-${ARCH_NAME}.iso

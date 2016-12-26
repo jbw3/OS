@@ -46,7 +46,7 @@ void kernelMain(const uint32_t MULTIBOOT_MAGIC_NUM, const multiboot_info* mbootI
 
     PageFrameMgr pageFrameMgr(mbootInfo);
 
-    screen.write("Sandbox OS\n");
+    screen.write("Sandbox OS: x86 32-bit\n");
 
     Shell sh(mbootInfo);
 

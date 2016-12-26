@@ -46,8 +46,9 @@ void printMultibootInfo(const multiboot_info* mbootInfo)
             {
                 if (!isPagingEnabled())
                 {
-                    screen << reinterpret_cast<const char*>(mbootInfo->cmdline) << '\n';
+                    screen << reinterpret_cast<const char*>(mbootInfo->cmdline);
                 }
+                screen << '\n';
                 break;
             }
 
