@@ -41,12 +41,10 @@ class Builder(object):
 
     def _checkArgs(self):
         if os.path.exists(self.args.output) and len(os.listdir(self.args.output)) > 0:
-            if self.args.force:
-                shutil.rmtree(self.args.output)
-            else:
+            if not self.args.force:
                 print('The following directory is not empty:')
                 print(self.args.output)
-                print('Add the --force option to overwrite the existing installation')
+                print('Add the --force option to install anyway')
                 sys.exit(1)
 
     def _buildBinutils(self):
