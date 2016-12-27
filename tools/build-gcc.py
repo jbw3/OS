@@ -150,7 +150,7 @@ architecture is i686-elf:
                                      formatter_class=argparse.RawTextHelpFormatter)
     parser.add_argument('binutilsSrc', metavar='BINUTILS', help='the binutils source')
     parser.add_argument('gccSrc', metavar='GCC', help='the GCC source')
-    parser.add_argument('-t', '--target', default='i686-elf', help='the target processor')
+    parser.add_argument('-t', '--target', default='i686-elf', help='the target processor (e.g. i686-elf, x86_64-elf)')
     parser.add_argument('-o', '--output', default=None, help='the output directory where GCC will be installed')
     parser.add_argument('-f', '--force', action='store_true', default=False, help='force the installation over an existing one')
 
