@@ -39,6 +39,9 @@ global start
 start   equ _start
 _start:
 
+	; set up stack
+	mov esp, kernelStackStart	; this points the stack to the new stack area
+
 	mov dword [0xb8000], 0x2f4b2f4f
 	hlt
 
@@ -46,3 +49,18 @@ _start:
 	cli
 	hlt
 	jmp .Linfinite
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+; BSS Section
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+section .bss
+
+; kernel stack
+global kernelStackStart
+global kernelStackEnd
+; the stack grows downward in memory so the start
+; is at a higher address than the end
+alignb 8
+kernelStackEnd:
+	resb 4096			; reserve 4 KiB of memory
+kernelStackStart:
