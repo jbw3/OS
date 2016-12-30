@@ -16,18 +16,22 @@ GCC_DOWNLOAD = $(DOWNLOAD_FOLDER)/$(GCC_FILENAME)
 
 ARCH_PATH = src/kernel/arch
 X86_32_PATH = $(ARCH_PATH)/x86/32Bit
+X86_64_PATH = $(ARCH_PATH)/x86/64Bit
 
 .PHONY: all
 all:
 	cd $(X86_32_PATH); make
+	cd $(X86_64_PATH); make
 
 .PHONY: iso
 iso:
 	cd $(X86_32_PATH); make iso
+	cd $(X86_64_PATH); make iso
 
 .PHONY: clean
 clean:
 	cd $(X86_32_PATH); make clean
+	cd $(X86_64_PATH); make clean
 
 .PHONY: install-gcc32
 install-gcc32:
