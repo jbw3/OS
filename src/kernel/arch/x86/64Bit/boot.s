@@ -16,13 +16,13 @@ KERNEL_VIRTUAL_BASE equ 0x0; TODO: map to higher half
 ; the index of the page table in the page directory
 KERNEL_PAGE_TABLE_IDX equ (KERNEL_VIRTUAL_BASE >> 22)
 
+; instructions in this file are 32-bit
 [BITS 32]
 
 extern loadStartAddr
 extern loadEndAddr
 extern bssEndAddr
-extern _init                ; global variable initialization
-extern kernelMain           ; C code entry point
+extern start64
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ; Text Section
@@ -67,16 +67,30 @@ _start:
 	or ecx, 1 << 31
 	mov cr0, ecx
 
-	; set up stack
-	mov esp, kernelStackStart	; this points the stack to the new stack area
+	; load GDT
+	lgdt [gdt.struct]
 
-	mov dword [0xb8000], 0x2f4b2f4f
-	hlt
+	; update selectors
+	mov ax, gdt.dataOffset
+	mov ss, ax
+	mov ds, ax
+	mov es, ax
+	jmp gdt.codeOffset:start64	; jump to long mode label
 
-.Linfinite:					; infinite loop
-	cli
-	hlt
-	jmp .Linfinite
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+; Read-Only Data Section
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+section .rodata
+
+gdt:
+	dq 0 ; zero entry
+.codeOffset: equ $ - gdt
+	dq (1<<53) | (1<<47) | (1<<44) | (1<<43) | (1<<41) ; code segment
+.dataOffset: equ $ - gdt
+	dq (1<<47) | (1<<44) | (1<<41) ; data segment
+.struct:
+	dw $ - gdt - 1
+	dq gdt
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ; Data Section

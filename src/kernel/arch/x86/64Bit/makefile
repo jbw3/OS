@@ -29,7 +29,7 @@ DEPS =
 
 # CRTBEGIN_OBJ = $(shell $(CXX) $(CXXFLAGS) -print-file-name=crtbegin.o)
 # CRTEND_OBJ = $(shell $(CXX) $(CXXFLAGS) -print-file-name=crtend.o)
-_OBJ = boot.s.o
+_OBJ = boot.s.o start64.s.o
 OBJ = $(patsubst %,$(OBJDIR)/%,$(_OBJ))
 # BUILD_OBJ = $(OBJDIR)/crti.s.o $(OBJ) $(OBJDIR)/crtn.s.o
 # LINK_OBJ = $(OBJDIR)/crti.s.o $(CRTBEGIN_OBJ) $(OBJ) $(CRTEND_OBJ) $(OBJDIR)/crtn.s.o
