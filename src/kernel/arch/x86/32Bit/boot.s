@@ -53,7 +53,7 @@ _start:
 
 	; enable paging
 	mov ecx, cr0
-	or ecx, 0x80000000
+	or ecx, 1 << 31
 	mov cr0, ecx
 
 	; jump to the higher half
