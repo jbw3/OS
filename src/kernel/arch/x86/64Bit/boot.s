@@ -124,11 +124,11 @@ kernelPageDirEnd:
 align 4096
 kernelPageTableStart:
 %assign address 0
-%rep (256 + 7) ; 256 - 1 MiB, 7 - OS pages
+%rep (256 + 8) ; 256 - 1 MiB, 8 - OS pages
 dq (address | (PAGE_TABLE_RW | PAGE_TABLE_PRESENT))
 %assign address address + 4096
 %endrep
-times (PAGE_TABLE_ENTRIES - (256 + 7)) dq 0
+times (PAGE_TABLE_ENTRIES - (256 + 8)) dq 0
 kernelPageTableEnd:
 
 ; temporary page table for identity mapping the kernel
@@ -141,18 +141,3 @@ times 256 dq 0
 dq (0x100000 | (PAGE_TABLE_RW | PAGE_TABLE_PRESENT))
 times (PAGE_TABLE_ENTRIES - 256 - 1) dq 0
 tempPageTableEnd:
-
-;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-; BSS Section
-;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-section .bss
-
-; kernel stack
-global kernelStackStart
-global kernelStackEnd
-; the stack grows downward in memory so the start
-; is at a higher address than the end
-alignb 8
-kernelStackEnd:
-	resb 4096			; reserve 4 KiB of memory
-kernelStackStart:
