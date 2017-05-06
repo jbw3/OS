@@ -27,6 +27,16 @@ uint8_t inb(uint16_t port);
 
 void outb(uint16_t port, uint8_t value);
 
+/**
+ * @brief Clear global interrupt flag.
+ */
+void clearInt();
+
+/**
+ * @brief Set global interrupt flag.
+ */
+void setInt();
+
 const void* getStackPointer();
 
 const void* getStackStart();

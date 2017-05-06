@@ -172,6 +172,9 @@ Screen::Screen()
     fill = ' ';
     precision = 10;
 
+    // disable blinking
+    setBlinking(false);
+
     setBackgroundColor(EColor::eBlack);
     setForegroundColor(EColor::eWhite);
 }
@@ -204,6 +207,37 @@ void Screen::setBackgroundColor(EColor color)
     temp <<= 12;
     attrib &= 0x0F00; // clear all but foreground color
     attrib |= temp; // set new background color
+}
+
+void Screen::setBlinking(bool enabled)
+{
+    constexpr uint16_t ADDR_REG = 0x3C0; // attribute address/data register
+    constexpr uint16_t DATA_REG = 0x3C1; // attribute data read register
+
+    constexpr uint8_t ATT_MODE_CTRL_REG = 0x10; // attribute mode control register
+
+    constexpr uint8_t PAS_BIT = 0x20; // palette address source
+    constexpr uint8_t BLINK_BIT = 0x08; // blink bit: 0 - disabled, 1 - enabled
+
+    // disable interrupts
+    clearInt();
+
+    // reset flip-flop
+    inb(0x3DA);
+
+    // save previous value
+    uint8_t prevAddr = inb(ADDR_REG);
+
+    outb(ADDR_REG, ATT_MODE_CTRL_REG | PAS_BIT);
+    uint8_t val = inb(DATA_REG);
+    val = enabled ? (val | BLINK_BIT) : (val & ~BLINK_BIT);
+    outb(DATA_REG, val);
+
+    // restore previous value
+    outb(ADDR_REG, prevAddr | PAS_BIT);
+
+    // re-enable interrupts
+    setInt();
 }
 
 void Screen::addInput(char ch)
