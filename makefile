@@ -17,9 +17,13 @@ GCC_DOWNLOAD = $(DOWNLOAD_FOLDER)/$(GCC_FILENAME)
 ARCH_PATH = src/kernel/arch
 X86_32_PATH = $(ARCH_PATH)/x86/32Bit
 
-.PHONY: all
-all:
-	cd $(X86_32_PATH); make
+.PHONY: release
+release:
+	cd $(X86_32_PATH); make release
+
+.PHONY: debug
+debug:
+	cd $(X86_32_PATH); make debug
 
 .PHONY: iso
 iso:

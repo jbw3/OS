@@ -10,10 +10,15 @@ VPATH = $(SRCDIR) include
 INCLUDES = -I$(SRCDIR) -Iinclude -I../c++/include
 
 CC = i686-elf-gcc
-CFLAGS = $(INCLUDES) -std=c11 -ffreestanding -O2 -Wall -Wextra
+CFLAGS = $(INCLUDES) -std=c11 -ffreestanding -Wall -Wextra
 
 CXX = i686-elf-g++
-CXXFLAGS = $(INCLUDES) -std=c++14 -ffreestanding -O2 -Wall -Wextra -fno-exceptions -fno-rtti
+CXXFLAGS = $(INCLUDES) -std=c++14 -ffreestanding -Wall -Wextra -fno-exceptions -fno-rtti
+
+release: CFLAGS += -O2
+release: CXXFLAGS += -O2
+debug: CFLAGS += -O0 -g
+debug: CXXFLAGS += -O0 -g
 
 DEPS = ctype.h math.h stddef.h stdint.h stdio.h stdlib.h string.h stringutils.h
 
@@ -22,8 +27,11 @@ OBJ = $(patsubst %,$(OBJDIR)/%,$(_OBJ))
 
 TARGET = $(BINDIR)/libc.a
 
-.PHONY: all
-all: init $(TARGET)
+.PHONY: release
+release: init $(TARGET)
+
+.PHONY: debug
+debug: init $(TARGET)
 
 .PHONY: init
 init:
