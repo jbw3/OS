@@ -19,18 +19,15 @@ Run in QEMU!
 ### Understanding the Cross-Compiler (reference)
 
 To build the OS kernel you will need a cross-compiler.
-GCC 5.4.0 is the compiler currently being used.
+GCC 6.3.0 is the compiler currently being used.
 Some other compilers or GCC versions will probably work, but note that support for the C11 and C++14 standards is required.
-Scripts to build a GCC cross-compiler and the binutils library (needed to build GCC) can be found in the tools directory.
-A tutorial (from which these scripts were taken) can be found at [OSDev](http://wiki.osdev.org/GCC_Cross-Compiler).
-Following are the manual steps to build GCC:
+A script to build a GCC cross-compiler can be found in the tools directory.
+A tutorial (from which this script was taken) can be found at [OSDev](http://wiki.osdev.org/GCC_Cross-Compiler).
+Following are the steps to build GCC:
 
-1. Download [Binutils main page](https://www.gnu.org/software/binutils/) [FTP download](http://ftp.gnu.org/gnu/binutils/)
-2. Configure variables in build-binutils.sh
-3. Build Binutils (run build-binutils.sh)
-4. Download [GCC](https://gcc.gnu.org/)
-5. Configure variables in build-gcc.sh
-6. Build GCC (run build-gcc.sh)
+1. Download [Binutils](https://www.gnu.org/software/binutils/) ([FTP download](http://ftp.gnu.org/gnu/binutils/))
+2. Download [GCC](https://gcc.gnu.org/)
+3. Run `tools/build-gcc.py binutils-2.28.tar.bz2 gcc-6.3.0.tar.bz2 -o ~/opt/cross/gcc-6.3.0/ -t i686-elf -f`
 
 ### Assembler
 
