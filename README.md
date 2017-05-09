@@ -16,7 +16,7 @@ Run in QEMU!
 
 ## Requirements
 
-### Understanding the Cross-Compiler (reference)
+### Building the Cross-Compiler
 
 To build the OS kernel you will need a cross-compiler.
 GCC 6.3.0 is the compiler currently being used.
@@ -27,7 +27,7 @@ Following are the steps to build GCC:
 
 1. Download [Binutils](https://www.gnu.org/software/binutils/) ([FTP download](http://ftp.gnu.org/gnu/binutils/))
 2. Download [GCC](https://gcc.gnu.org/)
-3. Run `tools/build-gcc.py binutils-2.28.tar.bz2 gcc-6.3.0.tar.bz2 -o ~/opt/cross/gcc-6.3.0/ -t i686-elf -f`
+3. Run `tools/build-gcc.py binutils-2.28.tar.bz2 gcc-6.3.0.tar.bz2 -o ~/opt/cross/gcc-6.3.0/ -t i686-elf`
 
 ### Assembler
 
@@ -36,7 +36,7 @@ This project uses the NASM assembler.
 
 ## Building
 
-To build the OS kernel, run `make` in the top-level directory. A GRUB-bootable ISO image can also be created by running `make install`. Both the kernel binary and ISO image will be placed in the bin directory.
+To build the OS kernel, run `make` in the top-level directory. A GRUB-bootable ISO image can also be created by running `make iso`. Both the kernel binary and ISO image will be placed in the bin directory.
 
 Note: The `xorriso` and `grub-pc-bin` packages may be needed to create the ISO image.
 On Ubuntu, they can be installed as follows:
