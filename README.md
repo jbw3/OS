@@ -21,13 +21,8 @@ Run in QEMU!
 To build the OS kernel you will need a cross-compiler.
 GCC 6.3.0 is the compiler currently being used.
 Some other compilers or GCC versions will probably work, but note that support for the C11 and C++14 standards is required.
-A script to build a GCC cross-compiler can be found in the tools directory.
+A script to build a GCC cross-compiler can be found in the tools directory: `build-gcc.py`.
 A tutorial (from which this script was taken) can be found at [OSDev](http://wiki.osdev.org/GCC_Cross-Compiler).
-Following are the steps to build GCC:
-
-1. Download [Binutils](https://www.gnu.org/software/binutils/) ([FTP download](http://ftp.gnu.org/gnu/binutils/))
-2. Download [GCC](https://gcc.gnu.org/)
-3. Run `tools/build-gcc.py binutils-2.28.tar.bz2 gcc-6.3.0.tar.bz2 -o ~/opt/cross/gcc-6.3.0/ -t i686-elf`
 
 ### Assembler
 
