@@ -75,4 +75,4 @@ sudo dd if=bin/SandboxOS-x86.iso of=/dev/sdx
 
 The OS has a simple shell for debugging purposes. Type `help` to list the available commands. Type `help <cmd>` to get help on a specific command.
 
-![help command](./docs/screenShots/cmd_help.png "help command")
+![help command](./doc/screenShots/cmd_help.png "help command")
