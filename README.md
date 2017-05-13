@@ -16,21 +16,13 @@ Run in QEMU!
 
 ## Requirements
 
-### Understanding the Cross-Compiler (reference)
+### Building the Cross-Compiler
 
 To build the OS kernel you will need a cross-compiler.
-GCC 5.4.0 is the compiler currently being used.
+GCC 6.3.0 is the compiler currently being used.
 Some other compilers or GCC versions will probably work, but note that support for the C11 and C++14 standards is required.
-Scripts to build a GCC cross-compiler and the binutils library (needed to build GCC) can be found in the tools directory.
-A tutorial (from which these scripts were taken) can be found at [OSDev](http://wiki.osdev.org/GCC_Cross-Compiler).
-Following are the manual steps to build GCC:
-
-1. Download [Binutils main page](https://www.gnu.org/software/binutils/) [FTP download](http://ftp.gnu.org/gnu/binutils/)
-2. Configure variables in build-binutils.sh
-3. Build Binutils (run build-binutils.sh)
-4. Download [GCC](https://gcc.gnu.org/)
-5. Configure variables in build-gcc.sh
-6. Build GCC (run build-gcc.sh)
+A script to build a GCC cross-compiler can be found in the tools directory: `build-gcc.py`.
+A tutorial (from which this script was taken) can be found at [OSDev](http://wiki.osdev.org/GCC_Cross-Compiler).
 
 ### Assembler
 
@@ -39,7 +31,7 @@ This project uses the NASM assembler.
 
 ## Building
 
-To build the OS kernel, run `make` in the top-level directory. A GRUB-bootable ISO image can also be created by running `make install`. Both the kernel binary and ISO image will be placed in the bin directory.
+To build the OS kernel, run `make` in the top-level directory. A GRUB-bootable ISO image can also be created by running `make iso`. Both the kernel binary and ISO image will be placed in the bin directory.
 
 Note: The `xorriso` and `grub-pc-bin` packages may be needed to create the ISO image.
 On Ubuntu, they can be installed as follows:
@@ -78,4 +70,4 @@ sudo dd if=bin/SandboxOS-x86.iso of=/dev/sdx
 
 The OS has a simple shell for debugging purposes. Type `help` to list the available commands. Type `help <cmd>` to get help on a specific command.
 
-![help command](./docs/screenShots/cmd_help.png "help command")
+![help command](./doc/screenShots/cmd_help.png "help command")

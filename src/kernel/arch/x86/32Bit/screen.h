@@ -84,6 +84,8 @@ public:
 
     void setBackgroundColor(EColor color);
 
+    void setBlinking(bool enabled);
+
     void addInput(char ch);
 
     bool read(char& ch);

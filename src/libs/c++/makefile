@@ -10,7 +10,10 @@ VPATH = $(SRCDIR) include
 INCLUDES = -I$(SRCDIR) -Iinclude -I../c/include
 
 CXX = i686-elf-g++
-CXXFLAGS = $(INCLUDES) -std=c++14 -ffreestanding -O2 -Wall -Wextra -fno-exceptions -fno-rtti
+CXXFLAGS = $(INCLUDES) -std=c++1z -ffreestanding -Wall -Wextra -fno-exceptions -fno-rtti
+
+release: CXXFLAGS += -O2
+debug: CXXFLAGS += -O0 -g
 
 DEPS = cmath
 
@@ -22,8 +25,11 @@ TARGET = $(BINDIR)/libc++.a
 # don't use default rules
 .SUFFIXES:
 
-.PHONY: all
-all: init $(TARGET)
+.PHONY: release
+release: init $(TARGET)
+
+.PHONY: debug
+debug: init $(TARGET)
 
 .PHONY: init
 init:
