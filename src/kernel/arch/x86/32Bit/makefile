@@ -79,6 +79,15 @@ libs:
 iso: release
 	$(TOOLSDIR)/createIso.sh x86
 
+.PHONY: run
+run: release
+	qemu-system-i386 -kernel $(TARGET)
+
+.PHONE: debugger
+debugger: debug
+	qemu-system-i386 -s -S -kernel $(TARGET) &
+	gdb -x $(TOOLSDIR)/x86.gdb
+
 $(TARGET): $(BUILD_OBJ)
 	$(CXX) $(LINK_OBJ) -o $(TARGET) $(LDFLAGS)
 
