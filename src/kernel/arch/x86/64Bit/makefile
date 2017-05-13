@@ -13,10 +13,10 @@ VPATH = $(SRCDIR)
 INCLUDES = -I$(SRCDIR) -I$(LIBSRCDIR)/c/include -I$(LIBSRCDIR)/c++/include
 
 CC = x86_64-elf-gcc
-CFLAGS = $(INCLUDES) -std=c11 -ffreestanding -O2 -Wall -Wextra
+CFLAGS = $(INCLUDES) -std=c11 -ffreestanding -Wall -Wextra
 
 CXX = x86_64-elf-g++
-CXXFLAGS = $(INCLUDES) -std=c++14 -ffreestanding -O2 -Wall -Wextra -fno-exceptions -fno-rtti
+CXXFLAGS = $(INCLUDES) -std=c++1z -ffreestanding -Wall -Wextra -fno-exceptions -fno-rtti
 
 AS = nasm
 ASFLAGS = -f elf64 -I$(SRCDIR)/
@@ -24,6 +24,14 @@ ASFLAGS = -f elf64 -I$(SRCDIR)/
 LIBS = -L$(LIBDIR) #-lgcc
 LD = x86_64-elf-ld
 LDFLAGS = -T $(SRCDIR)/link.ld --nmagic -nostdlib $(LIBS)
+
+release: CFLAGS += -O2
+release: CXXFLAGS += -O2
+release: CONFIG = release
+debug: CFLAGS += -O0 -g
+debug: CXXFLAGS += -O0 -g
+debug: ASFLAGS += -g
+debug: CONFIG = debug
 
 DEPS =
 
@@ -40,8 +48,11 @@ LINK_OBJ = $(OBJ)
 
 TARGET = $(BINDIR)/kernel-x64
 
-.PHONY: all
-all: init $(TARGET)
+.PHONY: release
+release: init $(TARGET)
+
+.PHONY: debug
+debug: init $(TARGET)
 
 .PHONY: init
 init:
@@ -50,12 +61,21 @@ init:
 
 .PHONY: libs
 libs:
-	cd $(LIBSRCDIR)/c++; make
-	cd $(LIBSRCDIR)/c; make
+	cd $(LIBSRCDIR)/c++; make $(CONFIG)
+	cd $(LIBSRCDIR)/c; make $(CONFIG)
 
 .PHONY: iso
-iso: init libs $(TARGET)
+iso: release
 	$(TOOLSDIR)/createIso.sh x64
+
+.PHONY: run
+run: release
+	qemu-system-x86_64 -kernel $(TARGET)
+
+.PHONY: debugger
+debugger: debug
+	qemu-system-x86_64 -s -S -kernel $(TARGET) &
+	gdb -x $(TOOLSDIR)/x64.gdb
 
 $(TARGET): $(BUILD_OBJ)
 	$(LD) $(LINK_OBJ) -o $(TARGET) $(LDFLAGS)

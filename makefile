@@ -8,12 +8,12 @@ X86_64_PATH = $(ARCH_PATH)/x86/64Bit
 .PHONY: release
 release:
 	cd $(X86_32_PATH); make release
-	cd $(X86_64_PATH); make
+	cd $(X86_64_PATH); make release
 
 .PHONY: debug
 debug:
 	cd $(X86_32_PATH); make debug
-	cd $(X86_64_PATH); make
+	cd $(X86_64_PATH); make debug
 
 .PHONY: iso
 iso:
