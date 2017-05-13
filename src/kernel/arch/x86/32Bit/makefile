@@ -83,7 +83,7 @@ iso: release
 run: release
 	qemu-system-i386 -kernel $(TARGET)
 
-.PHONE: debugger
+.PHONY: debugger
 debugger: debug
 	qemu-system-i386 -s -S -kernel $(TARGET) &
 	gdb -x $(TOOLSDIR)/x86.gdb
