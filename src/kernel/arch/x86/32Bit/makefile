@@ -16,7 +16,7 @@ CC = i686-elf-gcc
 CFLAGS = $(INCLUDES) -std=c11 -ffreestanding -Wall -Wextra
 
 CXX = i686-elf-g++
-CXXFLAGS = $(INCLUDES) -std=c++14 -ffreestanding -Wall -Wextra -fno-exceptions -fno-rtti
+CXXFLAGS = $(INCLUDES) -std=c++1z -ffreestanding -Wall -Wextra -fno-exceptions -fno-rtti
 
 AS = nasm
 ASFLAGS = -f elf32 -I$(SRCDIR)/

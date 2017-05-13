@@ -10,7 +10,7 @@ VPATH = $(SRCDIR) include
 INCLUDES = -I$(SRCDIR) -Iinclude -I../c/include
 
 CXX = i686-elf-g++
-CXXFLAGS = $(INCLUDES) -std=c++14 -ffreestanding -Wall -Wextra -fno-exceptions -fno-rtti
+CXXFLAGS = $(INCLUDES) -std=c++1z -ffreestanding -Wall -Wextra -fno-exceptions -fno-rtti
 
 release: CXXFLAGS += -O2
 debug: CXXFLAGS += -O0 -g
