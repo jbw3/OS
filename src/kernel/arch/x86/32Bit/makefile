@@ -8,12 +8,15 @@ LIBDIR = ../../../../../lib
 BINDIR = ../../../../../bin
 TOOLSDIR = ../../../../../tools
 
-# compiler flags for generation dependency makefiles
+# compiler flags for generating dependency makefiles
 # -MT:  the name of the target in the dependency file
 # -MMD: generate dependency files while compiling; also ignore system headers
 # -MP:  add a target for each prerequisite to avoid errors when deleting files
 # -MF:  the name of the dependency file
-DEPFLAGS = -MT $@ -MMD -MP -MF $(DEPDIR)/$<.Td
+C_DEPFLAGS = -MT $@ -MMD -MP -MF $(DEPDIR)/$<.Td
+
+# assembler flags for generating dependency makefiles
+A_DEPFLAGS = -MT $@ -MD $(DEPDIR)/$<.Td -MP
 
 # directory to search for dependencies
 VPATH = $(SRCDIR)
@@ -21,13 +24,13 @@ VPATH = $(SRCDIR)
 INCLUDES = -I$(SRCDIR) -I$(LIBSRCDIR)/c/include -I$(LIBSRCDIR)/c++/include
 
 CC = i686-elf-gcc
-CFLAGS = $(INCLUDES) -std=c11 -ffreestanding -Wall -Wextra $(DEPFLAGS)
+CFLAGS = $(INCLUDES) -std=c11 -ffreestanding -Wall -Wextra $(C_DEPFLAGS)
 
 CXX = i686-elf-g++
-CXXFLAGS = $(INCLUDES) -std=c++1z -ffreestanding -Wall -Wextra -fno-exceptions -fno-rtti $(DEPFLAGS)
+CXXFLAGS = $(INCLUDES) -std=c++1z -ffreestanding -Wall -Wextra -fno-exceptions -fno-rtti $(C_DEPFLAGS)
 
 AS = nasm
-ASFLAGS = -f elf32 -I$(SRCDIR)/
+ASFLAGS = -f elf32 -I$(SRCDIR)/ $(A_DEPFLAGS)
 
 LIBS = -L$(LIBDIR) -lc -lc++ -lgcc
 LDFLAGS = -T $(SRCDIR)/link.ld -ffreestanding -nostdlib $(LIBS)
@@ -113,8 +116,9 @@ $(OBJDIR)/%.cpp.o: %.cpp $(DEPDIR)/%.cpp.d
 	$(CXX) $(CXXFLAGS) -c $< -o $@
 	$(POSTCOMPILE)
 
-$(OBJDIR)/%.s.o: %.s
+$(OBJDIR)/%.s.o: %.s $(DEPDIR)/%.s.d
 	$(AS) $(ASFLAGS) $< -o $@
+	$(POSTCOMPILE)
 
 # rule for dependency files (this is here to keep make happy)
 $(DEPDIR)/%.d: ;
