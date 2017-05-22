@@ -49,29 +49,16 @@ debug: CXXFLAGS += -O0 -g
 debug: ASFLAGS += -g
 debug: CONFIG = debug
 
-SRC = boot.s \
-	  debug.cpp \
-	  gdt.c \
-	  idt.c \
-	  interrupt.s \
-	  irq.cpp \
-	  isr.cpp \
-	  keyboard.cpp \
-	  main.cpp \
-	  pageframemgr.cpp \
-	  paging.cpp \
-	  paging.s \
-	  screen.cpp \
-	  shell.cpp \
-	  system.c \
-	  system.s \
-	  timer.cpp
+# build list of source files
+SRC = $(notdir $(wildcard $(SRCDIR)/*.c $(SRCDIR)/*.cpp $(SRCDIR)/*.s))
+
+# source files without crti.s and crtn.s
+NO_CRT_SRC = $(patsubst crt%.s,,$(SRC))
 
 CRTBEGIN_OBJ = $(shell $(CXX) $(CXXFLAGS) -print-file-name=crtbegin.o)
 CRTEND_OBJ = $(shell $(CXX) $(CXXFLAGS) -print-file-name=crtend.o)
-OBJ = $(patsubst %,$(OBJDIR)/%.o,$(SRC))
-BUILD_OBJ = $(OBJDIR)/crti.s.o $(OBJ) $(OBJDIR)/crtn.s.o
-LINK_OBJ = $(OBJDIR)/crti.s.o $(CRTBEGIN_OBJ) $(OBJ) $(CRTEND_OBJ) $(OBJDIR)/crtn.s.o
+BUILD_OBJ = $(patsubst %,$(OBJDIR)/%.o,$(SRC))
+LINK_OBJ = $(OBJDIR)/crti.s.o $(CRTBEGIN_OBJ) $(patsubst %,$(OBJDIR)/%.o,$(NO_CRT_SRC)) $(CRTEND_OBJ) $(OBJDIR)/crtn.s.o
 
 TARGET = $(BINDIR)/kernel-x86
 

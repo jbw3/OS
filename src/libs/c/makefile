@@ -34,12 +34,8 @@ release: CXXFLAGS += -O2
 debug: CFLAGS += -O0 -g
 debug: CXXFLAGS += -O0 -g
 
-SRC = ctype.c \
-      math.cpp \
-      stdio.c \
-      stdlib.c \
-      string.c \
-      stringutils.c
+# build list of source files
+SRC = $(notdir $(wildcard $(SRCDIR)/*.c $(SRCDIR)/*.cpp $(SRCDIR)/*.s))
 
 OBJ = $(patsubst %,$(OBJDIR)/%.o,$(SRC))
 

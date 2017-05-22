@@ -29,7 +29,8 @@ POSTCOMPILE = @mv -f $(DEPDIR)/$(notdir $<).Td $(DEPDIR)/$(notdir $<).d && touch
 release: CXXFLAGS += -O2
 debug: CXXFLAGS += -O0 -g
 
-SRC = cmath.cpp
+# build list of source files
+SRC = $(notdir $(wildcard $(SRCDIR)/*.c $(SRCDIR)/*.cpp $(SRCDIR)/*.s))
 
 OBJ = $(patsubst %,$(OBJDIR)/%.o,$(SRC))
 
