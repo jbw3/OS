@@ -55,7 +55,7 @@ $(TARGET): $(OBJ)
 	ar rcs $(TARGET) $(OBJ)
 
 $(OBJDIR)/%.cpp.o: %.cpp $(DEPDIR)/%.cpp.d
-	$(CXX) $(CXXFLAGS) -c $< -o $@
+	$(CXX) -c $< $(CXXFLAGS) -o $@
 	$(POSTCOMPILE)
 
 # rule for dependency files (this is here to keep make happy)

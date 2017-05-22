@@ -96,15 +96,15 @@ $(TARGET): $(BUILD_OBJ)
 	$(CXX) $(LINK_OBJ) -o $(TARGET) $(LDFLAGS)
 
 $(OBJDIR)/%.c.o: %.c $(DEPDIR)/%.c.d
-	$(CC) $(CFLAGS) -c $< -o $@
+	$(CC) -c $< $(CFLAGS) -o $@
 	$(POSTCOMPILE)
 
 $(OBJDIR)/%.cpp.o: %.cpp $(DEPDIR)/%.cpp.d
-	$(CXX) $(CXXFLAGS) -c $< -o $@
+	$(CXX) -c $< $(CXXFLAGS) -o $@
 	$(POSTCOMPILE)
 
 $(OBJDIR)/%.s.o: %.s $(DEPDIR)/%.s.d
-	$(AS) $(ASFLAGS) $< -o $@
+	$(AS) $< $(ASFLAGS) -o $@
 	$(POSTCOMPILE)
 
 # rule for dependency files (this is here to keep make happy)
