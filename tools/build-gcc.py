@@ -38,7 +38,7 @@ def downloadFile(name, url, filename):
     return ok
 
 class Builder(object):
-    CONFIG_DIRECTORY = os.path.expanduser('~/.build-gcc')
+    CONFIG_DIRECTORY = os.path.expanduser(os.path.join('~', '.build-gcc'))
     CACHE_DIRECTORY = os.path.join(CONFIG_DIRECTORY, 'cache')
 
     def __init__(self, args):
@@ -101,15 +101,15 @@ class Builder(object):
 
         return path
 
-    def _buildBinutils(self):
+    def _buildBinutils(self, target):
         print('Building Binutils...', end='\n' if self.args.verbose else '', flush=True)
 
         srcPath = self._processSrc(self.binutilsPath)
-        buildPath = self._makeTempDir('build-' + stripPackExt(os.path.basename(self.binutilsPath)))
+        buildPath = self._makeTempDir('build-{}-{}'.format(stripPackExt(os.path.basename(self.binutilsPath)), target))
 
         # configure
         configCmd = [os.path.join(srcPath, 'configure'),
-                     '--target={}'.format(self.args.target),
+                     '--target={}'.format(target),
                      '--prefix={}'.format(self.args.output),
                      '--with-sysroot',
                      '--disable-nls',
@@ -127,11 +127,11 @@ class Builder(object):
 
         print('done.')
 
-    def _buildGcc(self):
+    def _buildGcc(self, target):
         print('Building GCC...', end='\n' if self.args.verbose else '', flush=True)
 
         srcPath = self._processSrc(self.gccPath)
-        buildPath = self._makeTempDir('build-' + stripPackExt(os.path.basename(self.gccPath)))
+        buildPath = self._makeTempDir('build-{}-{}'.format(stripPackExt(os.path.basename(self.gccPath)), target))
 
         # set environment vars
         binutilsBinDir = os.path.join(self.args.output, 'bin')
@@ -144,7 +144,7 @@ class Builder(object):
 
         # configure
         configCmd = [os.path.join(srcPath, 'configure'),
-                     '--target={}'.format(self.args.target),
+                     '--target={}'.format(target),
                      '--prefix={}'.format(self.args.output),
                      '--disable-nls',
                      '--enable-languages=c,c++',
@@ -171,7 +171,10 @@ class Builder(object):
     def _cleanUp(self):
         # delete temp dirs
         for d in self.tmpDirs:
-            shutil.rmtree(d)
+            try:
+                shutil.rmtree(d)
+            except FileNotFoundError:
+                pass
         self.tmpDirs = []
 
         # delete cached files
@@ -181,8 +184,11 @@ class Builder(object):
 
     def build(self):
         self._getDependencies()
-        self._buildBinutils()
-        self._buildGcc()
+
+        for target in self.args.targets:
+            self._buildBinutils(target)
+            self._buildGcc(target)
+
         self._cleanUp()
 
         print('Binutils and GCC were installed in the following directory:', end='\n\n')
@@ -214,7 +220,7 @@ Tool to build GCC and its dependencies.
                                      formatter_class=argparse.RawTextHelpFormatter)
     parser.add_argument('-b', '--binutils-version', default='2.28', help='the binutils version')
     parser.add_argument('-g', '--gcc-version', default='6.3.0', help='the GCC version')
-    parser.add_argument('-t', '--target', default='i686-elf', help='the target processor (e.g. i686-elf, x86_64-elf, etc.)')
+    parser.add_argument('-t', '--targets', nargs='+', metavar='TARGET', default=['i686-elf'], help='the target processors (e.g. i686-elf, x86_64-elf, etc.)')
     parser.add_argument('--no-cache', action='store_true', help="don't cache downloaded files")
     parser.add_argument('-o', '--output', default=None, help='the output directory where GCC will be installed')
     parser.add_argument('-v', '--verbose', action='store_true', help='enable verbose output')
