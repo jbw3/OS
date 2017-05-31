@@ -4,7 +4,7 @@ jobs:
     working_directory: ~/OS
 
     docker:
-      - image: jbw3/cci-os:0.1.0
+      - image: jbw3/cci-os:0.1.1
 
     steps:
       - checkout
