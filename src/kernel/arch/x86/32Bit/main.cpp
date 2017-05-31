@@ -60,3 +60,5 @@ void kernelMain(const uint32_t MULTIBOOT_MAGIC_NUM, const multiboot_info* mbootI
         asm volatile ("hlt");
     }
 }
+
+abc
