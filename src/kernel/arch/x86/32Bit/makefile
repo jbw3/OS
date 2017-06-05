@@ -85,16 +85,16 @@ libs:
 	cd $(LIBSRCDIR)/c; make $(CONFIG)
 
 .PHONY: iso
-iso: release
+iso:
 	$(TOOLSDIR)/createIso.sh x86
 
 .PHONY: run
-run: release
-	qemu-system-i386 -kernel $(TARGET)
+run: release iso
+	qemu-system-i386 -cdrom $(BINDIR)/SandboxOS-x86.iso
 
 .PHONY: debugger
-debugger: debug
-	qemu-system-i386 -s -S -kernel $(TARGET) &
+debugger: debug iso
+	qemu-system-i386 -s -S -cdrom $(BINDIR)/SandboxOS-x86.iso &
 	gdb -x $(TOOLSDIR)/x86.gdb
 
 $(TARGET): $(BUILD_OBJ)
