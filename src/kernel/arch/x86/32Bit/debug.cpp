@@ -98,10 +98,21 @@ void printMultibootModules(uint32_t addr, uint32_t len)
 {
     addr += KERNEL_VIRTUAL_BASE;
 
+    // print header
+    screen << "Start     End       Command Line\n"
+              "--------  --------  --------------------\n";
+
     for (uint32_t i = 0; i < len; ++i)
     {
         const multiboot_mod_list* module = reinterpret_cast<const multiboot_mod_list*>(addr);
 
+        // start and end addresses
+        screen << os::Screen::hex << os::Screen::setfill('0')
+               << os::Screen::setw(8) << module->mod_start << "  "
+               << os::Screen::setw(8) << module->mod_end << "  "
+               << os::Screen::dec << os::Screen::setfill(' ');
+
+        // command line
         const char* modName = reinterpret_cast<const char*>(module->cmdline + KERNEL_VIRTUAL_BASE);
         screen << modName << '\n';
 
