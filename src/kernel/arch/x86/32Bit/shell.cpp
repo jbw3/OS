@@ -4,6 +4,7 @@
 #include "shell.h"
 #include "stdlib.h"
 #include "string.h"
+#include "system.h"
 #include "timer.h"
 
 class Command
@@ -540,7 +541,7 @@ void Shell::processCmd()
 bool Shell::findProgram(const char* name, uint32_t& progAddr)
 {
     bool found = false;
-    uint32_t addr = mbootInfo->mods_addr;
+    uint32_t addr = mbootInfo->mods_addr + KERNEL_VIRTUAL_BASE;
     uint32_t count = mbootInfo->mods_count;
 
     for (uint32_t i = 0; i < count; ++i)
@@ -549,10 +550,10 @@ bool Shell::findProgram(const char* name, uint32_t& progAddr)
         const multiboot_mod_list* module = reinterpret_cast<const multiboot_mod_list*>(addr);
 
         // check if name matches
-        const char* modName = reinterpret_cast<const char*>(module->cmdline);
+        const char* modName = reinterpret_cast<const char*>(module->cmdline + KERNEL_VIRTUAL_BASE);
         if (strcmp(name, modName) == 0)
         {
-            progAddr = module->mod_start;
+            progAddr = module->mod_start + KERNEL_VIRTUAL_BASE;
             found = true;
             break;
         }
