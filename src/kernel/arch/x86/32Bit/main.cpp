@@ -44,6 +44,9 @@ void kernelMain(const uint32_t MULTIBOOT_MAGIC_NUM, const multiboot_info* mbootI
         return;
     }
 
+    // map multiboot module pages
+    mapModules(mbootInfo);
+
     PageFrameMgr pageFrameMgr(mbootInfo);
 
     screen.write("Sandbox OS\n");

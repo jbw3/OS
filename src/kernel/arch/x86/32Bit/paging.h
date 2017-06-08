@@ -28,6 +28,8 @@
 #define PAGE_TABLE_READ_WRITE    0x00000002
 #define PAGE_TABLE_PRESENT       0x00000001
 
+struct multiboot_info;
+
 extern "C"
 {
 
@@ -74,5 +76,10 @@ void addPage(uint32_t pageAddr);
  * @brief Map a page in the page table
  */
 void mapPage(const uint32_t* pageDir, uint32_t virtualAddr, uint32_t physicalAddr);
+
+/**
+ * @brief Map Multiboot modules
+ */
+void mapModules(const multiboot_info* mbootInfo);
 
 #endif // PAGING_H_

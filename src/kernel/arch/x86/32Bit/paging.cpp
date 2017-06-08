@@ -1,6 +1,8 @@
+#include "multiboot.h"
 #include "paging.h"
 #include "screen.h"
 #include "system.h"
+#include "utils.h"
 
 extern "C"
 void pageFault(const registers* regs)
@@ -99,4 +101,26 @@ void mapPage(const uint32_t* pageDir, uint32_t virtualAddr, uint32_t physicalAdd
     pageTableEntry |= physicalAddr & PAGE_TABLE_ADDRESS;          // add new address
     pageTableEntry |= PAGE_TABLE_READ_WRITE | PAGE_TABLE_PRESENT; // set read/write and present bits
     pageTable[pageTableIdx] = pageTableEntry;
+}
+
+void mapModules(const multiboot_info* mbootInfo)
+{
+    uint32_t modAddr = mbootInfo->mods_addr + KERNEL_VIRTUAL_BASE;
+    for (uint32_t i = 0; i < mbootInfo->mods_count; ++i)
+    {
+        const multiboot_mod_list* module = reinterpret_cast<const multiboot_mod_list*>(modAddr);
+
+        uint32_t startPageAddr = align(module->mod_start, PAGE_SIZE);
+
+        // end page is the page after the last page the module is in
+        uint32_t endPageAddr = align(module->mod_end, PAGE_SIZE);
+
+        for (uint32_t pageAddr = startPageAddr; pageAddr < endPageAddr; pageAddr += PAGE_SIZE)
+        {
+            uint32_t virtualAddr = pageAddr + KERNEL_VIRTUAL_BASE;
+            mapPage(getKernelPageDirStart(), virtualAddr, pageAddr);
+        }
+
+        modAddr += sizeof(multiboot_mod_list);
+    }
 }
