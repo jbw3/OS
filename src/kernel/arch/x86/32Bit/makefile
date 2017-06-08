@@ -8,15 +8,16 @@ BINDIR = ../../../../../bin
 TOOLSDIR = ../../../../../tools
 
 # directory to search for dependencies
-VPATH = $(SRCDIR)
+VPATH = $(SRCDIR) \
+		$(SRCDIR)/acpi
 
 INCLUDES = -I$(SRCDIR) -I$(LIBSRCDIR)/c/include -I$(LIBSRCDIR)/c++/include
 
 CC = i686-elf-gcc
-CFLAGS = $(INCLUDES) -std=c11 -ffreestanding -O2 -Wall -Wextra
+CFLAGS = $(INCLUDES) -std=c11 -ffreestanding -O2 -Wall -Wextra -g
 
 CXX = i686-elf-g++
-CXXFLAGS = $(INCLUDES) -std=c++14 -ffreestanding -O2 -Wall -Wextra -fno-exceptions -fno-rtti
+CXXFLAGS = $(INCLUDES) -std=c++14 -ffreestanding -O2 -Wall -Wextra -fno-exceptions -fno-rtti -g
 
 AS = nasm
 ASFLAGS = -f elf32 -I$(SRCDIR)/
@@ -24,11 +25,12 @@ ASFLAGS = -f elf32 -I$(SRCDIR)/
 LIBS = -L$(LIBDIR) -lc -lc++ -lgcc
 LDFLAGS = -T $(SRCDIR)/link.ld -ffreestanding -O2 -nostdlib $(LIBS)
 
-DEPS = debug.h gdt.h idt.h irq.h isr.h keyboard.h pageframemgr.h paging.h screen.h shell.h system.h timer.h
+DEPS = acpi.h debug.h gdt.h idt.h irq.h isr.h keyboard.h pageframemgr.h paging.h screen.h shell.h system.h timer.h
 
 CRTBEGIN_OBJ = $(shell $(CXX) $(CXXFLAGS) -print-file-name=crtbegin.o)
 CRTEND_OBJ = $(shell $(CXX) $(CXXFLAGS) -print-file-name=crtend.o)
-_OBJ = boot.s.o \
+_OBJ = acpi.cpp.o \
+	   boot.s.o \
 	   debug.cpp.o \
 	   gdt.c.o \
 	   idt.c.o \

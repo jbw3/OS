@@ -46,7 +46,11 @@ void kernelMain(const uint32_t MULTIBOOT_MAGIC_NUM, const multiboot_info* mbootI
 
     PageFrameMgr pageFrameMgr(mbootInfo);
 
-    screen.write("Sandbox OS\n");
+    screen.write("Sandbox OSa\n");
+    //char* buffer
+    //sprintf(buffer, "kernel page dir start: %u", *getKernelPageDirStart());
+    screen.write(*getKernelPageDirStart());
+    screen.write("\n");
 
     Shell sh(mbootInfo);
 
