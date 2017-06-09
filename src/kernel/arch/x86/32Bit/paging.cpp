@@ -110,7 +110,7 @@ void mapModules(const multiboot_info* mbootInfo)
     {
         const multiboot_mod_list* module = reinterpret_cast<const multiboot_mod_list*>(modAddr);
 
-        uint32_t startPageAddr = align(module->mod_start, PAGE_SIZE);
+        uint32_t startPageAddr = align(module->mod_start, PAGE_SIZE, false);
 
         // end page is the page after the last page the module is in
         uint32_t endPageAddr = align(module->mod_end, PAGE_SIZE);

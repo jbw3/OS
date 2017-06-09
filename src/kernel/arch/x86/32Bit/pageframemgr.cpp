@@ -235,8 +235,6 @@ void PageFrameMgr::markKernel()
             ++allocIdx;
         }
     }
-
-    /// @todo mark modules
 }
 
 bool PageFrameMgr::findPageFrame(uintptr_t addr, unsigned int& blockIdx, unsigned int& allocIdx, uint32_t& bitMask) const
