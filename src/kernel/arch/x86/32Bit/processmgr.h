@@ -5,8 +5,12 @@
 #ifndef PROCESS_MGR_H_
 #define PROCESS_MGR_H_
 
+#include <stdint.h>
+
 /// @todo put this in a posix header
 typedef unsigned int pid_t;
+
+class PageFrameMgr;
 
 /**
  * @brief Process manager
@@ -17,7 +21,7 @@ public:
     /**
      * @brief Constructor
      */
-    ProcessMgr();
+    ProcessMgr(PageFrameMgr* pageFrameMgr);
 
     void createProcess();
 
@@ -28,8 +32,21 @@ private:
         pid_t id;
     };
 
-    constexpr static int PROCESS_INFO_SIZE = 4;
-    ProcessInfo processInfo[PROCESS_INFO_SIZE];
+    constexpr static int MAX_NUM_PROCESSES = 4;
+    ProcessInfo processInfo[MAX_NUM_PROCESSES];
+
+    PageFrameMgr* pageFrameMgr;
+
+    /**
+     * @brief Create a new page directory for a process by copying
+     * the kernel page directory.
+     */
+    void createProcessPageDir(ProcessInfo* newProcInfo);
+
+    /**
+     * @brief Get an ID for a new process.
+     */
+    pid_t getNewId();
 };
 
 #endif // PROCESS_MGR_H_

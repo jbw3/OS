@@ -8,6 +8,7 @@
 #include "keyboard.h"
 #include "pageframemgr.h"
 #include "paging.h"
+#include "processmgr.h"
 #include "screen.h"
 #include "shell.h"
 #include "system.h"
@@ -48,6 +49,8 @@ void kernelMain(const uint32_t MULTIBOOT_MAGIC_NUM, const multiboot_info* mbootI
     mapModules(mbootInfo);
 
     PageFrameMgr pageFrameMgr(mbootInfo);
+
+    ProcessMgr processMgr(&pageFrameMgr);
 
     screen.write("Sandbox OS\n");
 
