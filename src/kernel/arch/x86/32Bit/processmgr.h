@@ -26,20 +26,29 @@ public:
     void createProcess();
 
 private:
-    struct ProcessInfo
+    class ProcessInfo
     {
+    public:
+        constexpr static int MAX_NUM_PAGE_FRAMES = 8;
+
         /// Unique ID for the process.
         pid_t id;
 
-        constexpr static int NUM_PAGE_TABLES = 4;
+        ProcessInfo();
 
-        /// The physical addresses of page tables needed for the process.
-        /// The four addesses point to the page directory, lower memory
-        /// page table (for code), upper memory page table (right before
-        /// kernel for stack), and the kernel page table, respectively.
-        /// @todo Do we need to store all the page tables or just the page
-        /// directory?
-        uintptr_t pageTables[NUM_PAGE_TABLES];
+        void addPageFrame(uintptr_t addr);
+
+        uintptr_t getPageFrame(int i) const;
+
+        int getNumPageFrames() const;
+
+    private:
+        /// The physical addresses of page frames used by the process.
+        /// The first page in this array is the process's page
+        /// directory.
+        uintptr_t pageFrames[MAX_NUM_PAGE_FRAMES];
+
+        int numPageFrames;
     };
 
     constexpr static int MAX_NUM_PROCESSES = 4;
@@ -52,6 +61,12 @@ private:
      * the kernel page directory.
      */
     bool createProcessPageDir(ProcessInfo* newProcInfo);
+
+    /**
+     * @brief Set up the program for the process by copying the
+     * code and setting up the stack.
+     */
+    bool setUpProgram(ProcessInfo* newProcInfo);
 
     /**
      * @brief Get an ID for a new process.
