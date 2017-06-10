@@ -97,10 +97,10 @@ bool ProcessMgr::createProcessPageDir(ProcessInfo* newProcInfo)
         virAddr += PAGE_SIZE;
     }
 
-    uintptr_t* pageDir = reinterpret_cast<uintptr_t*>(newProcInfo->pageTables[0] + KERNEL_VIRTUAL_BASE);
-    uintptr_t* pageTableLower = reinterpret_cast<uintptr_t*>(newProcInfo->pageTables[1] + KERNEL_VIRTUAL_BASE);
-    uintptr_t* pageTableUpper = reinterpret_cast<uintptr_t*>(newProcInfo->pageTables[2] + KERNEL_VIRTUAL_BASE);
-    uintptr_t* pageTableKernel = reinterpret_cast<uintptr_t*>(newProcInfo->pageTables[3] + KERNEL_VIRTUAL_BASE);
+    uintptr_t* pageDir = reinterpret_cast<uintptr_t*>(TEMP_VIRTUAL_ADDRESS);
+    uintptr_t* pageTableLower = reinterpret_cast<uintptr_t*>(TEMP_VIRTUAL_ADDRESS + PAGE_SIZE);
+    uintptr_t* pageTableUpper = reinterpret_cast<uintptr_t*>(TEMP_VIRTUAL_ADDRESS + PAGE_SIZE * 2);
+    uintptr_t* pageTableKernel = reinterpret_cast<uintptr_t*>(TEMP_VIRTUAL_ADDRESS + PAGE_SIZE * 3);
 
     // copy kernel page directory and page table
     memcpy(pageDir, getKernelPageDirStart(), PAGE_SIZE);

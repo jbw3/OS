@@ -115,6 +115,9 @@ void unmapPage(const uint32_t* pageDir, uint32_t virtualAddr)
     {
         // clear the page table entry
         pageTable[pageTableIdx] = 0;
+
+        // invalidate page in TLB
+        invalidatePage(virtualAddr);
     }
 }
 

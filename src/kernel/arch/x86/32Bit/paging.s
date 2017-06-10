@@ -141,3 +141,13 @@ isPagingEnabled:
 	shr eax, 31
 
 	ret
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+; invalidate TLB for given address
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+global invalidatePage
+invalidatePage:
+	mov eax, [esp + 4]
+	invlpg [eax]
+
+	ret

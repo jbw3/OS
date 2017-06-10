@@ -52,11 +52,18 @@ void initPageDir();
  */
 void initPageTable(uint32_t addr);
 
+[[deprecated]]
 void enablePaging();
 
+[[deprecated]]
 void disablePaging();
 
 bool isPagingEnabled();
+
+/**
+ * @brief Invalidate TLB for the given address.
+ */
+void invalidatePage(uint32_t addr);
 
 void pageFault(const registers* regs);
 
