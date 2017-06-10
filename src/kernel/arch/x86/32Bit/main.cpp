@@ -50,9 +50,12 @@ void kernelMain(const uint32_t MULTIBOOT_MAGIC_NUM, const multiboot_info* mbootI
 
     PageFrameMgr pageFrameMgr(mbootInfo);
 
-    ProcessMgr processMgr(&pageFrameMgr);
+    ProcessMgr processMgr(pageFrameMgr);
 
     screen.write("Sandbox OS\n");
+
+    /// @todo this is temporary
+    // processMgr.createProcess();
 
     Shell sh(mbootInfo);
 
