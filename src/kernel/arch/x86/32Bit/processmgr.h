@@ -28,8 +28,16 @@ public:
 private:
     struct ProcessInfo
     {
-        /// Unique ID for the process
+        /// Unique ID for the process.
         pid_t id;
+
+        constexpr static int NUM_PAGE_TABLES = 4;
+
+        /// The physical addresses of page tables needed for the process.
+        /// The four addesses point to the page directory, lower memory
+        /// page table (for code), upper memory page table (right before
+        /// kernel for stack), and the kernel page table, respectively.
+        uintptr_t pageTables[NUM_PAGE_TABLES];
     };
 
     constexpr static int MAX_NUM_PROCESSES = 4;

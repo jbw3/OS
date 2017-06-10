@@ -58,30 +58,50 @@ void ProcessMgr::createProcess()
 
 bool ProcessMgr::createProcessPageDir(ProcessInfo* newProcInfo)
 {
-    // get page frames for the process's page dir and page table
-    // (these are physical addresses)
-    uintptr_t pageDirPhy = pageFrameMgr.allocPageFrame();
-    uintptr_t pageTablePhy = pageFrameMgr.allocPageFrame();
-
-    if (pageDirPhy == 0 || pageTablePhy == 0)
-    {
-        logError("Could not allocate page frame.");
-        return false;
-    }
-
-    // We need to map the page dir and table to modify them.
-    // Pick a temporary address above the kernel to use.
     /// @todo Instead of picking a random address, it would be
     /// better to find the end of the kernel and map the pages there.
-    uintptr_t pageDirVir = 0xc03f'0000;
-    uintptr_t pageTableVir = pageDirVir + PAGE_SIZE;
+    uintptr_t virAddr = 0xc03f'0000;
+    for (int i = 0; i < ProcessInfo::NUM_PAGE_TABLES; ++i)
+    {
+        // get page frames for the process's page dir and page tables
+        // (these are physical addresses)
+        uintptr_t phyAddr = pageFrameMgr.allocPageFrame();
 
-    mapPage(getKernelPageDirStart(), pageDirVir, pageDirPhy);
-    mapPage(getKernelPageDirStart(), pageTableVir, pageTablePhy);
+        // log an error if we could not get a page frame
+        if (phyAddr == 0)
+        {
+            // free any page frames allocated up to this point
+            for (int j = 0; j < i; ++j)
+            {
+                pageFrameMgr.freePageFrame(newProcInfo->pageTables[j]);
+            }
 
-    // clear page dir and table
-    memset(reinterpret_cast<void*>(pageDirVir), 0, PAGE_SIZE);
-    memset(reinterpret_cast<void*>(pageTableVir), 0, PAGE_SIZE);
+            logError("Could not allocate page frame.");
+            return false;
+        }
+
+        newProcInfo->pageTables[i] = phyAddr;
+
+        // We need to map the page dir and table to modify them.
+        // Pick a temporary address above the kernel to use.
+        mapPage(getKernelPageDirStart(), virAddr, phyAddr);
+
+        virAddr += PAGE_SIZE;
+    }
+
+    uint32_t* pageDir = reinterpret_cast<uint32_t*>(newProcInfo->pageTables[0] + KERNEL_VIRTUAL_BASE);
+    uint32_t* pageTableLower = reinterpret_cast<uint32_t*>(newProcInfo->pageTables[1] + KERNEL_VIRTUAL_BASE);
+    uint32_t* pageTableUpper = reinterpret_cast<uint32_t*>(newProcInfo->pageTables[2] + KERNEL_VIRTUAL_BASE);
+    uint32_t* pageTableKernel = reinterpret_cast<uint32_t*>(newProcInfo->pageTables[3] + KERNEL_VIRTUAL_BASE);
+
+    // copy kernel page directory and page table
+    memcpy(pageDir, getKernelPageDirStart(), PAGE_SIZE);
+    /// @todo change permissions to user mode
+    memcpy(pageTableKernel, getKernelPageTableStart(), PAGE_SIZE);
+
+    // clear upper and lower memory page tables
+    memset(pageTableUpper, 0, PAGE_SIZE);
+    memset(pageTableLower, 0, PAGE_SIZE);
 
     return true;
 }

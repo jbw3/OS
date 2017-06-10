@@ -37,6 +37,10 @@ uint32_t* getKernelPageDirStart();
 
 uint32_t* getKernelPageDirEnd();
 
+uint32_t* getKernelPageTableStart();
+
+uint32_t* getKernelPageTableEnd();
+
 /**
  * @brief Initialize the page directory
  */
