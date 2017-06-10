@@ -251,7 +251,9 @@ void printPageTable(int pageDirIdx, int startIdx, int endIdx)
     const uint32_t* pageDir = getKernelPageDirStart();
     uint32_t pageDirEntry = pageDir[pageDirIdx];
 
-    const uint32_t* pageTable = reinterpret_cast<const uint32_t*>(pageDirEntry & PAGE_DIR_ADDRESS);
+    uint32_t physicalAddr = pageDirEntry & PAGE_DIR_ADDRESS;
+    uint32_t virtualAddr = physicalAddr + KERNEL_VIRTUAL_BASE;
+    const uint32_t* pageTable = reinterpret_cast<const uint32_t*>(virtualAddr);
     bool tablePresent = pageDirEntry & PAGE_DIR_PRESENT;
     if (!tablePresent)
     {
