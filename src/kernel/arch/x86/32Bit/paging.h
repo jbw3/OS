@@ -65,7 +65,12 @@ void pageFault(const registers* regs);
 void configPaging();
 
 /**
- * @brief Map a page in the page table
+ * @brief Map a page table in a page directory.
+ */
+void mapPageTable(uint32_t* pageDir, uint32_t pageTable, int pageDirIdx);
+
+/**
+ * @brief Map a page in a page table.
  */
 void mapPage(const uint32_t* pageDir, uint32_t virtualAddr, uint32_t physicalAddr);
 

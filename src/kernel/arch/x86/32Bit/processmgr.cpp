@@ -16,6 +16,8 @@ ProcessMgr::ProcessMgr(PageFrameMgr& pageFrameMgr) :
 
 void ProcessMgr::createProcess()
 {
+    bool ok = false;
+
     // find an entry in the process info table
     ProcessInfo* newProcInfo = nullptr;
     for (int i = 0; i < MAX_NUM_PROCESSES; ++i)
@@ -34,7 +36,11 @@ void ProcessMgr::createProcess()
     }
 
     // copy kernel page directory
-    createProcessPageDir(newProcInfo);
+    ok = createProcessPageDir(newProcInfo);
+    if (!ok)
+    {
+        return;
+    }
 
     /// @todo switch to process's page directory
 
@@ -102,6 +108,15 @@ bool ProcessMgr::createProcessPageDir(ProcessInfo* newProcInfo)
     // clear upper and lower memory page tables
     memset(pageTableUpper, 0, PAGE_SIZE);
     memset(pageTableLower, 0, PAGE_SIZE);
+
+    // map lower page table in page directory
+    mapPageTable(pageDir, newProcInfo->pageTables[1], 0);
+
+    // map upper page table in page directory right before kernel page table
+    int upperIdx = (KERNEL_VIRTUAL_BASE - PAGE_SIZE) >> 22;
+    mapPageTable(pageDir, newProcInfo->pageTables[2], upperIdx);
+
+    /// @todo unmap process pages from kernel page table
 
     return true;
 }

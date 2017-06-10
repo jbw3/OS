@@ -38,6 +38,20 @@ void configPaging()
     registerIsrHandler(ISR_PAGE_FAULT, pageFault);
 }
 
+void mapPageTable(uint32_t* pageDir, uint32_t pageTableAddr, int pageDirIdx)
+{
+    if (pageDirIdx < 0 || pageDirIdx >= 1024)
+    {
+        PANIC("Invalid page directory index.");
+    }
+
+    // add the page table to the page directory
+    uint32_t pageDirEntry = 0;
+    pageDirEntry |= pageTableAddr & PAGE_DIR_ADDRESS;       // add new address
+    pageDirEntry |= PAGE_DIR_READ_WRITE | PAGE_DIR_PRESENT; // set read/write and present bits
+    pageDir[pageDirIdx] = pageDirEntry;
+}
+
 void mapPage(const uint32_t* pageDir, uint32_t virtualAddr, uint32_t physicalAddr)
 {
     // calculate the page directory and page table indexes

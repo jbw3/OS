@@ -37,6 +37,8 @@ private:
         /// The four addesses point to the page directory, lower memory
         /// page table (for code), upper memory page table (right before
         /// kernel for stack), and the kernel page table, respectively.
+        /// @todo Do we need to store all the page tables or just the page
+        /// directory?
         uintptr_t pageTables[NUM_PAGE_TABLES];
     };
 
