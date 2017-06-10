@@ -27,6 +27,16 @@ uint8_t inb(uint16_t port);
 
 void outb(uint16_t port, uint8_t value);
 
+/**
+ * @brief Clear global interrupt flag.
+ */
+void clearInt();
+
+/**
+ * @brief Set global interrupt flag.
+ */
+void setInt();
+
 const void* getStackPointer();
 
 const void* getStackStart();
@@ -44,6 +54,17 @@ uint32_t getRegCR2();
  * @todo move this to libstdc++
  */
 void __cxa_pure_virtual();
+
+/**
+ * @brief Called when something really, really bad happens...
+ * @param file the file in which the error occurred
+ * @param line the line on which the error occurred
+ * @param function the name of the function in which the error occurred
+ * @param message error message
+ */
+void panic(const char* file, unsigned long line, const char* function, const char* message);
+
+#define PANIC(message) panic(__FILE__, __LINE__, __PRETTY_FUNCTION__, message)
 
 #ifdef __cplusplus
 } // extern "C"
