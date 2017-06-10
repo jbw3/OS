@@ -143,6 +143,16 @@ isPagingEnabled:
 	ret
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+; sets the page directory
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+global setPageDirectory
+setPageDirectory:
+	mov eax, [esp + 4]
+	mov cr3, eax
+
+	ret
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ; invalidate TLB for given address
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 global invalidatePage

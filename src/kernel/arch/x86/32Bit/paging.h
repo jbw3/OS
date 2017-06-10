@@ -61,6 +61,12 @@ void disablePaging();
 bool isPagingEnabled();
 
 /**
+ * @brief Sets the page directory.
+ * @param pageDirAddr the physical address of the new page directory
+ */
+void setPageDirectory(uint32_t pageDirAddr);
+
+/**
  * @brief Invalidate TLB for the given address.
  */
 void invalidatePage(uint32_t addr);

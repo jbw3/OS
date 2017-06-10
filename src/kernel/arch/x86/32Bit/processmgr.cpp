@@ -42,7 +42,8 @@ void ProcessMgr::createProcess()
         return;
     }
 
-    /// @todo switch to process's page directory
+    // switch to process's page directory
+    setPageDirectory(newProcInfo->pageTables[0]);
 
     /// @todo allocate and map pages for code and stack
 
@@ -59,6 +60,8 @@ void ProcessMgr::createProcess()
 
     /// @todo clean up process
 
+    uintptr_t kernelPageDirPhyAddr = reinterpret_cast<uintptr_t>(getKernelPageDirStart()) - KERNEL_VIRTUAL_BASE;
+    setPageDirectory(kernelPageDirPhyAddr);
     newProcInfo->id = 0;
 }
 
