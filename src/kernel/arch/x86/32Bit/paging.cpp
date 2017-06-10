@@ -78,8 +78,16 @@ void mapPage(const uint32_t* pageDir, uint32_t virtualAddr, uint32_t physicalAdd
     int pageDirIdx = virtualAddr >> 22;
     int pageTableIdx = (virtualAddr >> 12) & PAGE_SIZE_MASK;
 
-    // get the page table address from the page directory
+    // get the entry in the page directory
     uint32_t pageDirEntry = pageDir[pageDirIdx];
+
+    // make sure the entry contains a page table
+    if ( (pageDirEntry & PAGE_DIR_PRESENT) == 0 )
+    {
+        PANIC("Page directory entry does not point to a page table.");
+    }
+
+    // get the page table address from the page directory
     uint32_t pageTableAddr = pageDirEntry & PAGE_DIR_ADDRESS;
     uint32_t* pageTable = reinterpret_cast<uint32_t*>(pageTableAddr + KERNEL_VIRTUAL_BASE);
 

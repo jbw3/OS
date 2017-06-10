@@ -28,10 +28,6 @@ PageFrameMgr::PageFrameMgr(const multiboot_info* mbootInfo)
 
     // mark page frame blocks used by kernel
     markKernel();
-
-    /// @todo ensure this is in a block
-    /// @todo map if necessary
-    // blocks = reinterpret_cast<PageFrameBlock*>(KERNEL_VIRTUAL_END);
 }
 
 void PageFrameMgr::initMemBlocks(const multiboot_info* mbootInfo, MemBlock* memBlocks, unsigned int memBlocksSize, unsigned int& numMemBlocks)
@@ -145,7 +141,12 @@ void PageFrameMgr::initDataStruct(const MemBlock* memBlocks, unsigned int numMem
     }
 
     // calculate number of pages needed for the isAlloc arrays
-    unsigned int memNeeded = totalArraySize - (pageEnd - blocksEnd);
+    unsigned int memAvailable = pageEnd - blocksEnd;
+    unsigned int memNeeded = 0;
+    if (totalArraySize > memAvailable)
+    {
+        memNeeded = totalArraySize - memAvailable;
+    }
     unsigned int pagesNeeded = memNeeded / PAGE_SIZE;
     if (memNeeded % PAGE_SIZE > 0)
     {
