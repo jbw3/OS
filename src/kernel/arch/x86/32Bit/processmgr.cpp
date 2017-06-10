@@ -73,7 +73,7 @@ bool ProcessMgr::createProcessPageDir(ProcessInfo* newProcInfo)
     // Pick a temporary address above the kernel to use.
     /// @todo Instead of picking a random address, it would be
     /// better to find the end of the kernel and map the pages there.
-    uintptr_t pageDirVir = 0xF000'0000;
+    uintptr_t pageDirVir = 0xc03f'0000;
     uintptr_t pageTableVir = pageDirVir + PAGE_SIZE;
 
     mapPage(getKernelPageDirStart(), pageDirVir, pageDirPhy);
