@@ -66,7 +66,9 @@ bool ProcessMgr::createProcessPageDir(ProcessInfo* newProcInfo)
 {
     /// @todo Instead of picking a random address, it would be
     /// better to find the end of the kernel and map the pages there.
-    uintptr_t virAddr = 0xc03f'0000;
+    constexpr uintptr_t TEMP_VIRTUAL_ADDRESS = 0xc03f'0000;
+
+    uintptr_t virAddr = TEMP_VIRTUAL_ADDRESS;
     for (int i = 0; i < ProcessInfo::NUM_PAGE_TABLES; ++i)
     {
         // get page frames for the process's page dir and page tables
@@ -95,10 +97,10 @@ bool ProcessMgr::createProcessPageDir(ProcessInfo* newProcInfo)
         virAddr += PAGE_SIZE;
     }
 
-    uint32_t* pageDir = reinterpret_cast<uint32_t*>(newProcInfo->pageTables[0] + KERNEL_VIRTUAL_BASE);
-    uint32_t* pageTableLower = reinterpret_cast<uint32_t*>(newProcInfo->pageTables[1] + KERNEL_VIRTUAL_BASE);
-    uint32_t* pageTableUpper = reinterpret_cast<uint32_t*>(newProcInfo->pageTables[2] + KERNEL_VIRTUAL_BASE);
-    uint32_t* pageTableKernel = reinterpret_cast<uint32_t*>(newProcInfo->pageTables[3] + KERNEL_VIRTUAL_BASE);
+    uintptr_t* pageDir = reinterpret_cast<uintptr_t*>(newProcInfo->pageTables[0] + KERNEL_VIRTUAL_BASE);
+    uintptr_t* pageTableLower = reinterpret_cast<uintptr_t*>(newProcInfo->pageTables[1] + KERNEL_VIRTUAL_BASE);
+    uintptr_t* pageTableUpper = reinterpret_cast<uintptr_t*>(newProcInfo->pageTables[2] + KERNEL_VIRTUAL_BASE);
+    uintptr_t* pageTableKernel = reinterpret_cast<uintptr_t*>(newProcInfo->pageTables[3] + KERNEL_VIRTUAL_BASE);
 
     // copy kernel page directory and page table
     memcpy(pageDir, getKernelPageDirStart(), PAGE_SIZE);
@@ -116,7 +118,14 @@ bool ProcessMgr::createProcessPageDir(ProcessInfo* newProcInfo)
     int upperIdx = (KERNEL_VIRTUAL_BASE - PAGE_SIZE) >> 22;
     mapPageTable(pageDir, newProcInfo->pageTables[2], upperIdx);
 
-    /// @todo unmap process pages from kernel page table
+    // unmap process pages from kernel page table
+    uintptr_t unmapAddr = TEMP_VIRTUAL_ADDRESS;
+    for (int i = 0; i < ProcessInfo::NUM_PAGE_TABLES; ++i)
+    {
+        unmapPage(getKernelPageDirStart(), unmapAddr);
+
+        unmapAddr += PAGE_SIZE;
+    }
 
     return true;
 }

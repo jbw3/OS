@@ -75,6 +75,11 @@ void mapPageTable(uint32_t* pageDir, uint32_t pageTable, int pageDirIdx);
 void mapPage(const uint32_t* pageDir, uint32_t virtualAddr, uint32_t physicalAddr);
 
 /**
+ * @brief Unmap a page from a page table.
+ */
+void unmapPage(const uint32_t* pageDir, uint32_t virtualAddr);
+
+/**
  * @brief Map Multiboot modules
  */
 void mapModules(const multiboot_info* mbootInfo);

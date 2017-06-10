@@ -52,24 +52,45 @@ void mapPageTable(uint32_t* pageDir, uint32_t pageTableAddr, int pageDirIdx)
     pageDir[pageDirIdx] = pageDirEntry;
 }
 
-void mapPage(const uint32_t* pageDir, uint32_t virtualAddr, uint32_t physicalAddr)
+/**
+ * @brief Find a page's info. This is a helper function for functions below.
+ */
+void findPage(const uint32_t* pageDir, uint32_t virtualAddr, int& pageTableIdx, bool& foundPageTable, uint32_t*& pageTable)
 {
     // calculate the page directory and page table indexes
     int pageDirIdx = virtualAddr >> 22;
-    int pageTableIdx = (virtualAddr >> 12) & PAGE_SIZE_MASK;
+    pageTableIdx = (virtualAddr >> 12) & PAGE_SIZE_MASK;
 
     // get the entry in the page directory
     uint32_t pageDirEntry = pageDir[pageDirIdx];
 
-    // make sure the entry contains a page table
-    if ( (pageDirEntry & PAGE_DIR_PRESENT) == 0 )
+    foundPageTable = (pageDirEntry & PAGE_DIR_PRESENT) != 0;
+
+    // if no page table is mapped, return
+    if (!foundPageTable)
     {
-        PANIC("Page directory entry does not point to a page table.");
+        pageTable = nullptr;
+        return;
     }
 
     // get the page table address from the page directory
     uint32_t pageTableAddr = pageDirEntry & PAGE_DIR_ADDRESS;
-    uint32_t* pageTable = reinterpret_cast<uint32_t*>(pageTableAddr + KERNEL_VIRTUAL_BASE);
+    pageTable = reinterpret_cast<uint32_t*>(pageTableAddr + KERNEL_VIRTUAL_BASE);
+}
+
+void mapPage(const uint32_t* pageDir, uint32_t virtualAddr, uint32_t physicalAddr)
+{
+    int pageTableIdx = -1;
+    bool foundPageTable = false;
+    uint32_t* pageTable = nullptr;
+
+    findPage(pageDir, virtualAddr, pageTableIdx, foundPageTable, pageTable);
+
+    // make sure the entry contains a page table
+    if (!foundPageTable)
+    {
+        PANIC("Page directory entry does not point to a page table.");
+    }
 
     // get the page entry from the page table
     uint32_t pageTableEntry = pageTable[pageTableIdx];
@@ -79,6 +100,22 @@ void mapPage(const uint32_t* pageDir, uint32_t virtualAddr, uint32_t physicalAdd
     pageTableEntry |= physicalAddr & PAGE_TABLE_ADDRESS;          // add new address
     pageTableEntry |= PAGE_TABLE_READ_WRITE | PAGE_TABLE_PRESENT; // set read/write and present bits
     pageTable[pageTableIdx] = pageTableEntry;
+}
+
+void unmapPage(const uint32_t* pageDir, uint32_t virtualAddr)
+{
+    int pageTableIdx = -1;
+    bool foundPageTable = false;
+    uint32_t* pageTable = nullptr;
+
+    findPage(pageDir, virtualAddr, pageTableIdx, foundPageTable, pageTable);
+
+    // clear the page if the page table was found, else do nothing
+    if (foundPageTable)
+    {
+        // clear the page table entry
+        pageTable[pageTableIdx] = 0;
+    }
 }
 
 void mapModules(const multiboot_info* mbootInfo)
