@@ -1,4 +1,5 @@
 #include "screen.h"
+#include "system.h"
 
 extern "C"
 void panic(const char* file, unsigned long line, const char* function, const char* message)
@@ -14,4 +15,9 @@ void panic(const char* file, unsigned long line, const char* function, const cha
     /// @todo What should we do here? Maybe hang in debug
     /// mode and reboot in release mode.
     while (1);
+}
+
+int currentPrivilegeLevel()
+{
+    return getRegCS() & 0x3;    // bits 0 and 1 are CPL
 }

@@ -51,6 +51,16 @@ uint32_t getStackOffset();
 uint32_t getRegCR2();
 
 /**
+ * @brief Gets the value of the CS register
+ */
+uint32_t getRegCS();
+
+/**
+ * Returns the Current Privilege Level (CPL)
+ */
+int currentPrivilegeLevel();
+
+/**
  * @todo move this to libstdc++
  */
 void __cxa_pure_virtual();

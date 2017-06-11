@@ -2,6 +2,7 @@
 
 #include "multiboot.h"
 
+#include "acpi.h"
 #include "gdt.h"
 #include "idt.h"
 #include "irq.h"
@@ -22,6 +23,7 @@ void kernelMain(const uint32_t MULTIBOOT_MAGIC_NUM, const multiboot_info* mbootI
     initGdt();
     initIdt();
     initIrq();
+
     configPaging();
 
     os::Timer::init(20);
@@ -51,6 +53,8 @@ void kernelMain(const uint32_t MULTIBOOT_MAGIC_NUM, const multiboot_info* mbootI
     //sprintf(buffer, "kernel page dir start: %u", *getKernelPageDirStart());
     screen.write(*getKernelPageDirStart());
     screen.write("\n");
+
+    os::Acpi acpi;
 
     Shell sh(mbootInfo);
 

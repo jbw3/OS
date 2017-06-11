@@ -44,3 +44,9 @@ global getRegCR2
 getRegCR2:
 	mov eax, cr2
 	ret
+
+; get the CS register
+global getRegCS
+getRegCS:
+	mov eax, cs
+	ret
