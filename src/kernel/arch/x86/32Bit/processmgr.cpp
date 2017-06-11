@@ -1,9 +1,12 @@
+#include "multiboot.h"
 #include "pageframemgr.h"
 #include "paging.h"
 #include "processmgr.h"
 #include "screen.h"
 #include "string.h"
 #include "system.h"
+
+const uintptr_t ProcessMgr::ProcessInfo::STACK_VIRTUAL_START = KERNEL_VIRTUAL_BASE - PAGE_SIZE;
 
 ProcessMgr::ProcessInfo::ProcessInfo()
 {
@@ -25,6 +28,11 @@ int ProcessMgr::ProcessInfo::getNumPageFrames() const
     return numPageFrames;
 }
 
+uintptr_t* ProcessMgr::ProcessInfo::getPageDir()
+{
+    return reinterpret_cast<uintptr_t*>(pageFrames[0] + KERNEL_VIRTUAL_BASE);
+}
+
 ProcessMgr::ProcessMgr(PageFrameMgr& pageFrameMgr) :
     pageFrameMgr(pageFrameMgr)
 {
@@ -34,9 +42,9 @@ ProcessMgr::ProcessMgr(PageFrameMgr& pageFrameMgr) :
     }
 }
 
-void ProcessMgr::createProcess()
+void ProcessMgr::createProcess(const multiboot_mod_list* module)
 {
-    bool ok = false;
+    bool ok = true;
 
     // find an entry in the process info table
     ProcessInfo* newProcInfo = nullptr;
@@ -52,21 +60,23 @@ void ProcessMgr::createProcess()
     if (newProcInfo == nullptr)
     {
         logError("The maximum number of processes has already been created.");
-        return;
+        ok = false;
     }
 
-    // copy kernel page directory
-    ok = createProcessPageDir(newProcInfo);
-    if (!ok)
+    if (ok)
     {
-        return;
+        // copy kernel page directory
+        ok = createProcessPageDir(newProcInfo);
     }
 
-    // switch to process's page directory
-    setPageDirectory(newProcInfo->getPageFrame(0));
+    if (ok)
+    {
+        // switch to process's page directory
+        setPageDirectory(newProcInfo->getPageFrame(0));
 
-    // copy the program and set up the stack
-    setUpProgram(newProcInfo);
+        // copy the program and set up the stack
+        ok = setUpProgram(module, newProcInfo);
+    }
 
     /// @todo switch to user mode
 
@@ -77,11 +87,18 @@ void ProcessMgr::createProcess()
 
     /// @todo run process
 
-    /// @todo clean up process
-
+    // switch back to kernel's page directory
     uintptr_t kernelPageDirPhyAddr = reinterpret_cast<uintptr_t>(getKernelPageDirStart()) - KERNEL_VIRTUAL_BASE;
     setPageDirectory(kernelPageDirPhyAddr);
+
+    // clear ID
     newProcInfo->id = 0;
+
+    // free page frames
+    for (int i = 0; i < newProcInfo->getNumPageFrames(); ++i)
+    {
+        pageFrameMgr.freePageFrame(newProcInfo->getPageFrame(i));
+    }
 }
 
 bool ProcessMgr::createProcessPageDir(ProcessInfo* newProcInfo)
@@ -104,12 +121,6 @@ bool ProcessMgr::createProcessPageDir(ProcessInfo* newProcInfo)
         // log an error if we could not get a page frame
         if (phyAddr == 0)
         {
-            // free any page frames allocated up to this point
-            for (int j = 0; j < i; ++j)
-            {
-                pageFrameMgr.freePageFrame(newProcInfo->getPageFrame(j));
-            }
-
             logError("Could not allocate page frame.");
             return false;
         }
@@ -156,11 +167,40 @@ bool ProcessMgr::createProcessPageDir(ProcessInfo* newProcInfo)
     return true;
 }
 
-bool ProcessMgr::setUpProgram(ProcessInfo* newProcInfo)
+bool ProcessMgr::setUpProgram(const multiboot_mod_list* module, ProcessInfo* newProcInfo)
 {
-    // allocate and map pages for code and stack
+    // allocate and map pages for code
+    uintptr_t virAddr = ProcessInfo::CODE_VIRTUAL_START;
+    for (unsigned int ptr = module->mod_start; ptr < module->mod_end; ptr += PAGE_SIZE)
+    {
+        uintptr_t phyAddr = pageFrameMgr.allocPageFrame();
+        if (phyAddr == 0)
+        {
+            logError("Could not allocate page frame.");
+            return false;
+        }
 
-    /// @todo copy process's code
+        newProcInfo->addPageFrame(phyAddr);
+        mapPage(newProcInfo->getPageDir(), virAddr, phyAddr);
+
+        virAddr += PAGE_SIZE;
+    }
+
+    // copy process's code
+    size_t codeSize = module->mod_end - module->mod_start;
+    memcpy(reinterpret_cast<void*>(ProcessInfo::CODE_VIRTUAL_START),
+           reinterpret_cast<const void*>(module->mod_start + KERNEL_VIRTUAL_BASE),
+           codeSize);
+
+    // allocate and map a page for the stack
+    uintptr_t stackPhyAddr = pageFrameMgr.allocPageFrame();
+    if (stackPhyAddr == 0)
+    {
+        logError("Could not allocate page frame.");
+        return false;
+    }
+    newProcInfo->addPageFrame(stackPhyAddr);
+    mapPage(newProcInfo->getPageDir(), ProcessInfo::STACK_VIRTUAL_START, stackPhyAddr);
 
     return true;
 }

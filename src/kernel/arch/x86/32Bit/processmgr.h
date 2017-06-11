@@ -10,6 +10,7 @@
 /// @todo put this in a posix header
 typedef unsigned int pid_t;
 
+struct multiboot_mod_list;
 class PageFrameMgr;
 
 /**
@@ -23,13 +24,15 @@ public:
      */
     ProcessMgr(PageFrameMgr& pageFrameMgr);
 
-    void createProcess();
+    void createProcess(const multiboot_mod_list* module);
 
 private:
     class ProcessInfo
     {
     public:
+        constexpr static uintptr_t CODE_VIRTUAL_START = 0;
         constexpr static int MAX_NUM_PAGE_FRAMES = 8;
+        static const uintptr_t STACK_VIRTUAL_START;
 
         /// Unique ID for the process.
         pid_t id;
@@ -41,6 +44,8 @@ private:
         uintptr_t getPageFrame(int i) const;
 
         int getNumPageFrames() const;
+
+        uintptr_t* getPageDir();
 
     private:
         /// The physical addresses of page frames used by the process.
@@ -66,7 +71,7 @@ private:
      * @brief Set up the program for the process by copying the
      * code and setting up the stack.
      */
-    bool setUpProgram(ProcessInfo* newProcInfo);
+    bool setUpProgram(const multiboot_mod_list* module, ProcessInfo* newProcInfo);
 
     /**
      * @brief Get an ID for a new process.
