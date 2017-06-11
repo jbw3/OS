@@ -13,19 +13,30 @@ Acpi::Acpi()
     // Read EBDA base address from BIOS Data Area
     uint16_t* ebdaBaseAddress = (uint16_t*)(0x40E + KERNEL_VIRTUAL_BASE);
     screen << os::Screen::hex << (*ebdaBaseAddress << 4) << os::Screen::dec << "\n";
-    uint32_t* EBDAPtr = (uint32_t*)((*ebdaBaseAddress << 4) + KERNEL_VIRTUAL_BASE);
+    char* EBDAPtr = (char*)((*ebdaBaseAddress << 4) + KERNEL_VIRTUAL_BASE);
 
-    while (*EBDAPtr != 0x52)
+    bool found = false;
+    while (!found)
     {
         EBDAPtr++;
+        found = EBDAPtr[0] == 0x52 && EBDAPtr[1] == 0x53 && EBDAPtr[2] == 'D'
+                && EBDAPtr[3] == ' ' && EBDAPtr[4] == 'P';
     }
 
     // found it
-    for (int i = 0; i < 8; i++)
-    {
-        screen << os::Screen::hex << *EBDAPtr << os::Screen::dec;
-        screen << "(" << (char)(*EBDAPtr++) << ") ";
-    }
+    screen << os::Screen::hex;
+    screen << *EBDAPtr;
+    screen << EBDAPtr[1];
+    screen << EBDAPtr[2];
+    screen << EBDAPtr[3];
+    screen << EBDAPtr[4];
+    screen << EBDAPtr[5];
+    screen << EBDAPtr[6];
+    // for (int i = 0; i < 8; i++)
+    // {
+    //     screen << os::Screen::hex << *EBDAPtr << os::Screen::dec;
+    //     screen << "(" << (char)(*EBDAPtr++) << ") ";
+    // }
     screen << "\n";
 
     int numPageDirs = 0;
