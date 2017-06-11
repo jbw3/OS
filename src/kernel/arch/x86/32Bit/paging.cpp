@@ -38,7 +38,7 @@ void configPaging()
     registerIsrHandler(ISR_PAGE_FAULT, pageFault);
 }
 
-void mapPageTable(uint32_t* pageDir, uint32_t pageTableAddr, int pageDirIdx)
+void mapPageTable(uint32_t* pageDir, uint32_t pageTableAddr, int pageDirIdx, bool user)
 {
     if (pageDirIdx < 0 || pageDirIdx >= 1024)
     {
@@ -49,6 +49,10 @@ void mapPageTable(uint32_t* pageDir, uint32_t pageTableAddr, int pageDirIdx)
     uint32_t pageDirEntry = 0;
     pageDirEntry |= pageTableAddr & PAGE_DIR_ADDRESS;       // add new address
     pageDirEntry |= PAGE_DIR_READ_WRITE | PAGE_DIR_PRESENT; // set read/write and present bits
+    if (user)
+    {
+        pageDirEntry |= PAGE_DIR_USER; // set user privilege
+    }
     pageDir[pageDirIdx] = pageDirEntry;
 }
 
@@ -78,7 +82,7 @@ void findPage(const uint32_t* pageDir, uint32_t virtualAddr, int& pageTableIdx, 
     pageTable = reinterpret_cast<uint32_t*>(pageTableAddr + KERNEL_VIRTUAL_BASE);
 }
 
-void mapPage(const uint32_t* pageDir, uint32_t virtualAddr, uint32_t physicalAddr)
+void mapPage(const uint32_t* pageDir, uint32_t virtualAddr, uint32_t physicalAddr, bool user)
 {
     int pageTableIdx = -1;
     bool foundPageTable = false;
@@ -99,6 +103,10 @@ void mapPage(const uint32_t* pageDir, uint32_t virtualAddr, uint32_t physicalAdd
     pageTableEntry &= ~PAGE_TABLE_ADDRESS;                        // clear previous address
     pageTableEntry |= physicalAddr & PAGE_TABLE_ADDRESS;          // add new address
     pageTableEntry |= PAGE_TABLE_READ_WRITE | PAGE_TABLE_PRESENT; // set read/write and present bits
+    if (user)
+    {
+        pageTableEntry |= PAGE_TABLE_USER; // set user privilege
+    }
     pageTable[pageTableIdx] = pageTableEntry;
 }
 

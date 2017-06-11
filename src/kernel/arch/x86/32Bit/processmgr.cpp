@@ -149,11 +149,11 @@ bool ProcessMgr::createProcessPageDir(ProcessInfo* newProcInfo)
     memset(pageTableLower, 0, PAGE_SIZE);
 
     // map lower page table in page directory
-    mapPageTable(pageDir, newProcInfo->getPageFrame(1), 0);
+    mapPageTable(pageDir, newProcInfo->getPageFrame(1), 0, true);
 
     // map upper page table in page directory right before kernel page table
     int upperIdx = (KERNEL_VIRTUAL_BASE - PAGE_SIZE) >> 22;
-    mapPageTable(pageDir, newProcInfo->getPageFrame(2), upperIdx);
+    mapPageTable(pageDir, newProcInfo->getPageFrame(2), upperIdx, true);
 
     // unmap process pages from kernel page table
     uintptr_t unmapAddr = TEMP_VIRTUAL_ADDRESS;
@@ -181,7 +181,7 @@ bool ProcessMgr::setUpProgram(const multiboot_mod_list* module, ProcessInfo* new
         }
 
         newProcInfo->addPageFrame(phyAddr);
-        mapPage(newProcInfo->getPageDir(), virAddr, phyAddr);
+        mapPage(newProcInfo->getPageDir(), virAddr, phyAddr, true);
 
         virAddr += PAGE_SIZE;
     }
@@ -200,7 +200,7 @@ bool ProcessMgr::setUpProgram(const multiboot_mod_list* module, ProcessInfo* new
         return false;
     }
     newProcInfo->addPageFrame(stackPhyAddr);
-    mapPage(newProcInfo->getPageDir(), ProcessInfo::STACK_VIRTUAL_START, stackPhyAddr);
+    mapPage(newProcInfo->getPageDir(), ProcessInfo::STACK_VIRTUAL_START, stackPhyAddr, true);
 
     return true;
 }

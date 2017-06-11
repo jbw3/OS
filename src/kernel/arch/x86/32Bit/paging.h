@@ -80,12 +80,12 @@ void configPaging();
 /**
  * @brief Map a page table in a page directory.
  */
-void mapPageTable(uint32_t* pageDir, uint32_t pageTable, int pageDirIdx);
+void mapPageTable(uint32_t* pageDir, uint32_t pageTable, int pageDirIdx, bool user = false);
 
 /**
  * @brief Map a page in a page table.
  */
-void mapPage(const uint32_t* pageDir, uint32_t virtualAddr, uint32_t physicalAddr);
+void mapPage(const uint32_t* pageDir, uint32_t virtualAddr, uint32_t physicalAddr, bool user = false);
 
 /**
  * @brief Unmap a page from a page table.
