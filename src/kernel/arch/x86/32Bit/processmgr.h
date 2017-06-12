@@ -39,6 +39,8 @@ private:
 
         ProcessInfo();
 
+        void reset();
+
         void addPageFrame(uintptr_t addr);
 
         uintptr_t getPageFrame(int i) const;

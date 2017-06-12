@@ -10,6 +10,12 @@ const uintptr_t ProcessMgr::ProcessInfo::STACK_VIRTUAL_START = KERNEL_VIRTUAL_BA
 
 ProcessMgr::ProcessInfo::ProcessInfo()
 {
+    reset();
+}
+
+void ProcessMgr::ProcessInfo::reset()
+{
+    id = 0;
     numPageFrames = 0;
 }
 
@@ -36,10 +42,6 @@ uintptr_t* ProcessMgr::ProcessInfo::getPageDir()
 ProcessMgr::ProcessMgr(PageFrameMgr& pageFrameMgr) :
     pageFrameMgr(pageFrameMgr)
 {
-    for (int i = 0; i < MAX_NUM_PROCESSES; ++i)
-    {
-        processInfo[i].id = 0;
-    }
 }
 
 void ProcessMgr::createProcess(const multiboot_mod_list* module)
@@ -78,29 +80,32 @@ void ProcessMgr::createProcess(const multiboot_mod_list* module)
         ok = setUpProgram(module, newProcInfo);
     }
 
-    // allocate a process ID
-    newProcInfo->id = getNewId();
+    if (ok)
+    {
+        // allocate a process ID
+        newProcInfo->id = getNewId();
 
-    screen << "PID: " << newProcInfo->id << '\n';
+        screen << "PID: " << newProcInfo->id << '\n';
 
-    // switch to user mode and run process
-    switchToUserMode();
+        // switch to user mode and run process (this does not return)
+        switchToUserMode();
+    }
 
-    /// @todo The following code needs to be moved somewhere else as it is
-    /// not executed.
+    // if we get here, something went wrong (ok == false) and we need to
+    // clean things up
 
     // switch back to kernel's page directory
     uintptr_t kernelPageDirPhyAddr = reinterpret_cast<uintptr_t>(getKernelPageDirStart()) - KERNEL_VIRTUAL_BASE;
     setPageDirectory(kernelPageDirPhyAddr);
-
-    // clear ID
-    newProcInfo->id = 0;
 
     // free page frames
     for (int i = 0; i < newProcInfo->getNumPageFrames(); ++i)
     {
         pageFrameMgr.freePageFrame(newProcInfo->getPageFrame(i));
     }
+
+    // reset ProcessInfo
+    newProcInfo->reset();
 }
 
 bool ProcessMgr::createProcessPageDir(ProcessInfo* newProcInfo)
@@ -108,7 +113,6 @@ bool ProcessMgr::createProcessPageDir(ProcessInfo* newProcInfo)
     /// @todo Instead of picking a random address, it would be
     /// better to find the end of the kernel and map the pages there.
     constexpr uintptr_t TEMP_VIRTUAL_ADDRESS = 0xc03f'0000;
-
 
     // Allocate a page directory and three page tables: a lower memory
     // page table (for code), an upper memory page table (right before
