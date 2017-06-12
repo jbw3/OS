@@ -63,7 +63,7 @@ void findPage(const uint32_t* pageDir, uint32_t virtualAddr, int& pageTableIdx, 
 {
     // calculate the page directory and page table indexes
     int pageDirIdx = virtualAddr >> 22;
-    pageTableIdx = (virtualAddr >> 12) & PAGE_SIZE_MASK;
+    pageTableIdx = (virtualAddr >> 12) & PAGE_TABLE_INDEX_MASK;
 
     // get the entry in the page directory
     uint32_t pageDirEntry = pageDir[pageDirIdx];
