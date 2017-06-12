@@ -54,10 +54,7 @@ void kernelMain(const uint32_t MULTIBOOT_MAGIC_NUM, const multiboot_info* mbootI
 
     screen.write("Sandbox OS\n");
 
-    /// @todo this is temporary
-    processMgr.createProcess(reinterpret_cast<const multiboot_mod_list*>(mbootInfo->mods_addr + KERNEL_VIRTUAL_BASE));
-
-    Shell sh(mbootInfo);
+    Shell sh(mbootInfo, processMgr);
 
     while (true)
     {
