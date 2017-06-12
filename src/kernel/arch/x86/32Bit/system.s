@@ -63,7 +63,7 @@ switchToUserMode:
 	push KERNEL_VIRTUAL_BASE - 4				; user mode stack pointer
 
 	pushf										; user mode control flags
-	and word [esp], 0xfffffdff					; disable interrupts in user mode
+	and dword [esp], 0xfffffdff					; disable interrupts in user mode
 
 	push USER_CODE_SEGMENT_SELECTOR | USER_PL	; user mode code segment selector
 	push 0										; instruction pointer to user mode code
