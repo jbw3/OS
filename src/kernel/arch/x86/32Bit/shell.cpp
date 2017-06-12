@@ -301,7 +301,7 @@ show ticks
                 }
                 else
                 {
-                    printPageDir(startIdx, endIdx);
+                    printPageDir(getKernelPageDirStart(), startIdx, endIdx);
                 }
             }
         }
@@ -335,7 +335,7 @@ show ticks
                 }
                 else
                 {
-                    printPageTable(pageDirIdx, startIdx, endIdx);
+                    printPageTable(getKernelPageDirStart(), pageDirIdx, startIdx, endIdx);
                 }
             }
         }

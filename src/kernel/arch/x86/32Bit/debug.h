@@ -29,9 +29,9 @@ void printMem(int ptr);
 
 void printMem(const uint32_t* ptr);
 
-void printPageDir(int startIdx, int endIdx);
+void printPageDir(const uint32_t* pageDir, int startIdx, int endIdx);
 
-void printPageTable(int pageDirIdx, int startIdx, int endIdx);
+void printPageTable(const uint32_t* pageDir, int pageDirIdx, int startIdx, int endIdx);
 
 void printDrives(bool printMaster = true, bool printSlave = true);
 

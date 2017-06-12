@@ -197,7 +197,7 @@ void printMem(const uint32_t* ptr)
            << os::Screen::dec;
 }
 
-void printPageDir(int startIdx, int endIdx)
+void printPageDir(const uint32_t* pageDir, int startIdx, int endIdx)
 {
     if (startIdx > endIdx)
     {
@@ -208,7 +208,6 @@ void printPageDir(int startIdx, int endIdx)
     screen << "Idx   Address   S  A  D  W  U  R  P\n"
               "----  --------  -  -  -  -  -  -  -\n";
 
-    const uint32_t* pageDir = getKernelPageDirStart();
     for (int i = startIdx; i <= endIdx; ++i)
     {
         uint32_t entry = pageDir[i];
@@ -245,7 +244,7 @@ void printPageDir(int startIdx, int endIdx)
 
 }
 
-void printPageTable(int pageDirIdx, int startIdx, int endIdx)
+void printPageTable(const uint32_t* pageDir, int pageDirIdx, int startIdx, int endIdx)
 {
     if (pageDirIdx < 0 || pageDirIdx >= 1024)
     {
@@ -259,7 +258,6 @@ void printPageTable(int pageDirIdx, int startIdx, int endIdx)
         return;
     }
 
-    const uint32_t* pageDir = getKernelPageDirStart();
     uint32_t pageDirEntry = pageDir[pageDirIdx];
 
     uint32_t physicalAddr = pageDirEntry & PAGE_DIR_ADDRESS;
