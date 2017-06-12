@@ -1,5 +1,17 @@
 ; several functions for debugging
 
+%include "system.inc"
+
+; GDT indices
+KERNEL_CODE_SEGMENT_SELECTOR equ 0x08
+KERNEL_DATA_SEGMENT_SELECTOR equ 0x10
+USER_CODE_SEGMENT_SELECTOR equ 0x18
+USER_DATA_SEGMENT_SELECTOR equ 0x20
+
+; privilege levels
+KERNEL_PL equ 0
+USER_PL equ 3
+
 extern kernelStackStart
 extern kernelStackEnd
 
@@ -44,3 +56,16 @@ global getRegCR2
 getRegCR2:
 	mov eax, cr2
 	ret
+
+global switchToUserMode
+switchToUserMode:
+	push USER_DATA_SEGMENT_SELECTOR | USER_PL	; user mode stack segment selector
+	push KERNEL_VIRTUAL_BASE - 4				; user mode stack pointer
+
+	pushf										; user mode control flags
+	and word [esp], 0xfffffdff					; disable interrupts in user mode
+
+	push USER_CODE_SEGMENT_SELECTOR | USER_PL	; user mode code segment selector
+	push 0										; instruction pointer to user mode code
+
+	iret

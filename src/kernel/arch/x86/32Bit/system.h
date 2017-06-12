@@ -51,6 +51,11 @@ uint32_t getStackOffset();
 uint32_t getRegCR2();
 
 /**
+ * @brief Switch to user mode (privilege level 3)
+ */
+void switchToUserMode();
+
+/**
  * @todo move this to libstdc++
  */
 void __cxa_pure_virtual();

@@ -78,14 +78,16 @@ void ProcessMgr::createProcess(const multiboot_mod_list* module)
         ok = setUpProgram(module, newProcInfo);
     }
 
-    /// @todo switch to user mode
-
     // allocate a process ID
     newProcInfo->id = getNewId();
 
     screen << "PID: " << newProcInfo->id << '\n';
 
-    /// @todo run process
+    // switch to user mode and run process
+    switchToUserMode();
+
+    /// @todo The following code needs to be moved somewhere else as it is
+    /// not executed.
 
     // switch back to kernel's page directory
     uintptr_t kernelPageDirPhyAddr = reinterpret_cast<uintptr_t>(getKernelPageDirStart()) - KERNEL_VIRTUAL_BASE;
