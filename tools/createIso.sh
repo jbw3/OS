@@ -26,8 +26,7 @@ cp ${BIN_DIR}/kernel-${ARCH_NAME} ${ISO_DIR}/boot/kernel
 cp ${TOP_DIR}/grub.cfg ${ISO_DIR}/boot/grub/grub.cfg
 
 # copy modules
-cp ${TOP_DIR}/bin/test1 ${ISO_DIR}/modules
-cp ${TOP_DIR}/bin/test2 ${ISO_DIR}/modules
+cp ${TOP_DIR}/bin/programs/* ${ISO_DIR}/modules
 
 # make grub image
 grub-mkrescue /usr/lib/grub/i386-pc ${ISO_DIR} -o ${BIN_DIR}/SandboxOS-${ARCH_NAME}.iso
