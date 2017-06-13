@@ -12,7 +12,7 @@ ASFLAGS = -f bin
 PROGRAMS = test1 test2 test3
 BINARIES = $(patsubst %,$(BINDIR)/%,$(PROGRAMS))
 
-LDFLAGS = -T link.ld -nostdlib -nostdinc -fno-builtin -fno-stack-protector -nostartfiles -nodefaultlibs
+LDFLAGS = -T link.ld -L $(OBJDIR) -nostdlib -nostdinc -fno-builtin -fno-stack-protector -nostartfiles -nodefaultlibs
 
 # don't use default rules
 .SUFFIXES:
