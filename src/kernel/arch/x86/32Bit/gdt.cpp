@@ -1,6 +1,7 @@
 #include "gdt.h"
 
 // this function is defined in assembly
+extern "C"
 void loadGdt(uint32_t);
 
 const int NUM_GDT_ENTRIES = 5;
@@ -25,8 +26,8 @@ static void gdtSetGate(int32_t idx, uint32_t base, uint32_t limit, uint8_t acces
 void initGdt()
 {
     // set up the GDT pointer and limit
-    gdtPtr.limit = (sizeof(struct GdtEntry) * NUM_GDT_ENTRIES) - 1;
-    gdtPtr.base = (uint32_t)&gdtEntries;
+    gdtPtr.limit = (sizeof(GdtEntry) * NUM_GDT_ENTRIES) - 1;
+    gdtPtr.base = reinterpret_cast<uint32_t>(&gdtEntries);
 
     gdtSetGate(0, 0, 0, 0, 0);                // null segment
     gdtSetGate(1, 0, 0xFFFFFFFF, 0x9A, 0xCF); // kernel code segment
@@ -35,5 +36,5 @@ void initGdt()
     gdtSetGate(4, 0, 0xFFFFFFFF, 0xF2, 0xCF); // user mode data segment
 
     // load the new GDT
-    loadGdt((uint32_t)&gdtPtr);
+    loadGdt(reinterpret_cast<uint32_t>(&gdtPtr));
 }
