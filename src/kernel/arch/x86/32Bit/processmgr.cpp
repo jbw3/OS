@@ -86,6 +86,7 @@ void ProcessMgr::createProcess(const multiboot_mod_list* module)
         // allocate a process ID
         newProcInfo->id = getNewId();
 
+        /// @todo remove this
         screen << "PID: " << newProcInfo->id << '\n';
 
         // switch to user mode and run process (this does not return)
