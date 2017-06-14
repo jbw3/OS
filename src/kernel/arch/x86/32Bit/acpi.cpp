@@ -5,6 +5,22 @@
 #include <system.h>
 
 namespace os {
+    namespace acpi {
+
+struct RootSystemDescriptionPointer
+{
+    char[8] Signature;
+    uint8_t Checksum;
+    char[6] OEMID;
+    uint8_t Revision;   // current revision is 2
+    uint32_t RsdtAddress;
+    uint32_t Length;
+    uint64_t XsdtAddress;
+    uint8_t ExtendedChecksum;
+    char[3] Reserved;
+} __attribute__((packed));
+
+    }   /// acpi
 
 Acpi::Acpi()
 {
