@@ -9,15 +9,15 @@ namespace os {
 
 struct RootSystemDescriptionPointer
 {
-    char[8] Signature;
+    char Signature [8];
     uint8_t Checksum;
-    char[6] OEMID;
+    char OEMID [6];
     uint8_t Revision;   // current revision is 2
     uint32_t RsdtAddress;
     uint32_t Length;
     uint64_t XsdtAddress;
     uint8_t ExtendedChecksum;
-    char[3] Reserved;
+    char Reserved [3];
 } __attribute__((packed));
 
     }   /// acpi
