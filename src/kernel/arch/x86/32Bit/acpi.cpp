@@ -40,16 +40,43 @@ Acpi::Acpi()
     }
 
     // found it
-    screen << os::Screen::hex;
-    screen << *EBDAPtr;
-    screen << EBDAPtr[1];
-    screen << EBDAPtr[2];
-    screen << EBDAPtr[3];
-    screen << EBDAPtr[4];
-    screen << EBDAPtr[5];
-    screen << EBDAPtr[6];
+    acpi::RootSystemDescriptionPointer* RSDP = (acpi::RootSystemDescriptionPointer*)(EBDAPtr);
+    screen << RSDP->Signature[0];
+    screen << RSDP->Signature[1];
+    screen << RSDP->Signature[2];
+    screen << RSDP->Signature[3];
+    screen << RSDP->Signature[4];
+    screen << RSDP->Signature[5];
+    screen << RSDP->Signature[6];
+    screen << RSDP->Signature[7] << "\n";
+
+    screen << RSDP->OEMID[0];
+    screen << RSDP->OEMID[1];
+    screen << RSDP->OEMID[2];
+    screen << RSDP->OEMID[3];
+    screen << RSDP->OEMID[4];
+    screen << RSDP->OEMID[5] << "\n";
+
+    screen << "Revision: " << RSDP->Revision << "\n";
+    screen << "RSDT Address: " << os::Screen::hex << RSDP->RsdtAddress << "\n";
+
+    // need to map 0x7FE1000 page!!
+
+    // VIRTUAL
+    // 768 - 0x300 (dir index)
+    // 1023 - 0x3FF (pagetab index)
+
+    // VIRTUAL 0x3003FF/000 points to PHYSICAL 0x7FE1/000
+    // TODO:
+    // - page dir exists
+    // - pagetab DNE -> ADD PAGE TABLE @ 1023
+    // - mapping DNE -> MAP PAGE
+
+    char* rsdt = (char*)(RSDP->RsdtAddress);
+    //screen << "test" << *rsdt << "\n";
+
     // for (int i = 0; i < 8; i++)
-    // {
+    // {111
     //     screen << os::Screen::hex << *EBDAPtr << os::Screen::dec;
     //     screen << "(" << (char)(*EBDAPtr++) << ") ";
     // }
