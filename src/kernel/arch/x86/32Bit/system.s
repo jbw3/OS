@@ -59,8 +59,11 @@ getRegCR2:
 
 global switchToUserMode
 switchToUserMode:
+	; user kernel address is passed as a parameter
+	mov eax, [esp + 4]
+
 	push USER_DATA_SEGMENT_SELECTOR | USER_PL	; user mode stack segment selector
-	push KERNEL_VIRTUAL_BASE - 4				; user mode stack pointer
+	push eax									; user mode stack pointer
 
 	pushf										; user mode control flags
 	and dword [esp], 0xfffffdff					; disable interrupts in user mode

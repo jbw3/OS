@@ -31,8 +31,13 @@ private:
     {
     public:
         constexpr static uintptr_t CODE_VIRTUAL_START = 0;
-        constexpr static int MAX_NUM_PAGE_FRAMES = 8;
-        static const uintptr_t STACK_VIRTUAL_START;
+        constexpr static int MAX_NUM_PAGE_FRAMES = 10;
+
+        /// virtual address of the kernel stack page
+        static const uintptr_t KERNEL_STACK_PAGE;
+
+        /// virtual address of the user stack page
+        static const uintptr_t USER_STACK_PAGE;
 
         /// Unique ID for the process.
         pid_t id;

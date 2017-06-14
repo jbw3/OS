@@ -53,7 +53,7 @@ uint32_t getRegCR2();
 /**
  * @brief Switch to user mode (privilege level 3)
  */
-void switchToUserMode();
+void switchToUserMode(uintptr_t userStackAddr);
 
 /**
  * @todo move this to libstdc++

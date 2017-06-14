@@ -6,7 +6,8 @@
 #include "string.h"
 #include "system.h"
 
-const uintptr_t ProcessMgr::ProcessInfo::STACK_VIRTUAL_START = KERNEL_VIRTUAL_BASE - PAGE_SIZE;
+const uintptr_t ProcessMgr::ProcessInfo::KERNEL_STACK_PAGE = KERNEL_VIRTUAL_BASE - PAGE_SIZE;
+const uintptr_t ProcessMgr::ProcessInfo::USER_STACK_PAGE = ProcessMgr::ProcessInfo::KERNEL_STACK_PAGE - PAGE_SIZE;
 
 ProcessMgr::ProcessInfo::ProcessInfo()
 {
@@ -88,7 +89,7 @@ void ProcessMgr::createProcess(const multiboot_mod_list* module)
         screen << "PID: " << newProcInfo->id << '\n';
 
         // switch to user mode and run process (this does not return)
-        switchToUserMode();
+        switchToUserMode(ProcessInfo::USER_STACK_PAGE + PAGE_SIZE - 4);
     }
 
     // if we get here, something went wrong (ok == false) and we need to
@@ -147,7 +148,6 @@ bool ProcessMgr::createProcessPageDir(ProcessInfo* newProcInfo)
 
     // copy kernel page directory and page table
     memcpy(pageDir, getKernelPageDirStart(), PAGE_SIZE);
-    /// @todo change permissions to user mode
     memcpy(pageTableKernel, getKernelPageTableStart(), PAGE_SIZE);
 
     // clear upper and lower memory page tables
@@ -198,15 +198,25 @@ bool ProcessMgr::setUpProgram(const multiboot_mod_list* module, ProcessInfo* new
            reinterpret_cast<const void*>(module->mod_start + KERNEL_VIRTUAL_BASE),
            codeSize);
 
-    // allocate and map a page for the stack
-    uintptr_t stackPhyAddr = pageFrameMgr.allocPageFrame();
-    if (stackPhyAddr == 0)
+    // allocate and map a page for the kernel stack
+    uintptr_t kernelStackPhyAddr = pageFrameMgr.allocPageFrame();
+    if (kernelStackPhyAddr == 0)
     {
-        logError("Could not allocate page frame.");
+        logError("Could not allocate a page frame for the kernel stack.");
         return false;
     }
-    newProcInfo->addPageFrame(stackPhyAddr);
-    mapPage(newProcInfo->getPageDir(), ProcessInfo::STACK_VIRTUAL_START, stackPhyAddr, true);
+    newProcInfo->addPageFrame(kernelStackPhyAddr);
+    mapPage(newProcInfo->getPageDir(), ProcessInfo::KERNEL_STACK_PAGE, kernelStackPhyAddr);
+
+    // allocate and map a page for the user stack
+    uintptr_t userStackPhyAddr = pageFrameMgr.allocPageFrame();
+    if (userStackPhyAddr == 0)
+    {
+        logError("Could not allocate a page frame for the user stack.");
+        return false;
+    }
+    newProcInfo->addPageFrame(userStackPhyAddr);
+    mapPage(newProcInfo->getPageDir(), ProcessInfo::USER_STACK_PAGE, userStackPhyAddr, true);
 
     return true;
 }
