@@ -83,23 +83,20 @@ Acpi::Acpi(PageFrameMgr* pageFrameMgr)
     // mark physical memory as reserved
     _pageFrameMgr->reservePageFrame(0x7FE1000);
 
+    // offset = address - base
     char* rsdt = (char*)((RSDP->RsdtAddress - 0x07FE'1000) + VIRTUAL_BASE);
     screen << "test" << *rsdt << "\n";
 
-    // for (int i = 0; i < 8; i++)
-    // {111
-    //     screen << os::Screen::hex << *EBDAPtr << os::Screen::dec;
-    //     screen << "(" << (char)(*EBDAPtr++) << ") ";
-    // }
-    screen << "\n";
+    // todo: create KernelVirtMemMgr class:
+    // kVirtMemMgr.getPage(physicalAddress);    // maps and returns base address (w/o offset)
 
+    // todo: remove...
     int numPageDirs = 0;
     //uint32_t* pageDir = getKernelPageDirStart();
     for (int i = 0; i < 1024; i++)
     {
         if (pageDir[i] & PAGE_DIR_PRESENT)
         {
-            printPageDir(i, i);
             numPageDirs++;
         }
     }
