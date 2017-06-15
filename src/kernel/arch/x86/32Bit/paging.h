@@ -9,6 +9,12 @@
 #define PAGE_BOUNDARY_MASK (~(PAGE_SIZE - 1))
 #define PAGE_SIZE_MASK     (PAGE_SIZE - 1)
 
+#define PAGE_DIR_NUM_ENTRIES 1024
+#define PAGE_DIR_INDEX_MASK  (PAGE_DIR_NUM_ENTRIES - 1)
+
+#define PAGE_TABLE_NUM_ENTRIES 1024
+#define PAGE_TABLE_INDEX_MASK  (PAGE_DIR_NUM_ENTRIES - 1)
+
 #define PAGE_DIR_ADDRESS       0xFFFFF000
 #define PAGE_DIR_PAGE_SIZE     0x00000080
 #define PAGE_DIR_ACCESSED      0x00000020
@@ -57,18 +63,6 @@ void pageFault(const registers* regs);
 } // extern "C"
 
 void configPaging();
-
-/**
- * @brief Add a page table to the page directory
- * @todo remove
- */
-void addPageTable(int idx, uint32_t pageTableAddr);
-
-/**
- * @brief Add a page to a page table
- * @todo remove
- */
-void addPage(uint32_t pageAddr);
 
 /**
  * @brief Map a page in the page table
