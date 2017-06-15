@@ -54,7 +54,7 @@ void kernelMain(const uint32_t MULTIBOOT_MAGIC_NUM, const multiboot_info* mbootI
     screen.write(*getKernelPageDirStart());
     screen.write("\n");
 
-    os::Acpi acpi;
+    os::Acpi acpi(&pageFrameMgr);
 
     Shell sh(mbootInfo);
 

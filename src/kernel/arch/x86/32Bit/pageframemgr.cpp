@@ -5,6 +5,7 @@
 #include "multiboot.h"
 #include "pageframemgr.h"
 #include "paging.h"
+#include <screen.h>
 #include "string.h"
 #include "system.h"
 
@@ -297,6 +298,23 @@ void PageFrameMgr::freePageFrame(uintptr_t addr)
     if (found)
     {
         blocks[blockIdx].isAlloc[allocIdx] &= ~bitMask;
+    }
+}
+
+void PageFrameMgr::reservePageFrame(uint32_t addr)
+{
+    unsigned int blockIdx = 0;
+    unsigned int allocIdx = 0;
+    uint32_t bitMask = 0;
+
+    if (findPageFrame(addr, blockIdx, allocIdx, bitMask))
+    {
+        screen << os::Screen::bin;
+        screen << "isAlloc: " << blocks[blockIdx].isAlloc[allocIdx] << "\n";
+        screen << "bitMask: " << bitMask << "\n";
+        blocks[blockIdx].isAlloc[allocIdx] |= bitMask;
+        screen << "isAlloc: " << blocks[blockIdx].isAlloc[allocIdx] << "\n";
+        screen << os::Screen::dec;
     }
 }
 

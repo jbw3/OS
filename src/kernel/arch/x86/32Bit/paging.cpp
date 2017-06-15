@@ -80,6 +80,12 @@ void mapPage(const uint32_t* pageDir, uint32_t virtualAddr, uint32_t physicalAdd
 
     // get the entry in the page directory
     uint32_t pageDirEntry = pageDir[pageDirIdx];
+    screen << os::Screen::hex;
+    screen << "\n\n";
+    screen << "VIRTUAL ADDRESS: 0x" << virtualAddr << "\n";
+    screen << "PHYSICAL ADDRESS: 0x" << physicalAddr << "\n";
+    screen << "PAGE DIR INDEX: 0x" << pageDirIdx << "\n";
+    screen << "PAGE DIR ENTRY: 0x" << pageDirEntry << "\n";
 
     // make sure the entry contains a page table
     if ( (pageDirEntry & PAGE_DIR_PRESENT) == 0 )

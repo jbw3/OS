@@ -1,5 +1,8 @@
 #pragma once
 
+// forward-declarations
+class PageFrameMgr;
+
 namespace os {
 
 /**
@@ -8,7 +11,10 @@ namespace os {
 class Acpi
 {
 public:
-    Acpi();
+    Acpi(PageFrameMgr* pageFrameMgr);
+
+private:
+    PageFrameMgr* _pageFrameMgr;
 };
 
 }

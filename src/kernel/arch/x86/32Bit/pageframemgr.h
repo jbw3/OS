@@ -31,6 +31,12 @@ public:
      */
     void freePageFrame(uintptr_t addr);
 
+    /**
+     * @brief Reserve a page frame so the PageFrameMgr doesn't
+     * hand it off to someone.
+     */
+    void reservePageFrame(uint32_t addr);
+
     // ------ Debugging ------
 
     bool isPageFrameAlloc(uintptr_t addr) const;

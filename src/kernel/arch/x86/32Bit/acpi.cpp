@@ -1,5 +1,6 @@
 #include <acpi.h>
 #include <debug.h>
+#include <pageframemgr.h>
 #include <paging.h>
 #include <screen.h>
 #include <system.h>
@@ -22,7 +23,8 @@ struct RootSystemDescriptionPointer
 
     }   /// acpi
 
-Acpi::Acpi()
+Acpi::Acpi(PageFrameMgr* pageFrameMgr)
+    : _pageFrameMgr(pageFrameMgr)
 {
     screen.write("ACPI Initializing...\n");
 
@@ -71,9 +73,18 @@ Acpi::Acpi()
     // - page dir exists
     // - pagetab DNE -> ADD PAGE TABLE @ 1023
     // - mapping DNE -> MAP PAGE
+    uint32_t* pageDir = getKernelPageDirStart();
+    screen << os::Screen::dec;
+    printPageDir(768, 768);
+    printPageTable(768, 0x3FF, 0x3FF);
+    uint32_t VIRTUAL_BASE = 0xC03F'F000;
+    mapPage(pageDir, VIRTUAL_BASE, 0x07FE'1000);
 
-    char* rsdt = (char*)(RSDP->RsdtAddress);
-    //screen << "test" << *rsdt << "\n";
+    // mark physical memory as reserved
+    _pageFrameMgr->reservePageFrame(0x7FE1000);
+
+    char* rsdt = (char*)((RSDP->RsdtAddress - 0x07FE'1000) + VIRTUAL_BASE);
+    screen << "test" << *rsdt << "\n";
 
     // for (int i = 0; i < 8; i++)
     // {111
@@ -83,7 +94,7 @@ Acpi::Acpi()
     screen << "\n";
 
     int numPageDirs = 0;
-    uint32_t* pageDir = getKernelPageDirStart();
+    //uint32_t* pageDir = getKernelPageDirStart();
     for (int i = 0; i < 1024; i++)
     {
         if (pageDir[i] & PAGE_DIR_PRESENT)
