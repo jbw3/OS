@@ -79,6 +79,7 @@ Acpi::Acpi(PageFrameMgr* pageFrameMgr)
     printPageTable(768, 0x3FF, 0x3FF);
     uint32_t VIRTUAL_BASE = 0xC03F'F000;
     mapPage(pageDir, VIRTUAL_BASE, 0x07FE'1000);
+    mapPage(pageDir, VIRTUAL_BASE-0x1000, 0x07FE'0000);
 
     // mark physical memory as reserved
     _pageFrameMgr->reservePageFrame(0x7FE1000);
@@ -86,6 +87,22 @@ Acpi::Acpi(PageFrameMgr* pageFrameMgr)
     // offset = address - base
     char* rsdt = (char*)((RSDP->RsdtAddress - 0x07FE'1000) + VIRTUAL_BASE);
     screen << "test" << *rsdt << "\n";
+    uint32_t* lengthPtr = (uint32_t*)(rsdt+4);
+    screen << "length " << *lengthPtr << "\n";
+    uint32_t* entries = (uint32_t*)(rsdt+36);
+
+
+    for (int i = 0; i < 4; i++)
+    {
+        screen << "entry[" << i << "]: 0x" << os::Screen::hex << entries[i] << os::Screen::dec << "\n";
+
+        // todo: this is wrong...I need to look up NEEDED virtual base...this hardcoded one is only good
+        // for one entry maybe...
+        uint32_t* descr_table_hdr = (uint32_t*)(entries[i] - (entries[i] & 0xFFFF'F000) + VIRTUAL_BASE - 0x1000);
+        char* sig = (char*)descr_table_hdr;
+        screen << "signature: " << sig[0] << sig[1] << sig[2] << sig[3] << "\n";
+        screen << "sig(int32): " << *descr_table_hdr << "\n";
+    }
 
     // todo: create KernelVirtMemMgr class:
     // kVirtMemMgr.getPage(physicalAddress);    // maps and returns base address (w/o offset)
