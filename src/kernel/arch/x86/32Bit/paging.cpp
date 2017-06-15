@@ -76,7 +76,7 @@ void mapPage(const uint32_t* pageDir, uint32_t virtualAddr, uint32_t physicalAdd
 {
     // calculate the page directory and page table indexes
     int pageDirIdx = virtualAddr >> 22;
-    int pageTableIdx = (virtualAddr >> 12) & PAGE_SIZE_MASK;
+    int pageTableIdx = (virtualAddr >> 12) & PAGE_TABLE_INDEX_MASK;
 
     // get the entry in the page directory
     uint32_t pageDirEntry = pageDir[pageDirIdx];
