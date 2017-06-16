@@ -1,3 +1,4 @@
+#include "gdt.h"
 #include "multiboot.h"
 #include "pageframemgr.h"
 #include "paging.h"
@@ -88,6 +89,9 @@ void ProcessMgr::createProcess(const multiboot_mod_list* module)
 
         /// @todo remove this
         screen << "PID: " << newProcInfo->id << '\n';
+
+        // set the kernel stack for the process
+        setKernelStack(ProcessInfo::KERNEL_STACK_PAGE + PAGE_SIZE - 4);
 
         // switch to user mode and run process (this does not return)
         switchToUserMode(ProcessInfo::USER_STACK_PAGE + PAGE_SIZE - 4);
