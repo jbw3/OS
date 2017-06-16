@@ -77,6 +77,11 @@ struct GdtPtr
  */
 void initGdt();
 
+/**
+ * @brief Set the kernel stack in the TSS.
+ */
+void setKernelStack(uint32_t stackAddr);
+
 #ifdef __cplusplus
 } // extern "C"
 #endif

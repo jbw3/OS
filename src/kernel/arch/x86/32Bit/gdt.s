@@ -17,3 +17,11 @@ loadGdt:
 	jmp 8:.codeSegment	; 8 is the offset to the code segment
 .codeSegment:
 	ret
+
+; Load TSS
+global loadTss
+loadTss:
+	mov word ax, [esp + 4]	; get the TSS index passed as a parameter
+	or ax, 0x3				; set privilege level to 3 (user mode)
+	ltr ax
+	ret
