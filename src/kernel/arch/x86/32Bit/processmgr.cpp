@@ -1,4 +1,5 @@
 #include "gdt.h"
+#include "isr.h"
 #include "multiboot.h"
 #include "pageframemgr.h"
 #include "paging.h"
@@ -41,9 +42,15 @@ uintptr_t* ProcessMgr::ProcessInfo::getPageDir()
     return reinterpret_cast<uintptr_t*>(pageFrames[0] + KERNEL_VIRTUAL_BASE);
 }
 
+void ProcessMgr::systemCallHandler(const registers* regs)
+{
+    screen << "system call\n";
+}
+
 ProcessMgr::ProcessMgr(PageFrameMgr& pageFrameMgr) :
     pageFrameMgr(pageFrameMgr)
 {
+    registerIsrHandler(ISR_SYSTEM_CALL, systemCallHandler);
 }
 
 void ProcessMgr::createProcess(const multiboot_mod_list* module)

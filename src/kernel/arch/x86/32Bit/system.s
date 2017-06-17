@@ -62,10 +62,7 @@ global switchToUserMode
 switchToUserMode:
 	push USER_DATA_SEGMENT_SELECTOR | USER_PL	; user mode stack segment selector
 	push dword [esp + 8]						; user mode stack pointer (function argument)
-
 	pushf										; user mode control flags
-	and dword [esp], 0xfffffdff					; disable interrupts in user mode
-
 	push USER_CODE_SEGMENT_SELECTOR | USER_PL	; user mode code segment selector
 	push 0										; instruction pointer to user mode code
 
