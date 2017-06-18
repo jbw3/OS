@@ -7,6 +7,7 @@
 #include "screen.h"
 #include "string.h"
 #include "system.h"
+#include "systemcalls.h"
 
 const uintptr_t ProcessMgr::ProcessInfo::KERNEL_STACK_PAGE = KERNEL_VIRTUAL_BASE - PAGE_SIZE;
 const uintptr_t ProcessMgr::ProcessInfo::USER_STACK_PAGE = ProcessMgr::ProcessInfo::KERNEL_STACK_PAGE - PAGE_SIZE;
@@ -40,11 +41,6 @@ int ProcessMgr::ProcessInfo::getNumPageFrames() const
 uintptr_t* ProcessMgr::ProcessInfo::getPageDir()
 {
     return reinterpret_cast<uintptr_t*>(pageFrames[0] + KERNEL_VIRTUAL_BASE);
-}
-
-void ProcessMgr::systemCallHandler(const registers* regs)
-{
-    screen << "system call " << regs->eax << '\n';
 }
 
 ProcessMgr::ProcessMgr(PageFrameMgr& pageFrameMgr) :

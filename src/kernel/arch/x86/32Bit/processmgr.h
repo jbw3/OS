@@ -12,7 +12,6 @@ typedef unsigned int pid_t;
 
 struct multiboot_mod_list;
 class PageFrameMgr;
-struct registers;
 
 /**
  * @brief Process manager
@@ -20,11 +19,6 @@ struct registers;
 class ProcessMgr
 {
 public:
-    /**
-     * @brief System call interrupt handler.
-     */
-    static void systemCallHandler(const registers* regs);
-
     /**
      * @brief Constructor
      */
