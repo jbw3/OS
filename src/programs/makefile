@@ -1,10 +1,14 @@
 # Makefile for test programs
 
-BINDIR = ../../bin/programs
 OBJDIR = obj
+LIBSRCDIR = ../libs
+LIBDIR = ../../lib
+BINDIR = ../../bin/programs
+
+C_INCLUDES = -I$(LIBSRCDIR)/c/include
 
 CC = i686-elf-gcc
-CFLAGS = -std=c11 -nostdlib -nostdinc -fno-builtin -fno-stack-protector -nostartfiles -nodefaultlibs -Wall -Wextra
+CFLAGS = $(C_INCLUDES) -std=c11 -nostdlib -nostdinc -fno-builtin -fno-stack-protector -nostartfiles -nodefaultlibs -Wall -Wextra
 
 CXX = i686-elf-g++
 CXXFLAGS = -std=c++1z -nostdlib -nostdinc -fno-builtin -fno-stack-protector -nostartfiles -nodefaultlibs -fno-exceptions -fno-rtti -Wall -Wextra
@@ -15,7 +19,8 @@ ASFLAGS = -f bin
 PROGRAMS = test1 test2 test3 test4
 BINARIES = $(patsubst %,$(BINDIR)/%,$(PROGRAMS))
 
-LDFLAGS = -T link.ld -L $(OBJDIR) -nostdlib -nostdinc -fno-builtin -fno-stack-protector -nostartfiles -nodefaultlibs
+LIBS = -L$(OBJDIR) -L$(LIBDIR) -lc
+LDFLAGS = -T link.ld $(LIBS) -nostdlib -nostdinc -fno-builtin -fno-stack-protector -nostartfiles -nodefaultlibs
 
 # don't use default rules
 .SUFFIXES:
