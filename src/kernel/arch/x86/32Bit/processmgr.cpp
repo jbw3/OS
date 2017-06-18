@@ -44,7 +44,7 @@ uintptr_t* ProcessMgr::ProcessInfo::getPageDir()
 
 void ProcessMgr::systemCallHandler(const registers* regs)
 {
-    screen << "system call\n";
+    screen << "system call " << regs->eax << '\n';
 }
 
 ProcessMgr::ProcessMgr(PageFrameMgr& pageFrameMgr) :
