@@ -64,6 +64,12 @@ Acpi::Acpi(PageFrameMgr* pageFrameMgr)
 
     // need to map 0x7FE1000 page!!
 
+    // TODO:
+    // - auto-map a given physical page (use getPageBase(physAddr))
+    // - save the returned virtual address as the address of the resource
+    // - do we need to find if a physical address is already mapped?
+
+
     // VIRTUAL
     // 768 - 0x300 (dir index)
     // 1023 - 0x3FF (pagetab index)
