@@ -12,7 +12,8 @@
 struct multiboot_info;
 
 /**
- * @brief Page frame manager
+ * @brief Page frame manager manages the physical (as opposed to virtual)
+ * aspects of page allocation within system memory.
  */
 class PageFrameMgr
 {

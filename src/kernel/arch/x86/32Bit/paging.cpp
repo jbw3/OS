@@ -70,3 +70,26 @@ void mapPage(const uint32_t* pageDir, uint32_t virtualAddr, uint32_t physicalAdd
     pageTableEntry |= PAGE_TABLE_READ_WRITE | PAGE_TABLE_PRESENT; // set read/write and present bits
     pageTable[pageTableIdx] = pageTableEntry;
 }
+
+namespace pageInfo {
+
+static uint32_t* _kPageDir = getKernelPageDirStart();
+
+uint32_t kNumAvailablePageDirEntries()
+{
+    return numAvailablePageDirEntries(_kPageDir);
+}
+
+uint32_t numAvailablePageDirEntries(uint32_t* pageDir)
+{
+    int numPageDirEntries = PAGE_DIR_NUM_ENTRIES;
+
+    for (int i = 0; i < PAGE_DIR_NUM_ENTRIES; i++)
+    {
+        numPageDirEntries -= (pageDir[i] & PAGE_DIR_PRESENT);
+    }
+
+    return numPageDirEntries;
+}
+
+}

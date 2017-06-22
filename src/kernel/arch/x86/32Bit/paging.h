@@ -69,4 +69,22 @@ void configPaging();
  */
 void mapPage(const uint32_t* pageDir, uint32_t virtualAddr, uint32_t physicalAddr);
 
+/**
+ * Utilities for page table walking and information retrieval
+ */
+namespace pageInfo {
+
+/**
+ * @brief Returns the number of available kernel page directory entries
+ */
+uint32_t kNumAvailablePageDirEntries();
+
+/**
+ * @brief Returns the number of available page directory entries
+ * for the specified page directory.
+ */
+uint32_t numAvailablePageDirEntries(uint32_t* pageDir);
+
+}
+
 #endif // PAGING_H_
