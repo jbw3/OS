@@ -107,6 +107,44 @@ irqCommonStub:
 	iret				; pops 5 things at once: CS, EIP, EFLAGS, SS, and ESP
 						; (these are pushed automatically by the processor)
 
+; system call interrupt handler
+extern systemCallHandler
+global isr128
+isr128:
+	mov ecx, [esp + 12]	; get the user process stack pointer
+
+	mov dx, ds			; mov ds to lower 16-bits of edx
+	push edx			; save the data segment descriptor
+
+	mov dx, 16			; load the kernel data segment descriptor
+	mov ds, dx
+	mov es, dx
+	mov fs, dx
+	mov gs, dx
+
+	; push function arguments
+	mov edx, ecx
+	add edx, 8
+	push dword edx			; push argPtr
+	push eax				; push numArgs
+	push dword [ecx + 4]	; push sysCallNum
+
+	call systemCallHandler	; call the system call handler
+	; DO NOT USE eax AFTER THE FUNCTION CALL!!! IT CONTAINS
+	; THE RETURN CODE.
+
+	; clean up pushed function arguments
+	add esp, 12
+
+	pop edx				; reload the original data segment descriptor
+	mov ds, dx
+	mov es, dx
+	mov fs, dx
+	mov gs, dx
+
+	iret				; pops 5 things at once: CS, EIP, EFLAGS, SS, and ESP
+						; (these are pushed automatically by the processor)
+
 ; define 32 basic ISRs
 ISR_NOERRCODE   0
 ISR_NOERRCODE   1
@@ -140,7 +178,6 @@ ISR_NOERRCODE  28
 ISR_NOERRCODE  29
 ISR_ERRCODE    30
 ISR_NOERRCODE  31
-ISR_NOERRCODE 128
 
 ; define IRQs
 IRQ  0, 32

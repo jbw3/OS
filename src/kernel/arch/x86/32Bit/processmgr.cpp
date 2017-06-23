@@ -1,5 +1,4 @@
 #include "gdt.h"
-#include "isr.h"
 #include "multiboot.h"
 #include "pageframemgr.h"
 #include "paging.h"
@@ -7,7 +6,6 @@
 #include "screen.h"
 #include "string.h"
 #include "system.h"
-#include "systemcalls.h"
 
 const uintptr_t ProcessMgr::ProcessInfo::KERNEL_STACK_PAGE = KERNEL_VIRTUAL_BASE - PAGE_SIZE;
 const uintptr_t ProcessMgr::ProcessInfo::USER_STACK_PAGE = ProcessMgr::ProcessInfo::KERNEL_STACK_PAGE - PAGE_SIZE;
@@ -46,7 +44,6 @@ uintptr_t* ProcessMgr::ProcessInfo::getPageDir()
 ProcessMgr::ProcessMgr(PageFrameMgr& pageFrameMgr) :
     pageFrameMgr(pageFrameMgr)
 {
-    registerIsrHandler(ISR_SYSTEM_CALL, systemCallHandler);
 }
 
 void ProcessMgr::createProcess(const multiboot_mod_list* module)

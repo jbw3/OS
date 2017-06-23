@@ -1,4 +1,3 @@
-#include "isr.h"
 #include "screen.h"
 #include "system.h"
 #include "systemcalls.h"
@@ -51,20 +50,9 @@ const void* SYSTEM_CALLS[SYSTEM_CALLS_SIZE] = {
     reinterpret_cast<const void*>(systemcall::test3),
 };
 
-void systemCallHandler(const registers* regs)
+extern "C"
+void systemCallHandler(uint32_t sysCallNum, uint32_t numArgs, const uint32_t* argPtr)
 {
-    // pointer to the stack before the system call which contains the following:
-    // 1. return address
-    // 2. system call number
-    // 3. arguments
-    const uint32_t* stack = reinterpret_cast<const uint32_t*>(regs->esp);
-
-    // system call number is on the stack
-    uint32_t sysCallNum = stack[1];
-
-    // the number of arguments is stored in eax
-    uint32_t numArgs = regs->eax;
-
     if (sysCallNum >= SYSTEM_CALLS_SIZE || SYSTEM_CALLS[sysCallNum] == nullptr)
     {
         /// @todo Temporarily calling PANIC. This needs to
@@ -76,6 +64,6 @@ void systemCallHandler(const registers* regs)
     {
         const void* funcPtr = SYSTEM_CALLS[sysCallNum];
 
-        systemCall(funcPtr, numArgs, stack + 2);
+        systemCall(funcPtr, numArgs, argPtr);
     }
 }
