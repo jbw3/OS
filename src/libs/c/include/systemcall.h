@@ -12,9 +12,7 @@ extern "C"
 {
 #endif
 
-int systemCall0(uint32_t num);
-
-int systemCall3(uint32_t num, uint32_t param1, uint32_t param2, uint32_t param3);
+uint32_t systemCallNumArgs(uint32_t sysCallNum, uint32_t numArgs, ...);
 
 #ifdef __cplusplus
 } // extern "C"

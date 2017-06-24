@@ -124,9 +124,9 @@ isr128:
 
 	; push function arguments
 	mov edx, ecx
-	add edx, 8
+	add edx, 12
 	push dword edx			; push argPtr
-	push eax				; push numArgs
+	push dword [ecx + 8]	; push numArgs
 	push dword [ecx + 4]	; push sysCallNum
 
 	call systemCallHandler	; call the system call handler
