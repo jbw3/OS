@@ -64,59 +64,15 @@ Acpi::Acpi(PageFrameMgr* pageFrameMgr)
     screen << "Revision: " << RSDP->Revision << "\n";
     screen << "RSDT Address: " << os::Screen::hex << RSDP->RsdtAddress << "\n";
 
-    // need to map 0x7FE1000 page!!
-
-    // TODO:
-    // - auto-map a given physical page (use getPageBase(physAddr))
-    // - save the returned virtual address as the address of the resource
-    // - do we need to find if a physical address is already mapped?
-
-
-    // VIRTUAL
-    // 768 - 0x300 (dir index)
-    // 1023 - 0x3FF (pagetab index)
-
-    // VIRTUAL 0x3003FF/000 points to PHYSICAL 0x7FE1/000
-    // TODO:
-    // - page dir exists
-    // - pagetab DNE -> ADD PAGE TABLE @ 1023
-    // - mapping DNE -> MAP PAGE
     uint32_t* pageDir = getKernelPageDirStart();
-    screen << os::Screen::dec;
-    //printPageDir(768, 768);
-    //printPageTable(768, 0x3FF, 0x3FF);
-    uint32_t VIRTUAL_BASE = 0xC03F'F000;
-    //mapPage(pageDir, VIRTUAL_BASE, 0x07FE'1000);
-    //mapPage(pageDir, VIRTUAL_BASE-0x1000, 0x07FE'0000);
+    screen << os::Screen::hex;
 
-    // mark physical memory as reserved
-    //_pageFrameMgr->reservePageFrame(0x7FE1000);
+    uint32_t virtRsdtAddr = os::autoMapKernelPageForAddress(RSDP->RsdtAddress, _pageFrameMgr);
 
-    // offset = address - base
-    char* rsdt = (char*)((RSDP->RsdtAddress - 0x07FE'1000) + VIRTUAL_BASE);
-    //screen << "test" << *rsdt << "\n";
-    uint32_t* lengthPtr = (uint32_t*)(rsdt+4);
-    //screen << "length " << *lengthPtr << "\n";
-    uint32_t* entries = (uint32_t*)(rsdt+36);
+    // todo: create RSDT struct and access that...
 
-
-    // for (int i = 0; i < 4; i++)
-    // {
-    //     screen << "entry[" << i << "]: 0x" << os::Screen::hex << entries[i] << os::Screen::dec << "\n";
-
-    //     // todo: this is wrong...I need to look up NEEDED virtual base...this hardcoded one is only good
-    //     // for one entry maybe...
-    //     uint32_t* descr_table_hdr = (uint32_t*)(entries[i] - (entries[i] & 0xFFFF'F000) + VIRTUAL_BASE - 0x1000);
-    //     char* sig = (char*)descr_table_hdr;
-    //     screen << "signature: " << sig[0] << sig[1] << sig[2] << sig[3] << "\n";
-    //     screen << "sig(int32): " << *descr_table_hdr << "\n";
-    // }
-
-    // todo: create KernelVirtMemMgr class:
-    // kVirtMemMgr.getPage(physicalAddress);    // maps and returns base address (w/o offset)
-
-    uint32_t virtAddr = os::autoMapKernelPageForAddress(0x7FE1000, _pageFrameMgr);
-    screen << "VIRT ADDR: " << virtAddr << "\n";
+    screen << "VIRT ADDR: " << virtRsdtAddr << "\n";
+    screen << "RSDT: " << *(char*)(virtRsdtAddr) << "\n";
 }
 
 }
