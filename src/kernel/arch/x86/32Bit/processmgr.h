@@ -33,7 +33,7 @@ private:
         static const uintptr_t USER_STACK_PAGE;
 
         /// the ProcessInfo instance for the current process
-        static const ProcessInfo** PROCESS_INFO;
+        static ProcessInfo** PROCESS_INFO;
 
         /// the start address of the kernel stack page
         static const uintptr_t KERNEL_STACK_START;
@@ -72,10 +72,12 @@ public:
 
     void createProcess(const multiboot_mod_list* module);
 
+    void exitCurrentProcess();
+
     /**
      * @brief Get the ProcessInfo for calling process.
      */
-    const ProcessInfo* getCurrentProcessInfo() const;
+    ProcessInfo* getCurrentProcessInfo();
 
 private:
     constexpr static int MAX_NUM_PROCESSES = 4;
@@ -83,6 +85,9 @@ private:
 
     /// the page frame manager
     PageFrameMgr* pageFrameMgr;
+
+    /// the kernel stack before switching to a process
+    uintptr_t kernelStack;
 
     /**
      * @brief Create a new page directory for a process by copying
@@ -100,6 +105,17 @@ private:
      * @brief Get an ID for a new process.
      */
     pid_t getNewId();
+
+    /**
+     * @brief Find the ProcessInfo for the given process ID. If the process ID
+     * cannot be found, a null pointer is returned.
+     */
+    ProcessInfo* findProcess(pid_t id);
+
+    /**
+     * @brief Clean up resources used by a process.
+     */
+    void cleanUpProcess(ProcessInfo* procInfo);
 
     /**
      * @brief Log an error message.

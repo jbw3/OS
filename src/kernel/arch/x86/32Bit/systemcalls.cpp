@@ -7,6 +7,11 @@
 namespace systemcall
 {
 
+void exit(int /*status*/)
+{
+    processMgr.exitCurrentProcess();
+}
+
 pid_t getpid()
 {
     return processMgr.getCurrentProcessInfo()->id;
@@ -45,7 +50,7 @@ constexpr uint32_t SYSTEM_CALLS_SIZE = 11;
 const void* SYSTEM_CALLS[SYSTEM_CALLS_SIZE] = {
     reinterpret_cast<const void*>(systemcall::write),
     reinterpret_cast<const void*>(systemcall::getpid),
-    nullptr,
+    reinterpret_cast<const void*>(systemcall::exit),
     nullptr,
     nullptr,
     nullptr,

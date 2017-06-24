@@ -11,7 +11,7 @@ const uintptr_t ProcessMgr::ProcessInfo::KERNEL_STACK_PAGE = KERNEL_VIRTUAL_BASE
 const uintptr_t ProcessMgr::ProcessInfo::USER_STACK_PAGE = ProcessMgr::ProcessInfo::KERNEL_STACK_PAGE - PAGE_SIZE;
 
 // put the ProcessInfo pointer at the base of the kernel stack
-const ProcessMgr::ProcessInfo** ProcessMgr::ProcessInfo::PROCESS_INFO = reinterpret_cast<const ProcessMgr::ProcessInfo**>(ProcessMgr::ProcessInfo::KERNEL_STACK_PAGE + PAGE_SIZE - 4);
+ProcessMgr::ProcessInfo** ProcessMgr::ProcessInfo::PROCESS_INFO = reinterpret_cast<ProcessMgr::ProcessInfo**>(ProcessMgr::ProcessInfo::KERNEL_STACK_PAGE + PAGE_SIZE - 4);
 
 // the kernel stack starts right after the ProcessInfo pointer
 const uintptr_t ProcessMgr::ProcessInfo::KERNEL_STACK_START = reinterpret_cast<uintptr_t>(ProcessMgr::ProcessInfo::PROCESS_INFO) - sizeof(ProcessMgr::ProcessInfo::PROCESS_INFO);
@@ -99,7 +99,7 @@ void ProcessMgr::createProcess(const multiboot_mod_list* module)
         newProcInfo->id = getNewId();
 
         /// @todo remove this
-        screen << "PID: " << newProcInfo->id << '\n';
+        screen << "Created process " << newProcInfo->id << '\n';
 
         // set the ProcessInfo pointer
         *ProcessInfo::PROCESS_INFO = newProcInfo;
@@ -107,28 +107,40 @@ void ProcessMgr::createProcess(const multiboot_mod_list* module)
         // set the kernel stack for the process
         setKernelStack(ProcessInfo::KERNEL_STACK_START);
 
-        // switch to user mode and run process (this does not return)
-        switchToUserMode(ProcessInfo::USER_STACK_PAGE + PAGE_SIZE - 4);
+        // switch to user mode and run process
+        switchToUserMode(ProcessInfo::USER_STACK_PAGE + PAGE_SIZE - 4, &kernelStack);
+
+        // --- we get back here when the process has exited ---
+
+        // switch to kernel's page directory
+        uintptr_t kernelPageDirPhyAddr = reinterpret_cast<uintptr_t>(getKernelPageDirStart()) - KERNEL_VIRTUAL_BASE;
+        setPageDirectory(kernelPageDirPhyAddr);
+
+        // enable interrupts
+        setInt();
+
+        cleanUpProcess(newProcInfo);
     }
-
-    // if we get here, something went wrong (ok == false) and we need to
-    // clean things up
-
-    // switch back to kernel's page directory
-    uintptr_t kernelPageDirPhyAddr = reinterpret_cast<uintptr_t>(getKernelPageDirStart()) - KERNEL_VIRTUAL_BASE;
-    setPageDirectory(kernelPageDirPhyAddr);
-
-    // free page frames
-    for (int i = 0; i < newProcInfo->getNumPageFrames(); ++i)
+    else
     {
-        pageFrameMgr->freePageFrame(newProcInfo->getPageFrame(i));
-    }
+        // if we get here, something went wrong and we need to
+        // clean things up
 
-    // reset ProcessInfo
-    newProcInfo->reset();
+        // switch back to kernel's page directory
+        uintptr_t kernelPageDirPhyAddr = reinterpret_cast<uintptr_t>(getKernelPageDirStart()) - KERNEL_VIRTUAL_BASE;
+        setPageDirectory(kernelPageDirPhyAddr);
+
+        cleanUpProcess(newProcInfo);
+    }
 }
 
-const ProcessMgr::ProcessInfo* ProcessMgr::getCurrentProcessInfo() const
+void ProcessMgr::exitCurrentProcess()
+{
+    // switch back to kernel stack
+    switchToProcessStack(kernelStack);
+}
+
+ProcessMgr::ProcessInfo* ProcessMgr::getCurrentProcessInfo()
 {
     return *ProcessInfo::PROCESS_INFO;
 }
@@ -273,6 +285,31 @@ pid_t ProcessMgr::getNewId()
     } while (invalidId);
 
     return nextId++;
+}
+
+ProcessMgr::ProcessInfo* ProcessMgr::findProcess(pid_t id)
+{
+    for (int i = 0; i < MAX_NUM_PROCESSES; ++i)
+    {
+        if (processInfo[i].id == id)
+        {
+            return &processInfo[i];
+        }
+    }
+
+    return nullptr;
+}
+
+void ProcessMgr::cleanUpProcess(ProcessInfo* procInfo)
+{
+    // free page frames
+    for (int i = 0; i < procInfo->getNumPageFrames(); ++i)
+    {
+        pageFrameMgr->freePageFrame(procInfo->getPageFrame(i));
+    }
+
+    // reset ProcessInfo
+    procInfo->reset();
 }
 
 void ProcessMgr::logError(const char* errorMsg)

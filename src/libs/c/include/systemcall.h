@@ -5,6 +5,7 @@
 
 const uint32_t SYSTEM_CALL_WRITE  =  0;
 const uint32_t SYSTEM_CALL_GETPID =  1;
+const uint32_t SYSTEM_CALL_EXIT   =  2;
 
 const uint32_t SYSTEM_CALL_TEST   =  9;
 const uint32_t SYSTEM_CALL_TEST3  = 10;

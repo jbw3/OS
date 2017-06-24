@@ -53,7 +53,12 @@ uint32_t getRegCR2();
 /**
  * @brief Switch to user mode (privilege level 3)
  */
-void switchToUserMode(uintptr_t userStackAddr);
+void switchToUserMode(uintptr_t userStackAddr, uintptr_t* currentStackAddr);
+
+/**
+ * @brief Switch to the given process's stack.
+ */
+void switchToProcessStack(uintptr_t procStack);
 
 /**
  * @todo move this to libstdc++
