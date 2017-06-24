@@ -115,7 +115,8 @@ Acpi::Acpi(PageFrameMgr* pageFrameMgr)
     // todo: create KernelVirtMemMgr class:
     // kVirtMemMgr.getPage(physicalAddress);    // maps and returns base address (w/o offset)
 
-    uint32_t virtAddr = os::autoMapKernelPageForAddress(0x7FE1000);
+    uint32_t virtAddr = os::autoMapKernelPageForAddress(0x7FE1000, _pageFrameMgr);
+    screen << "VIRT ADDR: " << virtAddr << "\n";
 }
 
 }

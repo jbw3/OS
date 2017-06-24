@@ -1,3 +1,6 @@
+#pragma once
+
+#include <pageframemgr.h>
 
 namespace os {
 
@@ -14,7 +17,7 @@ uint32_t getAddressOfPage(uint32_t addr);
  * This is useful when a specific physical address must be mapped, but the
  * exact virtual address is unimportant.
  */
-uint32_t autoMapKernelPageForAddress(uint32_t physAddr);
+uint32_t autoMapKernelPageForAddress(uint32_t physAddr, PageFrameMgr* pfMgr);
 // CLS TODO: consider mapping entire first 16MB phys to 3GB virt
 // for speed?
 

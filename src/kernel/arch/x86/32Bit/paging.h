@@ -70,6 +70,15 @@ void configPaging();
 void mapPage(const uint32_t* pageDir, uint32_t virtualAddr, uint32_t physicalAddr);
 
 /**
+ * @brief Returns a pointer that can be used to access the page table
+ * identified by the given index in the given page directory.
+ * since the PDE stores a physical address of the page table,
+ * this function transforms this address into a virtual one that
+ * can be used directly.
+ */
+uint32_t* getPageTablePointer(uint32_t* pageDir, uint16_t index);
+
+/**
  * Utilities for page table walking and information retrieval
  */
 namespace pageInfo {
@@ -77,13 +86,22 @@ namespace pageInfo {
 /**
  * @brief Returns the number of available kernel page directory entries
  */
-uint32_t kNumAvailablePageDirEntries();
+uint32_t kNumAvailablePDEs();
 
 /**
  * @brief Returns the number of available page directory entries
  * for the specified page directory.
+ * @param pageDir points to the page directory to use
+ * @param startIdx is the index into the page directory at which
+ * to begin searching
  */
-uint32_t numAvailablePageDirEntries(uint32_t* pageDir);
+uint32_t numAvailablPDEs(uint32_t* pageDir, uint16_t startIdx=0);
+
+/**
+ * @brief Returns last kernel PDE in the list of those currently in use,
+ * assuming the PDEs are allocated in order and that the first entry exists.
+ */
+uint16_t lastUsedKernelPDEIndex();
 
 }
 
