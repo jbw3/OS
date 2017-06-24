@@ -17,7 +17,7 @@ class PageFrameMgr;
 class ProcessMgr
 {
 private:
-        /**
+    /**
      * @brief Stores information about a process.
      */
     class ProcessInfo
