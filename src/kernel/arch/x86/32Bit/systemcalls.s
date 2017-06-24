@@ -27,16 +27,9 @@ execSystemCall:
 	; DO NOT USE THE eax REGISTER AFTER THE SYSTEM CALL!!!
 	; IT CONTAINS THE SYSTEM CALL'S RETURN VALUE!!!
 
-	mov ecx, ebx ; copy numArgs
-	cmp ecx, 0
-	jz .end
+	; clean up pushed function arguments
+	shl ebx, 2	; multiply by 4
+	add esp, ebx
 
-	; pop arguments
-.popLoop:
-	pop edx
-	dec ecx
-	jnz .popLoop
-
-.end:
 	pop ebx
 	ret
