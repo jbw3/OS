@@ -434,9 +434,8 @@ Command* Shell::COMMANDS[NUM_COMMANDS] =
     &writeCmd,
 };
 
-Shell::Shell(const multiboot_info* mbootInfoPtr, ProcessMgr& processMgr) :
-    mbootInfo(mbootInfoPtr),
-    processMgr(processMgr)
+Shell::Shell(const multiboot_info* mbootInfoPtr) :
+    mbootInfo(mbootInfoPtr)
 {
     showCmd.setMbootInfo(mbootInfo);
 

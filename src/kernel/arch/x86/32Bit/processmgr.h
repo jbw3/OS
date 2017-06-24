@@ -22,11 +22,16 @@ public:
     /**
      * @brief Constructor
      */
-    ProcessMgr(PageFrameMgr& pageFrameMgr);
+    ProcessMgr();
+
+    void setPageFrameMgr(PageFrameMgr* pageFrameMgrPtr);
 
     void createProcess(const multiboot_mod_list* module);
 
 private:
+    /**
+     * @brief Stores information about a process.
+     */
     class ProcessInfo
     {
     public:
@@ -66,7 +71,7 @@ private:
     constexpr static int MAX_NUM_PROCESSES = 4;
     ProcessInfo processInfo[MAX_NUM_PROCESSES];
 
-    PageFrameMgr& pageFrameMgr;
+    PageFrameMgr* pageFrameMgr;
 
     /**
      * @brief Create a new page directory for a process by copying
@@ -90,5 +95,7 @@ private:
      */
     void logError(const char* errorMsg);
 };
+
+extern ProcessMgr processMgr;
 
 #endif // PROCESS_MGR_H_

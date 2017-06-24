@@ -41,9 +41,14 @@ uintptr_t* ProcessMgr::ProcessInfo::getPageDir()
     return reinterpret_cast<uintptr_t*>(pageFrames[0] + KERNEL_VIRTUAL_BASE);
 }
 
-ProcessMgr::ProcessMgr(PageFrameMgr& pageFrameMgr) :
-    pageFrameMgr(pageFrameMgr)
+ProcessMgr::ProcessMgr() :
+    pageFrameMgr(nullptr)
 {
+}
+
+void ProcessMgr::setPageFrameMgr(PageFrameMgr* pageFrameMgrPtr)
+{
+    pageFrameMgr = pageFrameMgrPtr;
 }
 
 void ProcessMgr::createProcess(const multiboot_mod_list* module)
@@ -107,7 +112,7 @@ void ProcessMgr::createProcess(const multiboot_mod_list* module)
     // free page frames
     for (int i = 0; i < newProcInfo->getNumPageFrames(); ++i)
     {
-        pageFrameMgr.freePageFrame(newProcInfo->getPageFrame(i));
+        pageFrameMgr->freePageFrame(newProcInfo->getPageFrame(i));
     }
 
     // reset ProcessInfo
@@ -128,7 +133,7 @@ bool ProcessMgr::createProcessPageDir(ProcessInfo* newProcInfo)
     {
         // get page frames for the process's page dir and page tables
         // (these are physical addresses)
-        uintptr_t phyAddr = pageFrameMgr.allocPageFrame();
+        uintptr_t phyAddr = pageFrameMgr->allocPageFrame();
 
         // log an error if we could not get a page frame
         if (phyAddr == 0)
@@ -184,7 +189,7 @@ bool ProcessMgr::setUpProgram(const multiboot_mod_list* module, ProcessInfo* new
     uintptr_t virAddr = ProcessInfo::CODE_VIRTUAL_START;
     for (unsigned int ptr = module->mod_start; ptr < module->mod_end; ptr += PAGE_SIZE)
     {
-        uintptr_t phyAddr = pageFrameMgr.allocPageFrame();
+        uintptr_t phyAddr = pageFrameMgr->allocPageFrame();
         if (phyAddr == 0)
         {
             logError("Could not allocate page frame.");
@@ -204,7 +209,7 @@ bool ProcessMgr::setUpProgram(const multiboot_mod_list* module, ProcessInfo* new
            codeSize);
 
     // allocate and map a page for the kernel stack
-    uintptr_t kernelStackPhyAddr = pageFrameMgr.allocPageFrame();
+    uintptr_t kernelStackPhyAddr = pageFrameMgr->allocPageFrame();
     if (kernelStackPhyAddr == 0)
     {
         logError("Could not allocate a page frame for the kernel stack.");
@@ -214,7 +219,7 @@ bool ProcessMgr::setUpProgram(const multiboot_mod_list* module, ProcessInfo* new
     mapPage(newProcInfo->getPageDir(), ProcessInfo::KERNEL_STACK_PAGE, kernelStackPhyAddr);
 
     // allocate and map a page for the user stack
-    uintptr_t userStackPhyAddr = pageFrameMgr.allocPageFrame();
+    uintptr_t userStackPhyAddr = pageFrameMgr->allocPageFrame();
     if (userStackPhyAddr == 0)
     {
         logError("Could not allocate a page frame for the user stack.");
@@ -260,3 +265,6 @@ void ProcessMgr::logError(const char* errorMsg)
 {
     screen << "Could not create process:\n" << errorMsg << '\n';
 }
+
+// create ProcessMgr instance
+ProcessMgr processMgr;

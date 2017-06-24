@@ -11,7 +11,7 @@ class ProcessMgr;
 class Shell
 {
 public:
-    Shell(const multiboot_info* mbootInfoPtr, ProcessMgr& processMgr);
+    Shell(const multiboot_info* mbootInfoPtr);
 
     void update();
 
@@ -22,7 +22,6 @@ private:
     static Command* COMMANDS[NUM_COMMANDS];
 
     const multiboot_info* mbootInfo;
-    ProcessMgr& processMgr;
 
     typedef int (*programPtr)();
 
