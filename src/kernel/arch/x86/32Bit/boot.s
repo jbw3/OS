@@ -131,6 +131,9 @@ times (PAGE_TABLE_ENTRIES - KERNEL_PAGE_TABLE_IDX - 1) dd 0
 kernelPageDirEnd:
 
 ; kernel page table
+global kernelPageTableStart
+global kernelPageTableEnd
+
 align 4096
 kernelPageTableStart:
 %assign address 0
