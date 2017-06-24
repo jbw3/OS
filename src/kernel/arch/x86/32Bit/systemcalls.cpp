@@ -51,7 +51,7 @@ const void* SYSTEM_CALLS[SYSTEM_CALLS_SIZE] = {
 };
 
 extern "C"
-void systemCallHandler(uint32_t sysCallNum, uint32_t numArgs, const uint32_t* argPtr)
+uint32_t systemCallHandler(uint32_t sysCallNum, uint32_t numArgs, const uint32_t* argPtr)
 {
     if (sysCallNum >= SYSTEM_CALLS_SIZE || SYSTEM_CALLS[sysCallNum] == nullptr)
     {
@@ -59,11 +59,13 @@ void systemCallHandler(uint32_t sysCallNum, uint32_t numArgs, const uint32_t* ar
         /// be changed to something else like killing the
         /// calling process.
         PANIC("Unknown system call.");
+
+        return 0xbad'ca11;
     }
     else
     {
         const void* funcPtr = SYSTEM_CALLS[sysCallNum];
 
-        systemCall(funcPtr, numArgs, argPtr);
+        return systemCall(funcPtr, numArgs, argPtr);
     }
 }
