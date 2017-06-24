@@ -6,9 +6,7 @@
 #define PROCESS_MGR_H_
 
 #include <stdint.h>
-
-/// @todo put this in a posix header
-typedef unsigned int pid_t;
+#include <unistd.h>
 
 struct multiboot_mod_list;
 class PageFrameMgr;
@@ -18,18 +16,8 @@ class PageFrameMgr;
  */
 class ProcessMgr
 {
-public:
-    /**
-     * @brief Constructor
-     */
-    ProcessMgr();
-
-    void setPageFrameMgr(PageFrameMgr* pageFrameMgrPtr);
-
-    void createProcess(const multiboot_mod_list* module);
-
 private:
-    /**
+        /**
      * @brief Stores information about a process.
      */
     class ProcessInfo
@@ -43,6 +31,12 @@ private:
 
         /// virtual address of the user stack page
         static const uintptr_t USER_STACK_PAGE;
+
+        /// the ProcessInfo instance for the current process
+        static const ProcessInfo** PROCESS_INFO;
+
+        /// the start address of the kernel stack page
+        static const uintptr_t KERNEL_STACK_START;
 
         /// Unique ID for the process.
         pid_t id;
@@ -68,9 +62,26 @@ private:
         int numPageFrames;
     };
 
+public:
+    /**
+     * @brief Constructor
+     */
+    ProcessMgr();
+
+    void setPageFrameMgr(PageFrameMgr* pageFrameMgrPtr);
+
+    void createProcess(const multiboot_mod_list* module);
+
+    /**
+     * @brief Get the ProcessInfo for calling process.
+     */
+    const ProcessInfo* getCurrentProcessInfo() const;
+
+private:
     constexpr static int MAX_NUM_PROCESSES = 4;
     ProcessInfo processInfo[MAX_NUM_PROCESSES];
 
+    /// the page frame manager
     PageFrameMgr* pageFrameMgr;
 
     /**

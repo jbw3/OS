@@ -4,6 +4,11 @@
 extern "C"
 {
 
+pid_t getpid()
+{
+    return systemCall(SYSTEM_CALL_GETPID);
+}
+
 ssize_t write(int fildes, const void* buf, size_t nbyte)
 {
     ssize_t rc = systemCall(SYSTEM_CALL_WRITE,

@@ -1,3 +1,4 @@
+#include "processmgr.h"
 #include "screen.h"
 #include "system.h"
 #include "systemcalls.h"
@@ -5,6 +6,11 @@
 
 namespace systemcall
 {
+
+pid_t getpid()
+{
+    return processMgr.getCurrentProcessInfo()->id;
+}
 
 ssize_t write(int fildes, const void* buf, size_t nbyte)
 {
@@ -38,7 +44,7 @@ void test3(int arg1, int arg2, int arg3)
 constexpr uint32_t SYSTEM_CALLS_SIZE = 11;
 const void* SYSTEM_CALLS[SYSTEM_CALLS_SIZE] = {
     reinterpret_cast<const void*>(systemcall::write),
-    nullptr,
+    reinterpret_cast<const void*>(systemcall::getpid),
     nullptr,
     nullptr,
     nullptr,

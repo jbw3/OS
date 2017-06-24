@@ -3,9 +3,11 @@
 
 #include "stdint.h"
 
-const uint32_t SYSTEM_CALL_WRITE =  0;
-const uint32_t SYSTEM_CALL_TEST  =  9;
-const uint32_t SYSTEM_CALL_TEST3 = 10;
+const uint32_t SYSTEM_CALL_WRITE  =  0;
+const uint32_t SYSTEM_CALL_GETPID =  1;
+
+const uint32_t SYSTEM_CALL_TEST   =  9;
+const uint32_t SYSTEM_CALL_TEST3  = 10;
 
 extern "C"
 uint32_t systemCallNumArgs(uint32_t sysCallNum, uint32_t numArgs, ...);

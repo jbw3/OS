@@ -10,6 +10,12 @@
 const uintptr_t ProcessMgr::ProcessInfo::KERNEL_STACK_PAGE = KERNEL_VIRTUAL_BASE - PAGE_SIZE;
 const uintptr_t ProcessMgr::ProcessInfo::USER_STACK_PAGE = ProcessMgr::ProcessInfo::KERNEL_STACK_PAGE - PAGE_SIZE;
 
+// put the ProcessInfo pointer at the base of the kernel stack
+const ProcessMgr::ProcessInfo** ProcessMgr::ProcessInfo::PROCESS_INFO = reinterpret_cast<const ProcessMgr::ProcessInfo**>(ProcessMgr::ProcessInfo::KERNEL_STACK_PAGE + PAGE_SIZE - 4);
+
+// the kernel stack starts right after the ProcessInfo pointer
+const uintptr_t ProcessMgr::ProcessInfo::KERNEL_STACK_START = reinterpret_cast<uintptr_t>(ProcessMgr::ProcessInfo::PROCESS_INFO) - sizeof(ProcessMgr::ProcessInfo::PROCESS_INFO);
+
 ProcessMgr::ProcessInfo::ProcessInfo()
 {
     reset();
@@ -95,8 +101,11 @@ void ProcessMgr::createProcess(const multiboot_mod_list* module)
         /// @todo remove this
         screen << "PID: " << newProcInfo->id << '\n';
 
+        // set the ProcessInfo pointer
+        *ProcessInfo::PROCESS_INFO = newProcInfo;
+
         // set the kernel stack for the process
-        setKernelStack(ProcessInfo::KERNEL_STACK_PAGE + PAGE_SIZE - 4);
+        setKernelStack(ProcessInfo::KERNEL_STACK_START);
 
         // switch to user mode and run process (this does not return)
         switchToUserMode(ProcessInfo::USER_STACK_PAGE + PAGE_SIZE - 4);
@@ -117,6 +126,11 @@ void ProcessMgr::createProcess(const multiboot_mod_list* module)
 
     // reset ProcessInfo
     newProcInfo->reset();
+}
+
+const ProcessMgr::ProcessInfo* ProcessMgr::getCurrentProcessInfo() const
+{
+    return *ProcessInfo::PROCESS_INFO;
 }
 
 bool ProcessMgr::createProcessPageDir(ProcessInfo* newProcInfo)

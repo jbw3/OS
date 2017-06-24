@@ -5,6 +5,7 @@
 #define STDOUT_FILENO 1
 #define STDERR_FILENO 2
 
+typedef unsigned int pid_t;
 typedef __SIZE_TYPE__ size_t;
 typedef long ssize_t;
 
@@ -12,6 +13,8 @@ typedef long ssize_t;
 extern "C"
 {
 #endif
+
+pid_t getpid();
 
 ssize_t write(int fildes, const void* buf, size_t nbyte);
 
