@@ -6,12 +6,13 @@ LIBDIR = ../../lib
 BINDIR = ../../bin/programs
 
 C_INCLUDES = -I$(LIBSRCDIR)/c/include
+CXX_INCLUDES = -I$(LIBSRCDIR)/c/include
 
 CC = i686-elf-gcc
 CFLAGS = $(C_INCLUDES) -std=c11 -nostdlib -nostdinc -fno-builtin -fno-stack-protector -nostartfiles -nodefaultlibs -Wall -Wextra
 
 CXX = i686-elf-g++
-CXXFLAGS = -std=c++1z -nostdlib -nostdinc -fno-builtin -fno-stack-protector -nostartfiles -nodefaultlibs -fno-exceptions -fno-rtti -Wall -Wextra
+CXXFLAGS = $(CXX_INCLUDES) -std=c++1z -nostdlib -nostdinc -fno-builtin -fno-stack-protector -nostartfiles -nodefaultlibs -fno-exceptions -fno-rtti -Wall -Wextra
 
 AS = nasm
 ASFLAGS = -f bin
