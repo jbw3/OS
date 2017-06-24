@@ -1,7 +1,7 @@
 argStart equ 8
 
-global systemCall
-systemCall:
+global execSystemCall
+execSystemCall:
 	push ebx
 
 	mov eax, [esp + argStart]		; funcPtr

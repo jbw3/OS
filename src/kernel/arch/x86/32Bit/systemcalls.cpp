@@ -66,6 +66,6 @@ uint32_t systemCallHandler(uint32_t sysCallNum, uint32_t numArgs, const uint32_t
     {
         const void* funcPtr = SYSTEM_CALLS[sysCallNum];
 
-        return systemCall(funcPtr, numArgs, argPtr);
+        return execSystemCall(funcPtr, numArgs, argPtr);
     }
 }
