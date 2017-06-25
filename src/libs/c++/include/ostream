@@ -1,0 +1,19 @@
+#ifndef _OSTREAM
+#define _OSTREAM
+
+#include <ios>
+
+namespace std
+{
+
+template<typename CharT, typename Traits = char_traits<CharT>>
+class basic_ostream : virtual public basic_ios<CharT, Traits>
+{
+};
+
+typedef basic_ostream<char> ostream;
+typedef basic_ostream<wchar_t> wostream;
+
+} // namespace std
+
+#endif // _OSTREAM

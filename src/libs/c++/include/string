@@ -1,0 +1,84 @@
+#ifndef _STRING
+#define _STRING
+
+#include <cstdio>
+#include <ios>
+
+namespace std
+{
+
+template<typename CharT>
+class char_traits
+{
+public:
+    typedef CharT char_type;
+    typedef int int_type;
+    typedef std::streamoff off_type;
+
+    static constexpr int_type to_int_type(char_type ch) noexcept
+    {
+        return static_cast<int_type>(ch);
+    }
+
+    static constexpr bool eq_int_type(int_type ch1, int_type ch2) noexcept
+    {
+        return ch1 == ch2;
+    }
+
+    static constexpr int_type eof() noexcept
+    {
+        return EOF;
+    }
+
+    static constexpr int_type not_eof(int_type ch) noexcept
+    {
+        if (eq_int_type(ch, eof()))
+        {
+            return ch;
+        }
+        else
+        {
+            return 0;
+        }
+    }
+};
+
+template<>
+class char_traits<char>
+{
+public:
+    typedef char char_type;
+    typedef int int_type;
+    typedef std::streamoff off_type;
+
+    static constexpr int_type to_int_type(char_type ch) noexcept
+    {
+        return static_cast<int_type>(ch);
+    }
+
+    static constexpr bool eq_int_type(int_type ch1, int_type ch2) noexcept
+    {
+        return ch1 == ch2;
+    }
+
+    static constexpr int_type eof() noexcept
+    {
+        return EOF;
+    }
+
+    static constexpr int_type not_eof(int_type ch) noexcept
+    {
+        if (eq_int_type(ch, eof()))
+        {
+            return ch;
+        }
+        else
+        {
+            return 0;
+        }
+    }
+};
+
+} // namespace std
+
+#endif // _STRING

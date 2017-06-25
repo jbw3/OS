@@ -1,0 +1,45 @@
+#ifndef _IOS
+#define _IOS
+
+namespace std
+{
+// string needs this, so it has to be defined before the include
+typedef long long streamoff;
+}
+
+#include <string>
+
+namespace std
+{
+
+class ios_base
+{
+public:
+    ios_base(const ios_base&) = delete;
+
+    virtual ~ios_base() = default;
+
+protected:
+    ios_base();
+};
+
+template<typename CharT, typename Traits = char_traits<CharT>>
+class basic_ios : public ios_base
+{
+public:
+    basic_ios(const basic_ios&) = delete;
+
+    basic_ios& operator =(const basic_ios&) = delete;
+
+    virtual ~basic_ios() = default;
+
+protected:
+    basic_ios() = default;
+};
+
+typedef basic_ios<char> ios;
+typedef basic_ios<wchar_t> wios;
+
+} // namespace std
+
+#endif // _IOS

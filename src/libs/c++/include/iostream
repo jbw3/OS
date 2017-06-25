@@ -1,0 +1,13 @@
+#ifndef _IOSTREAM
+#define _IOSTREAM
+
+#include <ostream>
+
+namespace std
+{
+
+extern ostream cout;
+
+} // namespace std
+
+#endif // _IOSTREAM

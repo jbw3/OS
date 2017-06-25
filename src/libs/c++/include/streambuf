@@ -1,0 +1,114 @@
+#ifndef _STREAMBUF
+#define _STREAMBUF
+
+#include <string>
+
+namespace std
+{
+
+template<typename CharT, typename Traits = char_traits<CharT>>
+class basic_streambuf
+{
+public:
+    typedef CharT char_type;
+    typedef Traits traits_type;
+    typedef typename Traits::int_type int_type;
+    typedef typename Traits::off_type off_type;
+
+    virtual ~basic_streambuf() = default;
+
+    int pubsync()
+    {
+        return sync();
+    }
+
+    int_type sputc(char_type ch)
+    {
+        // add char to buffer if there's room
+        if (_pptr != nullptr && _pptr < _epptr)
+        {
+            *_pptr = ch;
+            ++_pptr;
+        }
+        else // call overflow
+        {
+            int_type rv = overflow(ch);
+
+            // if overflow returned EOF, we failed
+            if (Traits::eq_int_type(rv, Traits::eof()))
+            {
+                return Traits::eof();
+            }
+        }
+
+        // if we get here, we were successful
+        return Traits::to_int_type(ch);
+    }
+
+protected:
+    basic_streambuf()
+    {
+        _pbase = nullptr;
+        _pptr = nullptr;
+        _epptr = nullptr;
+        _eback = nullptr;
+        _gptr = nullptr;
+        _egptr = nullptr;
+    }
+
+    basic_streambuf(const basic_streambuf&) = default;
+
+    basic_streambuf& operator =(const basic_streambuf&) = default;
+
+    char_type* pbase() const
+    {
+        return _pbase;
+    }
+
+    char_type* pptr() const
+    {
+        return _pptr;
+    }
+
+    char_type* epptr() const
+    {
+        return _epptr;
+    }
+
+    char_type* eback() const
+    {
+        return _eback;
+    }
+
+    char_type* gptr() const
+    {
+        return _gptr;
+    }
+
+    char_type* egptr() const
+    {
+        return _egptr;
+    }
+
+    virtual int_type overflow(int_type = Traits::eof())
+    {
+        return Traits::eof();
+    }
+
+    virtual int sync()
+    {
+        return 0;
+    }
+
+private:
+    char_type* _pbase;
+    char_type* _pptr;
+    char_type* _epptr;
+    char_type* _eback;
+    char_type* _gptr;
+    char_type* _egptr;
+};
+
+} // namespace std
+
+#endif // _STREAMBUF
