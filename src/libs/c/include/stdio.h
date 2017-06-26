@@ -8,7 +8,11 @@ extern "C"
 {
 #endif
 
+typedef __builtin_va_list va_list;
+
 int sprintf(char* buff, const char* fmt, ...);
+
+int vsprintf(char* buff, const char* fmd, va_list args);
 
 #ifdef __cplusplus
 } /* extern "C" */

@@ -6,12 +6,22 @@
 
 int sprintf(char* buff, const char* fmt, ...)
 {
+    va_list args;
+    va_start(args, fmt);
+
+    int rv = vsprintf(buff, fmt, args);
+
+    va_end(args);
+
+    return rv;
+}
+
+int vsprintf(char* buff, const char* fmt, va_list args)
+{
     const char* buffStart = buff;
     int i;
     unsigned int ui;
     char* s;
-    va_list args;
-    va_start(args, fmt);
 
     while (*fmt != '\0')
     {
@@ -101,8 +111,6 @@ int sprintf(char* buff, const char* fmt, ...)
 
     }
     *buff = '\0';
-
-    va_end(args);
 
     return buff - buffStart;
 }
