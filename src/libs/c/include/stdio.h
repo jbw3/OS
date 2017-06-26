@@ -8,9 +8,13 @@ extern "C"
 
 typedef __builtin_va_list va_list;
 
+int printf(const char* fmt, ...);
+
+int vprintf(const char* fmt, va_list args);
+
 int sprintf(char* buff, const char* fmt, ...);
 
-int vsprintf(char* buff, const char* fmd, va_list args);
+int vsprintf(char* buff, const char* fmt, va_list args);
 
 #ifdef __cplusplus
 } /* extern "C" */

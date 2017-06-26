@@ -1,8 +1,32 @@
 #include <stdarg.h>
 #include <stdio.h>
 #include <string.h>
+#include <unistd.h>
 
 #include "stringutils.h"
+
+int printf(const char* fmt, ...)
+{
+    va_list args;
+    va_start(args, fmt);
+
+    int rv = vprintf(fmt, args);
+
+    va_end(args);
+
+    return rv;
+}
+
+int vprintf(const char* fmt, va_list args)
+{
+    char buff[128];
+
+    int numChars = vsprintf(buff, fmt, args);
+
+    ssize_t status = write(STDOUT_FILENO, buff, numChars);
+
+    return (status < 0) ? -1 : numChars;
+}
 
 int sprintf(char* buff, const char* fmt, ...)
 {
