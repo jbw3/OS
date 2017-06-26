@@ -1,14 +1,25 @@
+#include <iostream>
+#include <streambuf>
 #include "string.h"
 #include "unistd.h"
 
+using std::cout;
+
+void print(const char* str)
+{
+    write(STDOUT_FILENO, str, strlen(str));
+}
+
 int main()
 {
-    int x = 2;
-    int y = 2;
-    int z = x * y;
-
     const char str[] = "test4\n";
-    write(STDOUT_FILENO, str, strlen(str));
 
-    return z;
+    static_assert(sizeof(std::char_traits<char>::char_type) == 1);
+    static_assert(std::char_traits<char>::eof() == -1);
+    static_assert(sizeof(wchar_t) == 4);
+
+    print(str);
+    cout.put('!');
+
+    return 0;
 }

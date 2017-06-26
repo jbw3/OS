@@ -7,7 +7,7 @@ namespace std
 typedef long long streamoff;
 }
 
-#include <string>
+#include <streambuf>
 
 namespace std
 {
@@ -20,21 +20,51 @@ public:
     virtual ~ios_base() = default;
 
 protected:
-    ios_base();
+    ios_base() = default;
 };
 
 template<typename CharT, typename Traits = char_traits<CharT>>
 class basic_ios : public ios_base
 {
 public:
+    typedef CharT char_type;
+    typedef Traits traits_type;
+    typedef typename Traits::int_type int_type;
+    typedef typename Traits::off_type off_type;
+
+    explicit basic_ios(basic_streambuf<CharT, Traits>* sb)
+    {
+        _rdbuf = sb;
+    }
+
     basic_ios(const basic_ios&) = delete;
 
     basic_ios& operator =(const basic_ios&) = delete;
 
     virtual ~basic_ios() = default;
 
+    basic_streambuf<CharT, Traits>* rdbuf() const
+    {
+        return _rdbuf;
+    }
+
+    basic_streambuf<CharT, Traits>* rdbuf(basic_streambuf<CharT, Traits>* sb)
+    {
+        basic_streambuf<CharT, Traits>* prev = _rdbuf;
+        _rdbuf = sb;
+        /// @todo call clear()
+
+        return prev;
+    }
+
 protected:
-    basic_ios() = default;
+    basic_ios()
+    {
+        _rdbuf = nullptr;
+    }
+
+private:
+    basic_streambuf<CharT, Traits>* _rdbuf;
 };
 
 typedef basic_ios<char> ios;

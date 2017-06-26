@@ -9,6 +9,31 @@ namespace std
 template<typename CharT, typename Traits = char_traits<CharT>>
 class basic_ostream : virtual public basic_ios<CharT, Traits>
 {
+public:
+    typedef CharT char_type;
+    typedef Traits traits_type;
+    typedef typename Traits::int_type int_type;
+    typedef typename Traits::off_type off_type;
+
+    explicit basic_ostream(basic_streambuf<CharT, Traits>* sb) :
+        basic_ios<CharT, Traits>(sb)
+    {
+    }
+
+    virtual ~basic_ostream() = default;
+
+    basic_ostream& put(char_type ch)
+    {
+        /// @todo check for error
+        this->rdbuf()->sputc(ch);
+
+        return *this;
+    }
+
+protected:
+    basic_ostream(const basic_ostream&) = delete;
+
+    basic_ostream(basic_ostream&&) = default;
 };
 
 typedef basic_ostream<char> ostream;

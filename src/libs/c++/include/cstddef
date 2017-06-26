@@ -1,0 +1,11 @@
+#ifndef _CSTDDEF
+#define _CSTDDEF
+
+namespace std
+{
+
+#include "stddef.h"
+
+} // namespace std
+
+#endif // _CSTDDEF

@@ -1,0 +1,8 @@
+#ifndef _NEW
+#define _NEW
+
+#include <cstddef>
+
+void operator delete(void*, std::size_t);
+
+#endif // _NEW

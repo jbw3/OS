@@ -6,7 +6,7 @@ LIBDIR = ../../lib
 BINDIR = ../../bin/programs
 
 C_INCLUDES = -I$(LIBSRCDIR)/c/include
-CXX_INCLUDES = -I$(LIBSRCDIR)/c/include
+CXX_INCLUDES = -I$(LIBSRCDIR)/c/include -I$(LIBSRCDIR)/c++/include
 
 CC = i686-elf-gcc
 CFLAGS = $(C_INCLUDES) -std=c11 -nostdlib -nostdinc -fno-builtin -fno-stack-protector -nostartfiles -nodefaultlibs -Wall -Wextra
@@ -17,16 +17,23 @@ CXXFLAGS = $(CXX_INCLUDES) -std=c++1z -nostdlib -nostdinc -fno-builtin -fno-stac
 AS = nasm
 ASFLAGS = -f bin
 
-PROGRAMS = test1 test2 test3 test4
+# PROGRAMS = test1 test2 test3 test4
+PROGRAMS = test4
 BINARIES = $(patsubst %,$(BINDIR)/%,$(PROGRAMS))
 
-LIBS = -L$(OBJDIR) -L$(LIBDIR) -lc -lgcc
-LDFLAGS = -T link.ld $(LIBS) -nostdlib -nostdinc -fno-builtin -fno-stack-protector -nostartfiles -nodefaultlibs
+C_LIBS = -L$(OBJDIR) -L$(LIBDIR) -lc -lgcc
+C_LDFLAGS = -T link.ld $(C_LIBS) -nostdlib -nostdinc -fno-builtin -fno-stack-protector -nostartfiles -nodefaultlibs
+
+CXX_LIBS = -L$(OBJDIR) -L$(LIBDIR) -lc -lc++ -lgcc
+CXX_LDFLAGS = -T link.ld $(CXX_LIBS) -nostdlib -nostdinc -fno-builtin -fno-stack-protector -nostartfiles -nodefaultlibs
+
+CRTBEGIN_OBJ = $(shell $(CXX) $(CXXFLAGS) -print-file-name=crtbegin.o)
+CRTEND_OBJ = $(shell $(CXX) $(CXXFLAGS) -print-file-name=crtend.o)
 
 # don't use default rules
 .SUFFIXES:
 
-.PRECIOUS: $(patsubst %,$(OBJDIR)/%.o,wrapper.s test3.c test4.cpp)
+.PRECIOUS: $(patsubst %,$(OBJDIR)/%.o,crti.s crtn.s wrapper.s test3.c test4.cpp)
 
 .PHONY: all
 all: init $(BINARIES)
@@ -43,10 +50,10 @@ $(OBJDIR)/%.s.o: %.s
 	$(AS) $< -f elf32 -o $@
 
 $(BINDIR)/%: $(OBJDIR)/%.c.o $(OBJDIR)/wrapper.s.o
-	$(CC) $^ -o $@ $(LDFLAGS)
+	$(CC) $^ -o $@ $(C_LDFLAGS)
 
-$(BINDIR)/%: $(OBJDIR)/%.cpp.o $(OBJDIR)/wrapper.s.o
-	$(CXX) $^ -o $@ $(LDFLAGS)
+$(BINDIR)/%: $(OBJDIR)/%.cpp.o $(OBJDIR)/wrapper.s.o $(OBJDIR)/crti.s.o $(OBJDIR)/crtn.s.o
+	$(CXX) $(OBJDIR)/crti.s.o $(CRTBEGIN_OBJ) $(filter-out $(OBJDIR)/crt%.s.o,$^) $(CRTEND_OBJ) $(OBJDIR)/crtn.s.o -o $@ $(CXX_LDFLAGS)
 
 $(OBJDIR)/%.c.o: %.c
 	$(CC) -c $< $(CFLAGS) -o $@
@@ -56,4 +63,4 @@ $(OBJDIR)/%.cpp.o: %.cpp
 
 .PHONY: clean
 clean:
-	rm -f $(BINARIES)
+	rm -f $(OBJDIR)/*.o $(BINARIES)
