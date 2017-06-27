@@ -5,6 +5,14 @@
 
 #include "stringutils.h"
 
+int putchar(int ch)
+{
+    unsigned char uChar = (unsigned char)(ch);
+    ssize_t status = write(STDOUT_FILENO, &uChar, 1);
+
+    return (status < 0) ? EOF : ch;
+}
+
 int printf(const char* fmt, ...)
 {
     va_list args;
