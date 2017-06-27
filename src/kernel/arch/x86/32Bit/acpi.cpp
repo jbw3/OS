@@ -3,12 +3,18 @@
 #include <pageframemgr.h>
 #include <paging.h>
 #include <screen.h>
+#include <string.h>
 #include <system.h>
 #include <vmem.h>
+
+using namespace std;
 
 namespace os {
     namespace acpi {
 
+/**
+ * ACPI RSDP Structure
+ */
 struct RootSystemDescriptionPointer
 {
     char Signature [8];
@@ -20,6 +26,68 @@ struct RootSystemDescriptionPointer
     uint64_t XsdtAddress;
     uint8_t ExtendedChecksum;
     char Reserved [3];
+
+    void printSignature()
+    {
+        for (int i = 0; i < 8; i++)
+        {
+            screen << this->Signature[i];
+        }
+        screen << "\n";
+    }
+
+    void printOEMId()
+    {
+        for (int i = 0; i < 6; i++)
+        {
+            screen << this->OEMID[i];
+        }
+        screen << "\n";
+    }
+} __attribute__((packed));
+
+/**
+ * ACPI System Description Table Header
+ */
+struct DESCRIPTION_HEADER
+{
+    char Signature [4];
+    uint32_t Length;
+    uint8_t Revision;
+    uint8_t Checksum;
+    char OEMID [6];
+    char OEMTableId [8];
+    uint32_t OEMRevision;
+    char CreatorId [4];
+    uint32_t CreatorRevision;
+
+    void printSignature()
+    {
+        for (int i = 0; i < 4; i++)
+        {
+            screen << this->Signature[i];
+        }
+        screen << "\n";
+    }
+} __attribute__((packed));
+
+/**
+ * ACPI RSDT Structure
+ */
+struct RootSystemDescriptionTable
+{
+    DESCRIPTION_HEADER Header;
+    //DESCRIPTION_HEADER* Entry;
+    uint32_t Entry;
+
+    /**
+     * @brief Returns the number of entries in the table
+     */
+    uint32_t count()
+    {
+        const uint32_t HEADER_LENGTH = 36;
+        return (this->Header.Length - HEADER_LENGTH) / 4;
+    }
 } __attribute__((packed));
 
     }   /// acpi
@@ -45,21 +113,8 @@ Acpi::Acpi(PageFrameMgr* pageFrameMgr)
 
     // found it
     acpi::RootSystemDescriptionPointer* RSDP = (acpi::RootSystemDescriptionPointer*)(EBDAPtr);
-    screen << RSDP->Signature[0];
-    screen << RSDP->Signature[1];
-    screen << RSDP->Signature[2];
-    screen << RSDP->Signature[3];
-    screen << RSDP->Signature[4];
-    screen << RSDP->Signature[5];
-    screen << RSDP->Signature[6];
-    screen << RSDP->Signature[7] << "\n";
-
-    screen << RSDP->OEMID[0];
-    screen << RSDP->OEMID[1];
-    screen << RSDP->OEMID[2];
-    screen << RSDP->OEMID[3];
-    screen << RSDP->OEMID[4];
-    screen << RSDP->OEMID[5] << "\n";
+    RSDP->printSignature();
+    RSDP->printOEMId();
 
     screen << "Revision: " << RSDP->Revision << "\n";
     screen << "RSDT Address: " << os::Screen::hex << RSDP->RsdtAddress << "\n";
@@ -67,12 +122,34 @@ Acpi::Acpi(PageFrameMgr* pageFrameMgr)
     uint32_t* pageDir = getKernelPageDirStart();
     screen << os::Screen::hex;
 
+    // todo: verify this isn't mapped already?
     uint32_t virtRsdtAddr = os::autoMapKernelPageForAddress(RSDP->RsdtAddress, _pageFrameMgr);
 
     // todo: create RSDT struct and access that...
+    acpi::RootSystemDescriptionTable* RSDT = (acpi::RootSystemDescriptionTable*)(virtRsdtAddr);
 
     screen << "VIRT ADDR: " << virtRsdtAddr << "\n";
-    screen << "RSDT: " << *(char*)(virtRsdtAddr) << "\n";
+    screen << "RSDT: ";
+    RSDT->Header.printSignature();
+    screen << "RSDT Length: " << os::Screen::dec << RSDT->Header.Length << "\n";
+    screen << "Num entries: " << RSDT->count() << "\n\n";
+
+    screen << os::Screen::hex;
+
+    for (int i = 0; i < RSDT->count(); i++)
+    //for (int i = 0; i < 2; i++)
+    {
+        uint32_t* entry = (uint32_t*)(&RSDT->Entry + i);
+
+        screen << "entry address: 0x" << entry << "\n";
+        uint32_t virtTableAddr = os::autoMapKernelPageForAddress(*entry, _pageFrameMgr);
+        screen << "entry[" << i << "]: 0x" << *entry << "\n";
+        screen << "entry[" << i << "]: 0x" << virtTableAddr << "\n";
+
+        acpi::DESCRIPTION_HEADER* entryHdr = (acpi::DESCRIPTION_HEADER*)(virtTableAddr);
+        entryHdr->printSignature();
+        //RSDT->Entry[i].printSignature();
+    }
 }
 
 }
