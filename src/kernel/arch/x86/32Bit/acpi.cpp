@@ -125,7 +125,6 @@ Acpi::Acpi(PageFrameMgr* pageFrameMgr)
     // todo: verify this isn't mapped already?
     uint32_t virtRsdtAddr = os::autoMapKernelPageForAddress(RSDP->RsdtAddress, _pageFrameMgr);
 
-    // todo: create RSDT struct and access that...
     acpi::RootSystemDescriptionTable* RSDT = (acpi::RootSystemDescriptionTable*)(virtRsdtAddr);
 
     screen << "VIRT ADDR: " << virtRsdtAddr << "\n";
@@ -137,8 +136,12 @@ Acpi::Acpi(PageFrameMgr* pageFrameMgr)
     screen << os::Screen::hex;
 
     for (int i = 0; i < RSDT->count(); i++)
-    //for (int i = 0; i < 2; i++)
     {
+        // todo: add function to check if address is already mapped
+        // if (!isMapped(physAddr))
+        //      autoMapKernelPageForAddress(physAddr)
+        // auto virt = getVirtAddr(physAddr)
+
         uint32_t* entry = (uint32_t*)(&RSDT->Entry + i);
 
         screen << "entry address: 0x" << entry << "\n";
