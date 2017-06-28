@@ -77,8 +77,12 @@ struct DESCRIPTION_HEADER
 struct RootSystemDescriptionTable
 {
     DESCRIPTION_HEADER Header;
-    //DESCRIPTION_HEADER* Entry;
-    uint32_t Entry;
+    DESCRIPTION_HEADER* Entry;     // first pointer in array of header pointers
+
+    DESCRIPTION_HEADER** getEntries()
+    {
+        return &Entry;
+    }
 
     /**
      * @brief Returns the number of entries in the table
@@ -122,8 +126,7 @@ Acpi::Acpi(PageFrameMgr* pageFrameMgr)
     uint32_t* pageDir = getKernelPageDirStart();
     screen << os::Screen::hex;
 
-    // todo: verify this isn't mapped already?
-    uint32_t virtRsdtAddr = mem::autoMapKernelPageForAddress(RSDP->RsdtAddress, _pageFrameMgr);
+    uint32_t virtRsdtAddr = mem::toVirtualKernelAddr(RSDP->RsdtAddress);
 
     acpi::RootSystemDescriptionTable* RSDT = (acpi::RootSystemDescriptionTable*)(virtRsdtAddr);
 
@@ -135,23 +138,14 @@ Acpi::Acpi(PageFrameMgr* pageFrameMgr)
 
     screen << os::Screen::hex;
 
-    for (int i = 0; i < RSDT->count(); i++)
+    for (uint32_t i = 0; i < RSDT->count(); i++)
     {
-        // todo: add function to check if address is already mapped
-        // if (!isMapped(physAddr))
-        //      autoMapKernelPageForAddress(physAddr)
-        // auto virt = getVirtAddr(physAddr)
-
-        uint32_t* entry = (uint32_t*)(&RSDT->Entry + i);
-
-        screen << "entry address: 0x" << entry << "\n";
-        uint32_t virtTableAddr = mem::autoMapKernelPageForAddress(*entry, _pageFrameMgr);
-        screen << "entry[" << i << "]: 0x" << *entry << "\n";
-        screen << "entry[" << i << "]: 0x" << virtTableAddr << "\n";
-
-        acpi::DESCRIPTION_HEADER* entryHdr = (acpi::DESCRIPTION_HEADER*)(virtTableAddr);
-        entryHdr->printSignature();
-        //RSDT->Entry[i].printSignature();
+        //screen << "RSDT address: " << RSDT << "\n";
+        acpi::DESCRIPTION_HEADER** entries = RSDT->getEntries();
+        acpi::DESCRIPTION_HEADER* entryHeader = entries[i];
+        //screen << "entry[i] address: " << entryHeader << "\n";
+        entryHeader = (acpi::DESCRIPTION_HEADER*)mem::toVirtualKernelAddr((uint32_t)entryHeader);
+        entryHeader->printSignature();
     }
 }
 

@@ -2,12 +2,6 @@
 #include "screen.h"
 #include "system.h"
 
-/**
- * @brief Starting index of kernel page directory entries (3GB and above
- * in virtual address space)
- */
-const uint16_t KERNEL_PAGEDIR_START_IDX = 0x300;
-
 extern "C"
 void pageFault(const registers* regs)
 {
@@ -51,11 +45,6 @@ void mapPage(const uint32_t* pageDir, uint32_t virtualAddr, uint32_t physicalAdd
     // get the entry in the page directory
     uint32_t pageDirEntry = pageDir[pageDirIdx];
     screen << os::Screen::hex;
-    //screen << "\n\n";
-    // screen << "VIRTUAL ADDRESS: 0x" << virtualAddr << "\n";
-    // screen << "PHYSICAL ADDRESS: 0x" << physicalAddr << "\n";
-    // screen << "PAGE DIR INDEX: 0x" << pageDirIdx << "\n";
-    // screen << "PAGE DIR ENTRY: 0x" << pageDirEntry << "\n";
 
     // make sure the entry contains a page table
     if ( (pageDirEntry & PAGE_DIR_PRESENT) == 0 )
@@ -93,22 +82,6 @@ uint32_t* getPageTablePointer(uint32_t* pageDir, uint16_t index)
 namespace mem {
 
 static uint32_t* _kPageDir = getKernelPageDirStart();
-
-// void todoFunc()
-// {
-//     for (uint16_t i = KERNEL_PAGEDIR_START_IDX; i < PAGE_DIR_NUM_ENTRIES; i++)
-//     {
-//         if (pageDir[i] & PAGE_DIR_PRESENT)
-//         {
-
-//         }
-//     }
-// }
-
-// bool isMappedByKernelPage(uint32_t physAddr, uint32_t virtAddr)
-// {
-//     virtAddr & PAGE_DIR_ADDRESS
-// }
 
 uint32_t kNumAvailablePDEs()
 {

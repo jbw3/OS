@@ -13,6 +13,7 @@
 #include "shell.h"
 #include "system.h"
 #include "timer.h"
+#include "vmem.h"
 
 /**
  * @brief 32-bit x86 kernel main
@@ -47,6 +48,7 @@ void kernelMain(const uint32_t MULTIBOOT_MAGIC_NUM, const multiboot_info* mbootI
     }
 
     PageFrameMgr pageFrameMgr(mbootInfo);
+    mem::setPageFrameMgr(&pageFrameMgr);    // cls: tmp hack...
 
     screen.write("Sandbox OSa\n");
     //char* buffer

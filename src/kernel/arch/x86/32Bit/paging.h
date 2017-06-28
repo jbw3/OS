@@ -34,6 +34,12 @@
 #define PAGE_TABLE_READ_WRITE    0x00000002
 #define PAGE_TABLE_PRESENT       0x00000001
 
+/**
+ * @brief Starting index of kernel page directory entries (3GB and above
+ * in virtual address space)
+ */
+const uint16_t KERNEL_PAGEDIR_START_IDX = 0x300;
+
 extern "C"
 {
 

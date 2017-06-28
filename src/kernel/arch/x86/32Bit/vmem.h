@@ -5,6 +5,23 @@
 namespace mem {
 
 /**
+ * @brief CLS TMP HACK: I had issues setting up a proper singleton...
+ * if somebody can get that to work, go for it! Don't have time right now.
+ */
+void setPageFrameMgr(PageFrameMgr* pfMgr);
+
+/**
+ * @brief toVirtualKernelAddr returns the corresponding virtual
+ * address mapped by the kernel.
+ *
+ * @details This function checks to see if the given physical address
+ * is already mapped by the kernel. If it is, the corresponding virtual
+ * address is returned. If it is not, the physical address is auto-mapped
+ * and then the corresponding virtual address is returned.
+ */
+uint32_t toVirtualKernelAddr(uint32_t physAddr);
+
+/**
  * @brief isMappedByKernel returns true if the given physical address
  * is mapped by a kernel page.
  * @param physAddr is the physical address
