@@ -72,6 +72,8 @@ public:
 
     void createProcess(const multiboot_mod_list* module);
 
+    void forkCurrentProcess();
+
     void exitCurrentProcess();
 
     /**
@@ -90,6 +92,12 @@ private:
     uintptr_t kernelStack;
 
     /**
+     * @brief Gets an empty entry in the process info table.
+     * @return true if an entry was available; false, otherwise
+     */
+    bool getNewProcInfo(ProcessInfo*& procInfo);
+
+    /**
      * @brief Create a new page directory for a process by copying
      * the kernel page directory.
      */
@@ -100,6 +108,11 @@ private:
      * code and setting up the stack.
      */
     bool setUpProgram(const multiboot_mod_list* module, ProcessInfo* newProcInfo);
+
+    /**
+     * @brief Copy code and stack pages from one process to another.
+     */
+    bool copyProcessPages(ProcessInfo* dstProc, const ProcessInfo* srcProc);
 
     /**
      * @brief Get an ID for a new process.

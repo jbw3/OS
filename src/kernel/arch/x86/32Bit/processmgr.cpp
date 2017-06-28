@@ -63,20 +63,7 @@ void ProcessMgr::createProcess(const multiboot_mod_list* module)
 
     // find an entry in the process info table
     ProcessInfo* newProcInfo = nullptr;
-    for (int i = 0; i < MAX_NUM_PROCESSES; ++i)
-    {
-        if (processInfo[i].id == 0)
-        {
-            newProcInfo = &processInfo[i];
-            break;
-        }
-    }
-
-    if (newProcInfo == nullptr)
-    {
-        logError("The maximum number of processes has already been created.");
-        ok = false;
-    }
+    ok = getNewProcInfo(newProcInfo);
 
     if (ok)
     {
@@ -134,6 +121,31 @@ void ProcessMgr::createProcess(const multiboot_mod_list* module)
     }
 }
 
+void ProcessMgr::forkCurrentProcess()
+{
+    bool ok = true;
+
+    // find an entry in the process info table
+    ProcessInfo* newProcInfo = nullptr;
+    ok = getNewProcInfo(newProcInfo);
+
+    if (ok)
+    {
+        // copy kernel page directory
+        ok = createProcessPageDir(newProcInfo);
+    }
+
+    if (ok)
+    {
+        // switch to process's page directory
+        setPageDirectory(newProcInfo->getPageFrame(0));
+
+        /// @todo copy process's pages
+    }
+
+    /// @todo switch to process
+}
+
 void ProcessMgr::exitCurrentProcess()
 {
     // switch back to kernel stack
@@ -143,6 +155,27 @@ void ProcessMgr::exitCurrentProcess()
 ProcessMgr::ProcessInfo* ProcessMgr::getCurrentProcessInfo()
 {
     return *ProcessInfo::PROCESS_INFO;
+}
+
+bool ProcessMgr::getNewProcInfo(ProcessInfo*& procInfo)
+{
+    procInfo = nullptr;
+    for (int i = 0; i < MAX_NUM_PROCESSES; ++i)
+    {
+        if (processInfo[i].id == 0)
+        {
+            procInfo = &processInfo[i];
+            break;
+        }
+    }
+
+    if (procInfo == nullptr)
+    {
+        logError("The maximum number of processes has already been created.");
+        return false;
+    }
+
+    return true;
 }
 
 bool ProcessMgr::createProcessPageDir(ProcessInfo* newProcInfo)
@@ -253,6 +286,24 @@ bool ProcessMgr::setUpProgram(const multiboot_mod_list* module, ProcessInfo* new
     }
     newProcInfo->addPageFrame(userStackPhyAddr);
     mapPage(newProcInfo->getPageDir(), ProcessInfo::USER_STACK_PAGE, userStackPhyAddr, true);
+
+    return true;
+}
+
+bool ProcessMgr::copyProcessPages(ProcessInfo* dstProc, const ProcessInfo* srcProc)
+{
+    for (int i = dstProc->getNumPageFrames(); i < srcProc->getNumPageFrames(); ++i)
+    {
+        // allocate a page
+        uintptr_t phyAddr = pageFrameMgr->allocPageFrame();
+        if (phyAddr == 0)
+        {
+            logError("Could not allocate a page frame for the new process.");
+            return false;
+        }
+
+        /// @todo map the page
+    }
 
     return true;
 }
