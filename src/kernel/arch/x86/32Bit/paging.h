@@ -81,7 +81,7 @@ uint32_t* getPageTablePointer(uint32_t* pageDir, uint16_t index);
 /**
  * Utilities for page table walking and information retrieval
  */
-namespace pageInfo {
+namespace mem {
 
 /**
  * @brief Returns the number of available kernel page directory entries

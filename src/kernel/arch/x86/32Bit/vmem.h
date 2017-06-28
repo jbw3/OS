@@ -2,13 +2,17 @@
 
 #include <pageframemgr.h>
 
-namespace os {
+namespace mem {
 
 /**
- * @brief getAddressOfPage returns the base address of the
- * page to which this address belongs.
+ * @brief isMappedByKernel returns true if the given physical address
+ * is mapped by a kernel page.
+ * @param physAddr is the physical address
+ * @param virtAddr is set to the corresponding virtual address if the
+ * given physical address is mapped. This value is only valid if the
+ * function returns true.
  */
-uint32_t getAddressOfPage(uint32_t addr);
+bool isMappedByKernel(uint32_t physAddr, uint32_t& virtAddr);
 
 /**
  * @brief autoMapKernelPageForAddress maps the given physical address to

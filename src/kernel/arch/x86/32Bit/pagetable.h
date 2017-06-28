@@ -54,6 +54,22 @@ public:
      */
     uint32_t virtAddressOfPage(uint16_t pageIdx);
 
+    /**
+     * @brief Returns the base address of the physical page
+     * frame to which the page at the given index is mapped.
+     */
+    uint32_t physAddressOfPageFrame(uint16_t pageIdx);
+
+    /**
+     * @brief Returns true if the given physical address is
+     * mapped to one of the pages in this page table.
+     * @param physAddr is the physical address
+     * @param virtAddr is set to the virtual address mapped
+     * to the given physical address, if such a mapping exists.
+     * If this function returns false, virtAddr is not valid.
+     */
+    bool isMapped(uint32_t physAddr, uint32_t& virtAddr);
+
 private:
     uint32_t* _pageDir;
     uint16_t _pageDirIdx;

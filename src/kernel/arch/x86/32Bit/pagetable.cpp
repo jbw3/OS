@@ -68,4 +68,34 @@ uint32_t PageTable::virtAddressOfPage(uint16_t pageIdx)
     return address;
 }
 
+uint32_t PageTable::physAddressOfPageFrame(uint16_t pageIdx)
+{
+    return _pageTable[pageIdx] & PAGE_TABLE_ADDRESS;
+}
+
+bool PageTable::isMapped(uint32_t physAddr, uint32_t& virtAddr)
+{
+    for (uint16_t i = 0; i < PAGE_TABLE_NUM_ENTRIES; i++)
+    {
+        if (_pageTable[i] & PAGE_TABLE_PRESENT)
+        {
+            // get physical bounds of page frame
+            uint32_t pageFrameAddress = physAddressOfPageFrame(i);
+            uint32_t maxPageFrameAddr = pageFrameAddress + 0xFFF;
+
+            // does the physical address fall within this page frame?
+            if (physAddr >= pageFrameAddress && physAddr <= maxPageFrameAddr)
+            {
+                // set the corresponding virtual address
+                auto offset = physAddr & 0xFFF;
+                auto virtBase = (_pageDirIdx & 0x3FF) << 22;    // 10 bits of page dir index
+                virtBase |= (i & 0x3FF) << 12;                  // 10 bits of page table index
+                virtAddr = virtBase | offset;
+                return true;
+            }
+        }
+    }
+    return false;   // no mappings found
+}
+
 }

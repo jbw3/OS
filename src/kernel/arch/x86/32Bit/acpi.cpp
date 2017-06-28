@@ -123,7 +123,7 @@ Acpi::Acpi(PageFrameMgr* pageFrameMgr)
     screen << os::Screen::hex;
 
     // todo: verify this isn't mapped already?
-    uint32_t virtRsdtAddr = os::autoMapKernelPageForAddress(RSDP->RsdtAddress, _pageFrameMgr);
+    uint32_t virtRsdtAddr = mem::autoMapKernelPageForAddress(RSDP->RsdtAddress, _pageFrameMgr);
 
     acpi::RootSystemDescriptionTable* RSDT = (acpi::RootSystemDescriptionTable*)(virtRsdtAddr);
 
@@ -145,7 +145,7 @@ Acpi::Acpi(PageFrameMgr* pageFrameMgr)
         uint32_t* entry = (uint32_t*)(&RSDT->Entry + i);
 
         screen << "entry address: 0x" << entry << "\n";
-        uint32_t virtTableAddr = os::autoMapKernelPageForAddress(*entry, _pageFrameMgr);
+        uint32_t virtTableAddr = mem::autoMapKernelPageForAddress(*entry, _pageFrameMgr);
         screen << "entry[" << i << "]: 0x" << *entry << "\n";
         screen << "entry[" << i << "]: 0x" << virtTableAddr << "\n";
 

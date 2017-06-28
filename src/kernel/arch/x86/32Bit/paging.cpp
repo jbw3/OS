@@ -90,9 +90,25 @@ uint32_t* getPageTablePointer(uint32_t* pageDir, uint16_t index)
     return reinterpret_cast<uint32_t*>(physicalPTAddress + KERNEL_VIRTUAL_BASE);
 }
 
-namespace pageInfo {
+namespace mem {
 
 static uint32_t* _kPageDir = getKernelPageDirStart();
+
+// void todoFunc()
+// {
+//     for (uint16_t i = KERNEL_PAGEDIR_START_IDX; i < PAGE_DIR_NUM_ENTRIES; i++)
+//     {
+//         if (pageDir[i] & PAGE_DIR_PRESENT)
+//         {
+
+//         }
+//     }
+// }
+
+// bool isMappedByKernelPage(uint32_t physAddr, uint32_t virtAddr)
+// {
+//     virtAddr & PAGE_DIR_ADDRESS
+// }
 
 uint32_t kNumAvailablePDEs()
 {
@@ -124,21 +140,6 @@ uint16_t lastUsedKernelPDEIndex()
     }
 
     return PAGE_DIR_NUM_ENTRIES-1;  // all in use
-}
-
-uint16_t lastUsedPTEIndex(uint32_t* pageDir, uint16_t pdeIndex)
-{
-    // returns index of last used PTE out of those currently in use
-    uint32_t* pageTable = getPageTablePointer(pageDir, pdeIndex);
-
-    for (uint16_t i = 0; i < PAGE_TABLE_NUM_ENTRIES; i++)
-    {
-        if (!(pageTable[i] & PAGE_TABLE_PRESENT))
-        {
-            // PTE not present - the last index was the last one in use
-
-        }
-    }
 }
 
 }
