@@ -27,12 +27,12 @@ void ProcessMgr::ProcessInfo::reset()
     numPageFrames = 0;
 }
 
-void ProcessMgr::ProcessInfo::addPageFrame(uintptr_t addr)
+void ProcessMgr::ProcessInfo::addPageFrame(const PageFrameInfo& info)
 {
-    pageFrames[numPageFrames++] = addr;
+    pageFrames[numPageFrames++] = info;
 }
 
-uintptr_t ProcessMgr::ProcessInfo::getPageFrame(int i) const
+ProcessMgr::ProcessInfo::PageFrameInfo ProcessMgr::ProcessInfo::getPageFrame(int i) const
 {
     return pageFrames[i];
 }
@@ -44,7 +44,7 @@ int ProcessMgr::ProcessInfo::getNumPageFrames() const
 
 uintptr_t* ProcessMgr::ProcessInfo::getPageDir()
 {
-    return reinterpret_cast<uintptr_t*>(pageFrames[0] + KERNEL_VIRTUAL_BASE);
+    return reinterpret_cast<uintptr_t*>(pageFrames[0].physicalAddr + KERNEL_VIRTUAL_BASE);
 }
 
 ProcessMgr::ProcessMgr() :
@@ -74,7 +74,7 @@ void ProcessMgr::createProcess(const multiboot_mod_list* module)
     if (ok)
     {
         // switch to process's page directory
-        setPageDirectory(newProcInfo->getPageFrame(0));
+        setPageDirectory(newProcInfo->getPageFrame(0).physicalAddr);
 
         // copy the program and set up the stack
         ok = setUpProgram(module, newProcInfo);
@@ -138,7 +138,7 @@ void ProcessMgr::forkCurrentProcess()
     if (ok)
     {
         // switch to process's page directory
-        setPageDirectory(newProcInfo->getPageFrame(0));
+        setPageDirectory(newProcInfo->getPageFrame(0).physicalAddr);
 
         /// @todo copy process's pages
     }
@@ -201,7 +201,7 @@ bool ProcessMgr::createProcessPageDir(ProcessInfo* newProcInfo)
             return false;
         }
 
-        newProcInfo->addPageFrame(phyAddr);
+        newProcInfo->addPageFrame({virAddr, phyAddr});
 
         // We need to map the page dir and table to modify them.
         // Pick a temporary address above the kernel to use.
@@ -224,11 +224,11 @@ bool ProcessMgr::createProcessPageDir(ProcessInfo* newProcInfo)
     memset(pageTableLower, 0, PAGE_SIZE);
 
     // map lower page table in page directory
-    mapPageTable(pageDir, newProcInfo->getPageFrame(1), 0, true);
+    mapPageTable(pageDir, newProcInfo->getPageFrame(1).physicalAddr, 0, true);
 
     // map upper page table in page directory right before kernel page table
     int upperIdx = (KERNEL_VIRTUAL_BASE - PAGE_SIZE) >> 22;
-    mapPageTable(pageDir, newProcInfo->getPageFrame(2), upperIdx, true);
+    mapPageTable(pageDir, newProcInfo->getPageFrame(2).physicalAddr, upperIdx, true);
 
     // unmap process pages from kernel page table
     uintptr_t unmapAddr = TEMP_VIRTUAL_ADDRESS;
@@ -255,7 +255,7 @@ bool ProcessMgr::setUpProgram(const multiboot_mod_list* module, ProcessInfo* new
             return false;
         }
 
-        newProcInfo->addPageFrame(phyAddr);
+        newProcInfo->addPageFrame({virAddr, phyAddr});
         mapPage(newProcInfo->getPageDir(), virAddr, phyAddr, true);
 
         virAddr += PAGE_SIZE;
@@ -274,7 +274,7 @@ bool ProcessMgr::setUpProgram(const multiboot_mod_list* module, ProcessInfo* new
         logError("Could not allocate a page frame for the kernel stack.");
         return false;
     }
-    newProcInfo->addPageFrame(kernelStackPhyAddr);
+    newProcInfo->addPageFrame({ProcessInfo::KERNEL_STACK_PAGE, kernelStackPhyAddr});
     mapPage(newProcInfo->getPageDir(), ProcessInfo::KERNEL_STACK_PAGE, kernelStackPhyAddr);
 
     // allocate and map a page for the user stack
@@ -284,7 +284,7 @@ bool ProcessMgr::setUpProgram(const multiboot_mod_list* module, ProcessInfo* new
         logError("Could not allocate a page frame for the user stack.");
         return false;
     }
-    newProcInfo->addPageFrame(userStackPhyAddr);
+    newProcInfo->addPageFrame({ProcessInfo::USER_STACK_PAGE, userStackPhyAddr});
     mapPage(newProcInfo->getPageDir(), ProcessInfo::USER_STACK_PAGE, userStackPhyAddr, true);
 
     return true;
@@ -356,7 +356,7 @@ void ProcessMgr::cleanUpProcess(ProcessInfo* procInfo)
     // free page frames
     for (int i = 0; i < procInfo->getNumPageFrames(); ++i)
     {
-        pageFrameMgr->freePageFrame(procInfo->getPageFrame(i));
+        pageFrameMgr->freePageFrame(procInfo->getPageFrame(i).physicalAddr);
     }
 
     // reset ProcessInfo

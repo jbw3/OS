@@ -38,6 +38,12 @@ private:
         /// the start address of the kernel stack page
         static const uintptr_t KERNEL_STACK_START;
 
+        struct PageFrameInfo
+        {
+            uintptr_t virtualAddr;
+            uintptr_t physicalAddr;
+        };
+
         /// Unique ID for the process.
         pid_t id;
 
@@ -45,19 +51,19 @@ private:
 
         void reset();
 
-        void addPageFrame(uintptr_t addr);
+        void addPageFrame(const PageFrameInfo& info);
 
-        uintptr_t getPageFrame(int i) const;
+        PageFrameInfo getPageFrame(int i) const;
 
         int getNumPageFrames() const;
 
         uintptr_t* getPageDir();
 
     private:
-        /// The physical addresses of page frames used by the process.
+        /// The addresses of page frames used by the process.
         /// The first page in this array is the process's page
         /// directory.
-        uintptr_t pageFrames[MAX_NUM_PAGE_FRAMES];
+        PageFrameInfo pageFrames[MAX_NUM_PAGE_FRAMES];
 
         int numPageFrames;
     };
