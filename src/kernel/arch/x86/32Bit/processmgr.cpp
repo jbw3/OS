@@ -1,7 +1,6 @@
 #include "gdt.h"
 #include "multiboot.h"
 #include "pageframemgr.h"
-#include "paging.h"
 #include "processmgr.h"
 #include "screen.h"
 #include "string.h"
@@ -180,16 +179,33 @@ bool ProcessMgr::getNewProcInfo(ProcessInfo*& procInfo)
 
 bool ProcessMgr::createProcessPageDir(ProcessInfo* newProcInfo)
 {
-    /// @todo Instead of picking a random address, it would be
-    /// better to find the end of the kernel and map the pages there.
-    constexpr uintptr_t TEMP_VIRTUAL_ADDRESS = 0xc03f'0000;
-
     // Allocate a page directory and three page tables: a lower memory
     // page table (for code), an upper memory page table (right before
     // kernel for stack), and a kernel page table.
-    uintptr_t virAddr = TEMP_VIRTUAL_ADDRESS;
     for (int i = 0; i < 4; ++i)
     {
+        /// @todo auto-map instead of using hard-coded addresses
+        uintptr_t virAddr = 0;
+        switch (i)
+        {
+        case 0:
+            virAddr = PAGE_DIR_VIRTUAL_ADDRESS;
+            break;
+        case 1:
+            virAddr = PAGE_TABLE1_VIRTUAL_ADDRESS;
+            break;
+        case 2:
+            virAddr = PAGE_TABLE2_VIRTUAL_ADDRESS;
+            break;
+        case 3:
+            virAddr = PAGE_TABLE3_VIRTUAL_ADDRESS;
+            break;
+        default:
+            PANIC("We shouldn't get here.");
+            return false;
+            break;
+        }
+
         // get page frames for the process's page dir and page tables
         // (these are physical addresses)
         uintptr_t phyAddr = pageFrameMgr->allocPageFrame();
@@ -206,14 +222,12 @@ bool ProcessMgr::createProcessPageDir(ProcessInfo* newProcInfo)
         // We need to map the page dir and table to modify them.
         // Pick a temporary address above the kernel to use.
         mapPage(getKernelPageDirStart(), virAddr, phyAddr);
-
-        virAddr += PAGE_SIZE;
     }
 
-    uintptr_t* pageDir = reinterpret_cast<uintptr_t*>(TEMP_VIRTUAL_ADDRESS);
-    uintptr_t* pageTableLower = reinterpret_cast<uintptr_t*>(TEMP_VIRTUAL_ADDRESS + PAGE_SIZE);
-    uintptr_t* pageTableUpper = reinterpret_cast<uintptr_t*>(TEMP_VIRTUAL_ADDRESS + PAGE_SIZE * 2);
-    uintptr_t* pageTableKernel = reinterpret_cast<uintptr_t*>(TEMP_VIRTUAL_ADDRESS + PAGE_SIZE * 3);
+    uintptr_t* pageDir = reinterpret_cast<uintptr_t*>(newProcInfo->getPageFrame(0).virtualAddr);
+    uintptr_t* pageTableLower = reinterpret_cast<uintptr_t*>(newProcInfo->getPageFrame(1).virtualAddr);
+    uintptr_t* pageTableUpper = reinterpret_cast<uintptr_t*>(newProcInfo->getPageFrame(2).virtualAddr);
+    uintptr_t* pageTableKernel = reinterpret_cast<uintptr_t*>(newProcInfo->getPageFrame(3).virtualAddr);
 
     // copy kernel page directory and page table
     memcpy(pageDir, getKernelPageDirStart(), PAGE_SIZE);
@@ -231,12 +245,9 @@ bool ProcessMgr::createProcessPageDir(ProcessInfo* newProcInfo)
     mapPageTable(pageDir, newProcInfo->getPageFrame(2).physicalAddr, upperIdx, true);
 
     // unmap process pages from kernel page table
-    uintptr_t unmapAddr = TEMP_VIRTUAL_ADDRESS;
     for (int i = 0; i < newProcInfo->getNumPageFrames(); ++i)
     {
-        unmapPage(getKernelPageDirStart(), unmapAddr);
-
-        unmapAddr += PAGE_SIZE;
+        unmapPage(getKernelPageDirStart(), newProcInfo->getPageFrame(i).virtualAddr);
     }
 
     return true;
@@ -301,8 +312,11 @@ bool ProcessMgr::copyProcessPages(ProcessInfo* dstProc, const ProcessInfo* srcPr
             logError("Could not allocate a page frame for the new process.");
             return false;
         }
+        uintptr_t virAddr = srcProc->getPageFrame(i).virtualAddr;
+        dstProc->addPageFrame({virAddr, phyAddr});
 
-        /// @todo map the page
+        // map the page
+        mapPage(dstProc->getPageDir(), virAddr, phyAddr, true);
     }
 
     return true;
