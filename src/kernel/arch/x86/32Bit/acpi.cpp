@@ -128,6 +128,7 @@ Acpi::Acpi(PageFrameMgr* pageFrameMgr)
 
     uint32_t virtRsdtAddr = mem::toVirtualKernelAddr(RSDP->RsdtAddress);
 
+    // RSDT Testing...
     acpi::RootSystemDescriptionTable* RSDT = (acpi::RootSystemDescriptionTable*)(virtRsdtAddr);
 
     screen << "VIRT ADDR: " << virtRsdtAddr << "\n";
@@ -147,6 +148,9 @@ Acpi::Acpi(PageFrameMgr* pageFrameMgr)
         entryHeader = (acpi::DESCRIPTION_HEADER*)mem::toVirtualKernelAddr((uint32_t)entryHeader);
         entryHeader->printSignature();
     }
+
+    // XSDT testing...
+    screen << "XSDT phys addr: 0x" << RSDP->XsdtAddress << "\n";
 }
 
 }
