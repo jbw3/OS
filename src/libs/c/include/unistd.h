@@ -16,6 +16,8 @@ extern "C"
 
 pid_t getpid();
 
+pid_t fork();
+
 ssize_t write(int fildes, const void* buf, size_t nbyte);
 
 #ifdef __cplusplus

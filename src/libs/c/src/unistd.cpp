@@ -9,6 +9,11 @@ pid_t getpid()
     return systemCall(SYSTEM_CALL_GETPID);
 }
 
+pid_t fork()
+{
+    return systemCall(SYSTEM_CALL_FORK);
+}
+
 ssize_t write(int fildes, const void* buf, size_t nbyte)
 {
     ssize_t rc = systemCall(SYSTEM_CALL_WRITE,

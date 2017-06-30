@@ -120,7 +120,7 @@ void ProcessMgr::createProcess(const multiboot_mod_list* module)
     }
 }
 
-void ProcessMgr::forkCurrentProcess()
+bool ProcessMgr::forkCurrentProcess()
 {
     bool ok = true;
 
@@ -139,10 +139,30 @@ void ProcessMgr::forkCurrentProcess()
         // switch to process's page directory
         setPageDirectory(newProcInfo->getPageFrame(0).physicalAddr);
 
-        /// @todo copy process's pages
+        // copy process's pages
+        ok = copyProcessPages(newProcInfo, getCurrentProcessInfo());
     }
 
-    /// @todo switch to process
+    /// @todo temp until implementation is complete
+    ok = false;
+
+    if (ok)
+    {
+        /// @todo switch to process
+    }
+    else
+    {
+        // if we get here, something went wrong and we need to
+        // clean things up
+
+        // switch back to the calling process's page directory
+        uintptr_t processPageDirPhyAddr = getCurrentProcessInfo()->getPageFrame(0).physicalAddr;
+        setPageDirectory(processPageDirPhyAddr);
+
+        cleanUpProcess(newProcInfo);
+    }
+
+    return ok;
 }
 
 void ProcessMgr::exitCurrentProcess()
@@ -305,6 +325,8 @@ bool ProcessMgr::copyProcessPages(ProcessInfo* dstProc, const ProcessInfo* srcPr
 {
     for (int i = dstProc->getNumPageFrames(); i < srcProc->getNumPageFrames(); ++i)
     {
+        ProcessInfo::PageFrameInfo srcPageInfo = srcProc->getPageFrame(i);
+
         // allocate a page
         uintptr_t phyAddr = pageFrameMgr->allocPageFrame();
         if (phyAddr == 0)
@@ -312,11 +334,20 @@ bool ProcessMgr::copyProcessPages(ProcessInfo* dstProc, const ProcessInfo* srcPr
             logError("Could not allocate a page frame for the new process.");
             return false;
         }
-        uintptr_t virAddr = srcProc->getPageFrame(i).virtualAddr;
+        uintptr_t virAddr = srcPageInfo.virtualAddr;
         dstProc->addPageFrame({virAddr, phyAddr});
 
         // map the page
         mapPage(dstProc->getPageDir(), virAddr, phyAddr, true);
+
+        // temporarily map the source page so we can copy it
+        mapPage(dstProc->getPageDir(), TEMP_VIRTUAL_ADDRESS, srcPageInfo.physicalAddr, true);
+
+        // copy the page
+        memcpy(reinterpret_cast<void*>(virAddr), reinterpret_cast<const void*>(TEMP_VIRTUAL_ADDRESS), PAGE_SIZE);
+
+        // unmap the source page
+        unmapPage(dstProc->getPageDir(), TEMP_VIRTUAL_ADDRESS);
     }
 
     return true;

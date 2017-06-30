@@ -12,6 +12,18 @@ void exit(int /*status*/)
     processMgr.exitCurrentProcess();
 }
 
+pid_t fork()
+{
+    bool ok = processMgr.forkCurrentProcess();
+    if (!ok)
+    {
+        return -1;
+    }
+
+    /// @todo return child ID to parent
+    return 0;
+}
+
 pid_t getpid()
 {
     return processMgr.getCurrentProcessInfo()->id;
@@ -51,7 +63,7 @@ const void* SYSTEM_CALLS[SYSTEM_CALLS_SIZE] = {
     reinterpret_cast<const void*>(systemcall::write),
     reinterpret_cast<const void*>(systemcall::getpid),
     reinterpret_cast<const void*>(systemcall::exit),
-    nullptr,
+    reinterpret_cast<const void*>(systemcall::fork),
     nullptr,
     nullptr,
     nullptr,

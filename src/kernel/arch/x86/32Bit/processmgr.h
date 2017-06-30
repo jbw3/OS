@@ -80,7 +80,7 @@ public:
 
     void createProcess(const multiboot_mod_list* module);
 
-    void forkCurrentProcess();
+    bool forkCurrentProcess();
 
     void exitCurrentProcess();
 
