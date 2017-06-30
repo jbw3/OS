@@ -69,7 +69,28 @@ struct DESCRIPTION_HEADER
         }
         screen << "\n";
     }
+
+    /**
+     * @brief Returns true if the given 4-character signature
+     * matches the signature in the header
+     */
+    bool matchesSignature(char* signature)
+    {
+        for (int i = 0; i < 4; i++)
+        {
+            if (this->Signature[i] != signature[i])
+            {
+                return false;
+            }
+        }
+        return true;    // first 4 chars matched
+    }
 } __attribute__((packed));
+
+/**
+ * @brief Length of ACPI System Description Table Header
+ */
+const uint32_t DESCR_HEADER_LENGTH = 36;
 
 /**
  * ACPI RSDT Structure
@@ -89,10 +110,47 @@ struct RootSystemDescriptionTable
      */
     uint32_t count()
     {
-        const uint32_t HEADER_LENGTH = 36;
-        return (this->Header.Length - HEADER_LENGTH) / 4;
+        return (this->Header.Length - DESCR_HEADER_LENGTH) / 4;
     }
 } __attribute__((packed));
+
+/**
+ * @brief ACPI MCFG config space base address struct
+ * Taken from: http://wiki.osdev.org/PCI_Express
+ */
+struct BaseAddrAlloc    // cls: better name?
+{
+    uint64_t EnhancedConfigBaseAddress;     // Base address of enhanced configuration mechanism
+    uint16_t PciSegmentGroupNumber;         // PCI Segment Group Number
+    uint8_t StartPciBusNumber;              // Start PCI bus number decoded by this host bridge
+    uint8_t EndPciBusNumber;                // End PCI bus number decoded by this host bridge
+    uint32_t Reserved;
+} __attribute__((packed));
+
+/**
+ * @brief ACPI MCFG Structure
+ * Taken from: http://wiki.osdev.org/PCI_Express
+ */
+ struct MCFGTable
+ {
+     DESCRIPTION_HEADER Header;
+     char Reserved[8];
+     BaseAddrAlloc* ConfigSpace;    // first pointer in array of pointers
+
+     BaseAddrAlloc** getConfigSpaceEntries()
+     {
+         return &ConfigSpace;
+     }
+
+     /**
+      * @brief Returns the number of ConfigSpace entries
+      */
+     uint32_t count()
+     {
+         return (this->Header.Length - DESCR_HEADER_LENGTH) / 16;
+     }
+
+ } __attribute__((packed));
 
     }   /// acpi
 
@@ -147,10 +205,12 @@ Acpi::Acpi(PageFrameMgr* pageFrameMgr)
         //screen << "entry[i] address: " << entryHeader << "\n";
         entryHeader = (acpi::DESCRIPTION_HEADER*)mem::toVirtualKernelAddr((uint32_t)entryHeader);
         entryHeader->printSignature();
+        if (entryHeader->matchesSignature("MCFG"))
+        {
+            acpi::MCFGTable* mcfg = (acpi::MCFGTable*)(entryHeader);
+            screen << "MCFG count: 0x" << mcfg->count() << "\n";
+        }
     }
-
-    // XSDT testing...
-    screen << "XSDT phys addr: 0x" << RSDP->XsdtAddress << "\n";
 }
 
 }
