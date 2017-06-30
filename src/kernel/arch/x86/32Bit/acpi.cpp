@@ -135,9 +135,9 @@ struct BaseAddrAlloc    // cls: better name?
  {
      DESCRIPTION_HEADER Header;
      char Reserved[8];
-     BaseAddrAlloc* ConfigSpace;    // first pointer in array of pointers
+     BaseAddrAlloc ConfigSpace;    // first entry in array of pointers
 
-     BaseAddrAlloc** getConfigSpaceEntries()
+     BaseAddrAlloc* getConfigSpaceArray()
      {
          return &ConfigSpace;
      }
@@ -209,6 +209,10 @@ Acpi::Acpi(PageFrameMgr* pageFrameMgr)
         {
             acpi::MCFGTable* mcfg = (acpi::MCFGTable*)(entryHeader);
             screen << "MCFG count: 0x" << mcfg->count() << "\n";
+
+            acpi::BaseAddrAlloc* configSpaceArray = mcfg->getConfigSpaceArray();
+            screen << "configSpaceArray: 0x" << configSpaceArray << "\n";
+            screen << "configSpace[0] enhanced config base address: 0x" << configSpaceArray[0].EnhancedConfigBaseAddress << "\n";
         }
     }
 }
