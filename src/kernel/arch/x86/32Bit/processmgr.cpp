@@ -136,18 +136,21 @@ bool ProcessMgr::forkCurrentProcess()
 
     if (ok)
     {
-        // switch to process's page directory
-        setPageDirectory(newProcInfo->getPageFrame(0).physicalAddr);
-
         // copy process's pages
         ok = copyProcessPages(newProcInfo, getCurrentProcessInfo());
     }
 
-    /// @todo temp until implementation is complete
-    ok = false;
-
     if (ok)
     {
+        /// @todo temp until implementation is complete
+        ProcessInfo* temp = getCurrentProcessInfo();
+
+        // switch to process's page directory
+        setPageDirectory(newProcInfo->getPageFrame(0).physicalAddr);
+
+        /// @todo temp until implementation is complete
+        setPageDirectory(temp->getPageFrame(0).physicalAddr);
+
         /// @todo switch to process
     }
     else
@@ -321,7 +324,7 @@ bool ProcessMgr::setUpProgram(const multiboot_mod_list* module, ProcessInfo* new
     return true;
 }
 
-bool ProcessMgr::copyProcessPages(ProcessInfo* dstProc, const ProcessInfo* srcProc)
+bool ProcessMgr::copyProcessPages(ProcessInfo* dstProc, ProcessInfo* srcProc)
 {
     for (int i = dstProc->getNumPageFrames(); i < srcProc->getNumPageFrames(); ++i)
     {
@@ -340,14 +343,15 @@ bool ProcessMgr::copyProcessPages(ProcessInfo* dstProc, const ProcessInfo* srcPr
         // map the page
         mapPage(dstProc->getPageDir(), virAddr, phyAddr, true);
 
-        // temporarily map the source page so we can copy it
-        mapPage(dstProc->getPageDir(), TEMP_VIRTUAL_ADDRESS, srcPageInfo.physicalAddr, true);
+        // temporarily map the destination page in the current process's page
+        // table so we can copy to it
+        mapPage(srcProc->getPageDir(), TEMP_VIRTUAL_ADDRESS, srcPageInfo.physicalAddr, true);
 
         // copy the page
-        memcpy(reinterpret_cast<void*>(virAddr), reinterpret_cast<const void*>(TEMP_VIRTUAL_ADDRESS), PAGE_SIZE);
+        memcpy(reinterpret_cast<void*>(TEMP_VIRTUAL_ADDRESS), reinterpret_cast<const void*>(virAddr), PAGE_SIZE);
 
-        // unmap the source page
-        unmapPage(dstProc->getPageDir(), TEMP_VIRTUAL_ADDRESS);
+        // unmap the destination page from the current process's page table
+        unmapPage(srcProc->getPageDir(), TEMP_VIRTUAL_ADDRESS);
     }
 
     return true;

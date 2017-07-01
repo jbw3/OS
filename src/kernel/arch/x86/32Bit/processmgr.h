@@ -127,7 +127,7 @@ private:
     /**
      * @brief Copy code and stack pages from one process to another.
      */
-    bool copyProcessPages(ProcessInfo* dstProc, const ProcessInfo* srcProc);
+    bool copyProcessPages(ProcessInfo* dstProc, ProcessInfo* srcProc);
 
     /**
      * @brief Get an ID for a new process.
