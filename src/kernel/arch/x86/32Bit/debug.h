@@ -17,7 +17,6 @@ void printMultibootInfo(const multiboot_info* mbootInfo);
 
 /**
  * @brief Debugging function to print modules in Multiboot info
- * @details [long description]
  */
 void printMultibootModules(uint32_t addr, uint32_t len);
 
@@ -30,6 +29,8 @@ void printMem(int ptr);
 void printMem(const uint32_t* ptr);
 
 void printPageDir(const uint32_t* pageDir, int startIdx, int endIdx);
+
+void printPageTable(const uint32_t* pageTable, int startIdx, int endIdx);
 
 void printPageTable(const uint32_t* pageDir, int pageDirIdx, int startIdx, int endIdx);
 

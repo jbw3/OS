@@ -244,29 +244,23 @@ void printPageDir(const uint32_t* pageDir, int startIdx, int endIdx)
 
 }
 
-void printPageTable(const uint32_t* pageDir, int pageDirIdx, int startIdx, int endIdx)
+void printPageTable(const uint32_t* pageTable, int startIdx, int endIdx)
 {
-    if (pageDirIdx < 0 || pageDirIdx >= 1024)
+    if (startIdx < 0 || startIdx >= 1024)
     {
-        screen << "Page directory index out of range\n";
+        screen << "Start index is out of range\n";
+        return;
+    }
+
+    if (endIdx < 0 || endIdx >= 1024)
+    {
+        screen << "End index is out of range\n";
         return;
     }
 
     if (startIdx > endIdx)
     {
         screen << "Start index cannot be greater than end index\n";
-        return;
-    }
-
-    uint32_t pageDirEntry = pageDir[pageDirIdx];
-
-    uint32_t physicalAddr = pageDirEntry & PAGE_DIR_ADDRESS;
-    uint32_t virtualAddr = physicalAddr + KERNEL_VIRTUAL_BASE;
-    const uint32_t* pageTable = reinterpret_cast<const uint32_t*>(virtualAddr);
-    bool tablePresent = pageDirEntry & PAGE_DIR_PRESENT;
-    if (!tablePresent)
-    {
-        screen << "No page table is mapped at index " << pageDirIdx << '\n';
         return;
     }
 
@@ -309,6 +303,35 @@ void printPageTable(const uint32_t* pageDir, int pageDirIdx, int startIdx, int e
                << "  " << present
                << '\n';
     }
+}
+
+void printPageTable(const uint32_t* pageDir, int pageDirIdx, int startIdx, int endIdx)
+{
+    if (pageDirIdx < 0 || pageDirIdx >= 1024)
+    {
+        screen << "Page directory index out of range\n";
+        return;
+    }
+
+    if (startIdx > endIdx)
+    {
+        screen << "Start index cannot be greater than end index\n";
+        return;
+    }
+
+    uint32_t pageDirEntry = pageDir[pageDirIdx];
+
+    uint32_t physicalAddr = pageDirEntry & PAGE_DIR_ADDRESS;
+    uint32_t virtualAddr = physicalAddr + KERNEL_VIRTUAL_BASE;
+    const uint32_t* pageTable = reinterpret_cast<const uint32_t*>(virtualAddr);
+    bool tablePresent = pageDirEntry & PAGE_DIR_PRESENT;
+    if (!tablePresent)
+    {
+        screen << "No page table is mapped at index " << pageDirIdx << '\n';
+        return;
+    }
+
+    printPageTable(pageTable, startIdx, endIdx);
 }
 
 #define MASTER_DRIVE 0xA0
