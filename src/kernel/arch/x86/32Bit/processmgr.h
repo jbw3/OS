@@ -116,7 +116,18 @@ private:
      * @brief Create a new page directory for a process by copying
      * the kernel page directory.
      */
-    bool createProcessPageDir(ProcessInfo* newProcInfo);
+    bool copyKernelPageDir(ProcessInfo* newProcInfo);
+
+    /**
+     * @brief Create a process's page tables to map its code and stack.
+     */
+    bool createProcessPageTables(ProcessInfo* newProcInfo);
+
+    /**
+     * @brief Copy a process's page tables for code and stack from another
+     * process.
+     */
+    bool copyProcessPageTables(ProcessInfo* dstProc, ProcessInfo* srcProc);
 
     /**
      * @brief Set up the program for the process by copying the

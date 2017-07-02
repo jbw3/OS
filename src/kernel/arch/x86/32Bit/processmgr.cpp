@@ -67,11 +67,23 @@ void ProcessMgr::createProcess(const multiboot_mod_list* module)
     if (ok)
     {
         // copy kernel page directory
-        ok = createProcessPageDir(newProcInfo);
+        ok = copyKernelPageDir(newProcInfo);
     }
 
     if (ok)
     {
+        // create process page tables
+        ok = createProcessPageTables(newProcInfo);
+    }
+
+    if (ok)
+    {
+        // unmap process pages from kernel page table
+        unmapPage(getKernelPageDirStart(), newProcInfo->getPageFrame(0).virtualAddr);
+        unmapPage(getKernelPageDirStart(), newProcInfo->getPageFrame(1).virtualAddr);
+        unmapPage(getKernelPageDirStart(), newProcInfo->getPageFrame(2).virtualAddr);
+        unmapPage(getKernelPageDirStart(), newProcInfo->getPageFrame(3).virtualAddr);
+
         // switch to process's page directory
         setPageDirectory(newProcInfo->getPageFrame(0).physicalAddr);
 
@@ -131,7 +143,13 @@ bool ProcessMgr::forkCurrentProcess()
     if (ok)
     {
         // copy kernel page directory
-        ok = createProcessPageDir(newProcInfo);
+        ok = copyKernelPageDir(newProcInfo);
+    }
+
+    if (ok)
+    {
+        // copy process page tables
+        ok = copyProcessPageTables(newProcInfo, getCurrentProcessInfo());
     }
 
     if (ok)
@@ -200,12 +218,10 @@ bool ProcessMgr::getNewProcInfo(ProcessInfo*& procInfo)
     return true;
 }
 
-bool ProcessMgr::createProcessPageDir(ProcessInfo* newProcInfo)
+bool ProcessMgr::copyKernelPageDir(ProcessInfo* newProcInfo)
 {
-    // Allocate a page directory and three page tables: a lower memory
-    // page table (for code), an upper memory page table (right before
-    // kernel for stack), and a kernel page table.
-    for (int i = 0; i < 4; ++i)
+    // Allocate a page directory and a kernel page table.
+    for (int i = 0; i < 2; ++i)
     {
         /// @todo auto-map instead of using hard-coded addresses
         uintptr_t virAddr = 0;
@@ -216,12 +232,6 @@ bool ProcessMgr::createProcessPageDir(ProcessInfo* newProcInfo)
             break;
         case 1:
             virAddr = PAGE_TABLE1_VIRTUAL_ADDRESS;
-            break;
-        case 2:
-            virAddr = PAGE_TABLE2_VIRTUAL_ADDRESS;
-            break;
-        case 3:
-            virAddr = PAGE_TABLE3_VIRTUAL_ADDRESS;
             break;
         default:
             PANIC("We shouldn't get here.");
@@ -243,37 +253,80 @@ bool ProcessMgr::createProcessPageDir(ProcessInfo* newProcInfo)
         newProcInfo->addPageFrame({virAddr, phyAddr});
 
         // We need to map the page dir and table to modify them.
-        // Pick a temporary address above the kernel to use.
         mapPage(getKernelPageDirStart(), virAddr, phyAddr);
     }
 
     uintptr_t* pageDir = reinterpret_cast<uintptr_t*>(newProcInfo->getPageFrame(0).virtualAddr);
-    uintptr_t* pageTableLower = reinterpret_cast<uintptr_t*>(newProcInfo->getPageFrame(1).virtualAddr);
-    uintptr_t* pageTableUpper = reinterpret_cast<uintptr_t*>(newProcInfo->getPageFrame(2).virtualAddr);
-    uintptr_t* pageTableKernel = reinterpret_cast<uintptr_t*>(newProcInfo->getPageFrame(3).virtualAddr);
+    uintptr_t* pageTableKernel = reinterpret_cast<uintptr_t*>(newProcInfo->getPageFrame(1).virtualAddr);
 
     // copy kernel page directory and page table
     memcpy(pageDir, getKernelPageDirStart(), PAGE_SIZE);
     memcpy(pageTableKernel, getKernelPageTableStart(), PAGE_SIZE);
+
+    return true;
+}
+
+bool ProcessMgr::createProcessPageTables(ProcessInfo* newProcInfo)
+{
+    // Allocate 2 page tables: a lower memory page table (for code) and
+    // an upper memory page table (before the kernel stack for the process stack).
+    for (int i = 0; i < 2; ++i)
+    {
+        /// @todo auto-map instead of using hard-coded addresses
+        uintptr_t virAddr = 0;
+        switch (i)
+        {
+        case 0:
+            virAddr = PAGE_TABLE2_VIRTUAL_ADDRESS;
+            break;
+        case 1:
+            virAddr = PAGE_TABLE3_VIRTUAL_ADDRESS;
+            break;
+        default:
+            PANIC("We shouldn't get here.");
+            return false;
+            break;
+        }
+
+        // get page frames for the process's page dir and page tables
+        // (these are physical addresses)
+        uintptr_t phyAddr = pageFrameMgr->allocPageFrame();
+
+        // log an error if we could not get a page frame
+        if (phyAddr == 0)
+        {
+            logError("Could not allocate page frame.");
+            return false;
+        }
+
+        newProcInfo->addPageFrame({virAddr, phyAddr});
+
+        // We need to map the page tables to modify them.
+        mapPage(getKernelPageDirStart(), virAddr, phyAddr);
+    }
+
+    uintptr_t* pageDir = reinterpret_cast<uintptr_t*>(newProcInfo->getPageFrame(0).virtualAddr);
+    uintptr_t* pageTableLower = reinterpret_cast<uintptr_t*>(newProcInfo->getPageFrame(2).virtualAddr);
+    uintptr_t* pageTableUpper = reinterpret_cast<uintptr_t*>(newProcInfo->getPageFrame(3).virtualAddr);
 
     // clear upper and lower memory page tables
     memset(pageTableUpper, 0, PAGE_SIZE);
     memset(pageTableLower, 0, PAGE_SIZE);
 
     // map lower page table in page directory
-    mapPageTable(pageDir, newProcInfo->getPageFrame(1).physicalAddr, 0, true);
+    mapPageTable(pageDir, newProcInfo->getPageFrame(2).physicalAddr, 0, true);
 
     // map upper page table in page directory right before kernel page table
     int upperIdx = (KERNEL_VIRTUAL_BASE - PAGE_SIZE) >> 22;
-    mapPageTable(pageDir, newProcInfo->getPageFrame(2).physicalAddr, upperIdx, true);
-
-    // unmap process pages from kernel page table
-    for (int i = 0; i < newProcInfo->getNumPageFrames(); ++i)
-    {
-        unmapPage(getKernelPageDirStart(), newProcInfo->getPageFrame(i).virtualAddr);
-    }
+    mapPageTable(pageDir, newProcInfo->getPageFrame(3).physicalAddr, upperIdx, true);
 
     return true;
+}
+
+bool ProcessMgr::copyProcessPageTables(ProcessInfo* /*dstProc*/, ProcessInfo* /*srcProc*/)
+{
+    /// @todo implement
+    return false;
 }
 
 bool ProcessMgr::setUpProgram(const multiboot_mod_list* module, ProcessInfo* newProcInfo)
