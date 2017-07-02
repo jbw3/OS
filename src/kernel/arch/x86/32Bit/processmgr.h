@@ -15,6 +15,7 @@ class PageFrameMgr;
 
 /**
  * @brief Process manager
+ * @todo Mapping/unmapping pages should be done by page table.
  */
 class ProcessMgr
 {
@@ -26,7 +27,7 @@ private:
     {
     public:
         constexpr static uintptr_t CODE_VIRTUAL_START = 0;
-        constexpr static int MAX_NUM_PAGE_FRAMES = 10;
+        constexpr static int MAX_NUM_PAGES = 8;
 
         /// virtual address of the kernel stack page
         static const uintptr_t KERNEL_STACK_PAGE;
@@ -53,21 +54,26 @@ private:
 
         void reset();
 
-        void addPageFrame(const PageFrameInfo& info);
+        void addPage(const PageFrameInfo& info);
 
-        PageFrameInfo getPageFrame(int i) const;
+        PageFrameInfo getPage(int i) const;
 
-        int getNumPageFrames() const;
+        int getNumPages() const;
 
-        uintptr_t* getPageDir();
+        PageFrameInfo pageDir;
+
+        PageFrameInfo kernelPageTable;
+
+        PageFrameInfo lowerPageTable;
+
+        PageFrameInfo upperPageTable;
 
     private:
-        /// The addresses of page frames used by the process.
-        /// The first page in this array is the process's page
-        /// directory.
-        PageFrameInfo pageFrames[MAX_NUM_PAGE_FRAMES];
+        /// The addresses of pages used by the process for code, data,
+        /// and stack.
+        PageFrameInfo pages[MAX_NUM_PAGES];
 
-        int numPageFrames;
+        int numPages;
     };
 
 public:
@@ -113,15 +119,26 @@ private:
     bool getNewProcInfo(ProcessInfo*& procInfo);
 
     /**
-     * @brief Create a new page directory for a process by copying
-     * the kernel page directory.
+     * @brief Allocates all pages needed for a new process's paging
+     * structure. Also, temporarily maps them in the given page
+     * directory, so they can be accessed.
      */
-    bool copyKernelPageDir(ProcessInfo* newProcInfo);
+    bool initPaging(ProcessInfo* procInfo, const uintptr_t* pageDir);
+
+    /**
+     * @brief Unmap temporarily mapped pages.
+     */
+    void unmapPages(ProcessInfo* procInfo, const uintptr_t* pageDir);
+
+    /**
+     * @brief Copying the kernel page directory and table to the given process.
+     */
+    void copyKernelPageDir(ProcessInfo* newProcInfo);
 
     /**
      * @brief Create a process's page tables to map its code and stack.
      */
-    bool createProcessPageTables(ProcessInfo* newProcInfo);
+    void createProcessPageTables(ProcessInfo* newProcInfo);
 
     /**
      * @brief Copy a process's page tables for code and stack from another
