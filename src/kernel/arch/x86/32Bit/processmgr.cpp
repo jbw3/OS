@@ -65,7 +65,7 @@ void ProcessMgr::createProcess(const multiboot_mod_list* module)
 
     if (ok)
     {
-        ok = initPaging(newProcInfo, getKernelPageDirStart());
+        ok = initPaging(newProcInfo, getKernelPageTableStart());
     }
 
     if (ok)
@@ -77,7 +77,7 @@ void ProcessMgr::createProcess(const multiboot_mod_list* module)
         createProcessPageTables(newProcInfo);
 
         // unmap process pages from kernel page table
-        unmapPages(newProcInfo, getKernelPageDirStart());
+        unmapPages(newProcInfo, getKernelPageTableStart());
 
         // switch to process's page directory
         setPageDirectory(newProcInfo->pageDir.physicalAddr);
@@ -210,7 +210,7 @@ bool ProcessMgr::getNewProcInfo(ProcessInfo*& procInfo)
     return true;
 }
 
-bool ProcessMgr::initPaging(ProcessInfo* procInfo, const uintptr_t* pageDir)
+bool ProcessMgr::initPaging(ProcessInfo* procInfo, uintptr_t* pageTable)
 {
     // Allocate pages for page directory, kernel page table, lower page
     // table (for code and data), and upper page table (for stacks).
@@ -255,18 +255,18 @@ bool ProcessMgr::initPaging(ProcessInfo* procInfo, const uintptr_t* pageDir)
         }
 
         // We need to map the page dir and table to modify them.
-        mapPage(pageDir, virAddr, phyAddr);
+        mapPage(pageTable, virAddr, phyAddr);
     }
 
     return true;
 }
 
-void ProcessMgr::unmapPages(ProcessInfo* procInfo, const uintptr_t* pageDir)
+void ProcessMgr::unmapPages(ProcessInfo* procInfo, uintptr_t* pageTable)
 {
-    unmapPage(pageDir, procInfo->pageDir.virtualAddr);
-    unmapPage(pageDir, procInfo->kernelPageTable.virtualAddr);
-    unmapPage(pageDir, procInfo->lowerPageTable.virtualAddr);
-    unmapPage(pageDir, procInfo->upperPageTable.virtualAddr);
+    unmapPage(pageTable, procInfo->pageDir.virtualAddr);
+    unmapPage(pageTable, procInfo->kernelPageTable.virtualAddr);
+    unmapPage(pageTable, procInfo->lowerPageTable.virtualAddr);
+    unmapPage(pageTable, procInfo->upperPageTable.virtualAddr);
 }
 
 void ProcessMgr::copyKernelPageDir(ProcessInfo* procInfo)
@@ -305,7 +305,8 @@ bool ProcessMgr::copyProcessPageTables(ProcessInfo* /*dstProc*/, ProcessInfo* /*
 
 bool ProcessMgr::setUpProgram(const multiboot_mod_list* module, ProcessInfo* newProcInfo)
 {
-    uintptr_t* pageDir = reinterpret_cast<uintptr_t*>(newProcInfo->pageDir.virtualAddr);
+    uintptr_t* lowerPageTable = reinterpret_cast<uintptr_t*>(newProcInfo->lowerPageTable.virtualAddr);
+    uintptr_t* upperPageTable = reinterpret_cast<uintptr_t*>(newProcInfo->upperPageTable.virtualAddr);
 
     // allocate and map pages for code
     uintptr_t virAddr = ProcessInfo::CODE_VIRTUAL_START;
@@ -319,7 +320,7 @@ bool ProcessMgr::setUpProgram(const multiboot_mod_list* module, ProcessInfo* new
         }
 
         newProcInfo->addPage({virAddr, phyAddr});
-        mapPage(pageDir, virAddr, phyAddr, true);
+        mapPage(lowerPageTable, virAddr, phyAddr, true);
 
         virAddr += PAGE_SIZE;
     }
@@ -338,7 +339,7 @@ bool ProcessMgr::setUpProgram(const multiboot_mod_list* module, ProcessInfo* new
         return false;
     }
     newProcInfo->addPage({ProcessInfo::KERNEL_STACK_PAGE, kernelStackPhyAddr});
-    mapPage(pageDir, ProcessInfo::KERNEL_STACK_PAGE, kernelStackPhyAddr);
+    mapPage(upperPageTable, ProcessInfo::KERNEL_STACK_PAGE, kernelStackPhyAddr);
 
     // allocate and map a page for the user stack
     uintptr_t userStackPhyAddr = pageFrameMgr->allocPageFrame();
@@ -348,15 +349,14 @@ bool ProcessMgr::setUpProgram(const multiboot_mod_list* module, ProcessInfo* new
         return false;
     }
     newProcInfo->addPage({ProcessInfo::USER_STACK_PAGE, userStackPhyAddr});
-    mapPage(pageDir, ProcessInfo::USER_STACK_PAGE, userStackPhyAddr, true);
+    mapPage(upperPageTable, ProcessInfo::USER_STACK_PAGE, userStackPhyAddr, true);
 
     return true;
 }
 
 bool ProcessMgr::copyProcessPages(ProcessInfo* dstProc, ProcessInfo* srcProc)
 {
-    uintptr_t* dstPageDir = reinterpret_cast<uintptr_t*>(dstProc->pageDir.virtualAddr);
-    uintptr_t* srcPageDir = reinterpret_cast<uintptr_t*>(srcProc->pageDir.virtualAddr);
+    uintptr_t* srcKernelPageTable = reinterpret_cast<uintptr_t*>(srcProc->kernelPageTable.virtualAddr);
 
     for (int i = 0; i < srcProc->getNumPages(); ++i)
     {
@@ -372,18 +372,37 @@ bool ProcessMgr::copyProcessPages(ProcessInfo* dstProc, ProcessInfo* srcProc)
         uintptr_t virAddr = srcPageInfo.virtualAddr;
         dstProc->addPage({virAddr, phyAddr});
 
+        // find page table to map page into
+        uintptr_t* dstPageTable = nullptr;
+        switch (virAddr >> 22)
+        {
+        case 0:
+            dstPageTable = reinterpret_cast<uintptr_t*>(dstProc->lowerPageTable.virtualAddr);
+            break;
+        case 767:
+            dstPageTable = reinterpret_cast<uintptr_t*>(dstProc->upperPageTable.virtualAddr);
+            break;
+        case 768:
+            dstPageTable = reinterpret_cast<uintptr_t*>(dstProc->kernelPageTable.virtualAddr);
+            break;
+        default:
+            PANIC("We should not get here!");
+            return false;
+            break;
+        }
+
         // map the page
-        mapPage(dstPageDir, virAddr, phyAddr, true);
+        mapPage(dstPageTable, virAddr, phyAddr, true);
 
         // temporarily map the destination page in the current process's page
         // table so we can copy to it
-        mapPage(srcPageDir, TEMP_VIRTUAL_ADDRESS, srcPageInfo.physicalAddr);
+        mapPage(srcKernelPageTable, TEMP_VIRTUAL_ADDRESS, srcPageInfo.physicalAddr);
 
         // copy the page
         memcpy(reinterpret_cast<void*>(TEMP_VIRTUAL_ADDRESS), reinterpret_cast<const void*>(virAddr), PAGE_SIZE);
 
         // unmap the destination page from the current process's page table
-        unmapPage(srcPageDir, TEMP_VIRTUAL_ADDRESS);
+        unmapPage(srcKernelPageTable, TEMP_VIRTUAL_ADDRESS);
     }
 
     return true;

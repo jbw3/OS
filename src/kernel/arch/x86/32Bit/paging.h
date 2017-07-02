@@ -91,12 +91,12 @@ void mapPageTable(uint32_t* pageDir, uint32_t pageTable, int pageDirIdx, bool us
 /**
  * @brief Map a page in a page table.
  */
-void mapPage(const uint32_t* pageDir, uint32_t virtualAddr, uint32_t physicalAddr, bool user = false);
+void mapPage(uint32_t* pageTable, uint32_t virtualAddr, uint32_t physicalAddr, bool user = false);
 
 /**
  * @brief Unmap a page from a page table.
  */
-void unmapPage(const uint32_t* pageDir, uint32_t virtualAddr);
+void unmapPage(uint32_t* pageTable, uint32_t virtualAddr);
 
 /**
  * @brief Map Multiboot modules

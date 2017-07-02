@@ -123,12 +123,12 @@ private:
      * structure. Also, temporarily maps them in the given page
      * directory, so they can be accessed.
      */
-    bool initPaging(ProcessInfo* procInfo, const uintptr_t* pageDir);
+    bool initPaging(ProcessInfo* procInfo, uintptr_t* pageTable);
 
     /**
      * @brief Unmap temporarily mapped pages.
      */
-    void unmapPages(ProcessInfo* procInfo, const uintptr_t* pageDir);
+    void unmapPages(ProcessInfo* procInfo, uintptr_t* pageTable);
 
     /**
      * @brief Copying the kernel page directory and table to the given process.

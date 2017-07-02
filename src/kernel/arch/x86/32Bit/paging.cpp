@@ -56,45 +56,10 @@ void mapPageTable(uint32_t* pageDir, uint32_t pageTableAddr, int pageDirIdx, boo
     pageDir[pageDirIdx] = pageDirEntry;
 }
 
-/**
- * @brief Find a page's info. This is a helper function for functions below.
- */
-void findPage(const uint32_t* pageDir, uint32_t virtualAddr, int& pageTableIdx, bool& foundPageTable, uint32_t*& pageTable)
+void mapPage(uint32_t* pageTable, uint32_t virtualAddr, uint32_t physicalAddr, bool user)
 {
-    // calculate the page directory and page table indexes
-    int pageDirIdx = virtualAddr >> 22;
-    pageTableIdx = (virtualAddr >> 12) & PAGE_TABLE_INDEX_MASK;
-
-    // get the entry in the page directory
-    uint32_t pageDirEntry = pageDir[pageDirIdx];
-
-    foundPageTable = (pageDirEntry & PAGE_DIR_PRESENT) != 0;
-
-    // if no page table is mapped, return
-    if (!foundPageTable)
-    {
-        pageTable = nullptr;
-        return;
-    }
-
-    // get the page table address from the page directory
-    uint32_t pageTableAddr = pageDirEntry & PAGE_DIR_ADDRESS;
-    pageTable = reinterpret_cast<uint32_t*>(pageTableAddr + KERNEL_VIRTUAL_BASE);
-}
-
-void mapPage(const uint32_t* pageDir, uint32_t virtualAddr, uint32_t physicalAddr, bool user)
-{
-    int pageTableIdx = -1;
-    bool foundPageTable = false;
-    uint32_t* pageTable = nullptr;
-
-    findPage(pageDir, virtualAddr, pageTableIdx, foundPageTable, pageTable);
-
-    // make sure the entry contains a page table
-    if (!foundPageTable)
-    {
-        PANIC("Page directory entry does not point to a page table.");
-    }
+    // calculate the page table index
+    int pageTableIdx = (virtualAddr >> 12) & PAGE_TABLE_INDEX_MASK;
 
     // get the page entry from the page table
     uint32_t pageTableEntry = pageTable[pageTableIdx];
@@ -110,23 +75,16 @@ void mapPage(const uint32_t* pageDir, uint32_t virtualAddr, uint32_t physicalAdd
     pageTable[pageTableIdx] = pageTableEntry;
 }
 
-void unmapPage(const uint32_t* pageDir, uint32_t virtualAddr)
+void unmapPage(uint32_t* pageTable, uint32_t virtualAddr)
 {
-    int pageTableIdx = -1;
-    bool foundPageTable = false;
-    uint32_t* pageTable = nullptr;
+    // calculate the page table index
+    int pageTableIdx = (virtualAddr >> 12) & PAGE_TABLE_INDEX_MASK;
 
-    findPage(pageDir, virtualAddr, pageTableIdx, foundPageTable, pageTable);
+    // clear the page table entry
+    pageTable[pageTableIdx] = 0;
 
-    // clear the page if the page table was found, else do nothing
-    if (foundPageTable)
-    {
-        // clear the page table entry
-        pageTable[pageTableIdx] = 0;
-
-        // invalidate page in TLB
-        invalidatePage(virtualAddr);
-    }
+    // invalidate page in TLB
+    invalidatePage(virtualAddr);
 }
 
 void mapModules(const multiboot_info* mbootInfo)
@@ -144,7 +102,7 @@ void mapModules(const multiboot_info* mbootInfo)
         for (uint32_t pageAddr = startPageAddr; pageAddr < endPageAddr; pageAddr += PAGE_SIZE)
         {
             uint32_t virtualAddr = pageAddr + KERNEL_VIRTUAL_BASE;
-            mapPage(getKernelPageDirStart(), virtualAddr, pageAddr);
+            mapPage(getKernelPageTableStart(), virtualAddr, pageAddr);
         }
 
         modAddr += sizeof(multiboot_mod_list);
