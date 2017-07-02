@@ -15,7 +15,6 @@ class PageFrameMgr;
 
 /**
  * @brief Process manager
- * @todo Mapping/unmapping pages should be done by page table.
  */
 class ProcessMgr
 {

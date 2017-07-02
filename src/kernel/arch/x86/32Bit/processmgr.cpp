@@ -274,9 +274,13 @@ void ProcessMgr::copyKernelPageDir(ProcessInfo* procInfo)
     uintptr_t* pageDir = reinterpret_cast<uintptr_t*>(procInfo->pageDir.virtualAddr);
     uintptr_t* kernelPageTable = reinterpret_cast<uintptr_t*>(procInfo->kernelPageTable.virtualAddr);
 
-    // copy kernel page directory and page table
-    memcpy(pageDir, getKernelPageDirStart(), PAGE_SIZE);
+    // copy kernel page table
     memcpy(kernelPageTable, getKernelPageTableStart(), PAGE_SIZE);
+
+    // map kernel page table in page directory
+    memset(pageDir, 0, PAGE_SIZE);
+    int kernelIdx = KERNEL_VIRTUAL_BASE >> 22;
+    mapPageTable(pageDir, procInfo->kernelPageTable.physicalAddr, kernelIdx);
 }
 
 void ProcessMgr::createProcessPageTables(ProcessInfo* newProcInfo)
