@@ -3,32 +3,11 @@
 #include "string.h"
 #include "unistd.h"
 
-void print(const char* str)
-{
-    write(STDOUT_FILENO, str, strlen(str));
-}
-
 int main()
 {
-    const char str[] = "Hi there!\n";
-    int rc = 123456;
+    printf("pid: %i\n", getpid());
 
-    rc = write(STDOUT_FILENO, str, strlen(str));
-    if (rc == 0)
-    {
-        print("rc = 0\n");
-    }
-
-    rc = write(STDERR_FILENO, str, strlen(str));
-    if (rc == -1)
-    {
-        print("rc = -1\n");
-    }
-
-    pid_t pid = getpid();
-    char pidBuff[32];
-    sprintf(pidBuff, "pid: %i\n", pid);
-    print(pidBuff);
+    printf("Testing %i, %i, %i...\n", 1, 2, 3);
 
     return 0;
 }
