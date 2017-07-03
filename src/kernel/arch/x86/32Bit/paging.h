@@ -34,6 +34,10 @@
 #define PAGE_TABLE_READ_WRITE    0x00000002
 #define PAGE_TABLE_PRESENT       0x00000001
 
+#define PAGE_ERROR_PRESENT (0x1)
+#define PAGE_ERROR_WRITE   (0x2)
+#define PAGE_ERROR_USER    (0x4)
+
 struct multiboot_info;
 
 extern "C"

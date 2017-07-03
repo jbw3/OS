@@ -16,8 +16,36 @@ void pageFault(const registers* regs)
     screen.setForegroundColor(os::Screen::EColor::eWhite);
 
     screen << "Page fault!\n"
-           << "Error code: " << regs->errCode << '\n'
-           << "Address: "
+           << "Error code: " << regs->errCode << '\n';
+
+    if ( (regs->errCode & PAGE_ERROR_USER) != 0 )
+    {
+        screen << "A user process ";
+    }
+    else
+    {
+        screen << "A supervisory process ";
+    }
+
+    if ( (regs->errCode & PAGE_ERROR_WRITE) != 0 )
+    {
+        screen << "tried to write to ";
+    }
+    else
+    {
+        screen << "tried to read from ";
+    }
+
+    if ( (regs->errCode & PAGE_ERROR_PRESENT) != 0 )
+    {
+        screen << "a page and caused a protection fault.\n";
+    }
+    else
+    {
+        screen << "a non-present page.\n";
+    }
+
+    screen << "Address: "
            << os::Screen::setw(8)
            << os::Screen::setfill('0')
            << os::Screen::hex
