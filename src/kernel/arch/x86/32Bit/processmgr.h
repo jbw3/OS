@@ -123,9 +123,9 @@ private:
     void unmapPages(ProcessInfo* procInfo, uintptr_t* pageTable);
 
     /**
-     * @brief Copying the kernel page directory and table to the given process.
+     * @brief Copy the kernel page directory and table to the given process.
      */
-    void copyKernelPageDir(ProcessInfo* newProcInfo);
+    void copyKernelPageTable(ProcessInfo* dstProc, uintptr_t* srcKernelPageTable);
 
     /**
      * @brief Create a process's page tables to map its code and stack.

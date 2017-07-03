@@ -70,8 +70,8 @@ void ProcessMgr::createProcess(const multiboot_mod_list* module)
 
     if (ok)
     {
-        // copy kernel page directory
-        copyKernelPageDir(newProcInfo);
+        // copy kernel page table
+        copyKernelPageTable(newProcInfo, getKernelPageTableStart());
 
         // create process page tables
         createProcessPageTables(newProcInfo);
@@ -132,24 +132,20 @@ bool ProcessMgr::forkCurrentProcess()
     ProcessInfo* newProcInfo = nullptr;
     ok = getNewProcInfo(newProcInfo);
 
+    uintptr_t* currentKernelPageTable = reinterpret_cast<uintptr_t*>(getCurrentProcessInfo()->kernelPageTable.virtualAddr);
+
     if (ok)
     {
-        /// @todo initPaging
+        ok = initPaging(newProcInfo, currentKernelPageTable);
     }
 
     if (ok)
     {
-        // copy kernel page directory
-        copyKernelPageDir(newProcInfo);
+        // copy kernel page table
+        copyKernelPageTable(newProcInfo, currentKernelPageTable);
 
         // copy process page tables
         copyProcessPageTables(newProcInfo, getCurrentProcessInfo());
-
-        /// @todo unmap child process pages from parent process page table
-
-        /// @todo switch to process's page directory
-
-        /// @todo unmap parent process pages from child process page table
 
         // copy process's pages
         ok = copyProcessPages(newProcInfo, getCurrentProcessInfo());
@@ -157,14 +153,11 @@ bool ProcessMgr::forkCurrentProcess()
 
     if (ok)
     {
-        /// @todo temp until implementation is complete
-        ProcessInfo* temp = getCurrentProcessInfo();
+        // unmap parent process pages from child process page table
+        unmapPages(getCurrentProcessInfo(), reinterpret_cast<uintptr_t*>(newProcInfo->kernelPageTable.virtualAddr));
 
-        // switch to process's page directory
-        setPageDirectory(newProcInfo->pageDir.physicalAddr);
-
-        /// @todo temp until implementation is complete
-        setPageDirectory(temp->pageDir.physicalAddr);
+        // unmap child process pages from parent process page table
+        unmapPages(newProcInfo, currentKernelPageTable);
 
         /// @todo switch to process
     }
@@ -172,10 +165,6 @@ bool ProcessMgr::forkCurrentProcess()
     {
         // if we get here, something went wrong and we need to
         // clean things up
-
-        // switch back to the calling process's page directory
-        uintptr_t processPageDirPhyAddr = getCurrentProcessInfo()->pageDir.physicalAddr;
-        setPageDirectory(processPageDirPhyAddr);
 
         cleanUpProcess(newProcInfo);
     }
@@ -273,18 +262,18 @@ void ProcessMgr::unmapPages(ProcessInfo* procInfo, uintptr_t* pageTable)
     unmapPage(pageTable, procInfo->upperPageTable.virtualAddr);
 }
 
-void ProcessMgr::copyKernelPageDir(ProcessInfo* procInfo)
+void ProcessMgr::copyKernelPageTable(ProcessInfo* dstProc, uintptr_t* srcKernelPageTable)
 {
-    uintptr_t* pageDir = reinterpret_cast<uintptr_t*>(procInfo->pageDir.virtualAddr);
-    uintptr_t* kernelPageTable = reinterpret_cast<uintptr_t*>(procInfo->kernelPageTable.virtualAddr);
+    uintptr_t* pageDir = reinterpret_cast<uintptr_t*>(dstProc->pageDir.virtualAddr);
+    uintptr_t* kernelPageTable = reinterpret_cast<uintptr_t*>(dstProc->kernelPageTable.virtualAddr);
 
     // copy kernel page table
-    memcpy(kernelPageTable, getKernelPageTableStart(), PAGE_SIZE);
+    memcpy(kernelPageTable, srcKernelPageTable, PAGE_SIZE);
 
     // map kernel page table in page directory
     memset(pageDir, 0, PAGE_SIZE);
     int kernelIdx = KERNEL_VIRTUAL_BASE >> 22;
-    mapPageTable(pageDir, procInfo->kernelPageTable.physicalAddr, kernelIdx);
+    mapPageTable(pageDir, dstProc->kernelPageTable.physicalAddr, kernelIdx);
 }
 
 void ProcessMgr::createProcessPageTables(ProcessInfo* newProcInfo)
