@@ -91,9 +91,6 @@ void ProcessMgr::createProcess(const multiboot_mod_list* module)
         // allocate a process ID
         newProcInfo->id = getNewId();
 
-        /// @todo remove this
-        screen << "Created process " << newProcInfo->id << '\n';
-
         // set the ProcessInfo pointer
         *ProcessInfo::PROCESS_INFO = newProcInfo;
 
