@@ -137,15 +137,23 @@ bool ProcessMgr::forkCurrentProcess()
 
     if (ok)
     {
-        // copy kernel page directory
-        copyKernelPageDir(newProcInfo);
-
-        // copy process page tables
-        ok = copyProcessPageTables(newProcInfo, getCurrentProcessInfo());
+        /// @todo initPaging
     }
 
     if (ok)
     {
+        // copy kernel page directory
+        copyKernelPageDir(newProcInfo);
+
+        // copy process page tables
+        copyProcessPageTables(newProcInfo, getCurrentProcessInfo());
+
+        /// @todo unmap child process pages from parent process page table
+
+        /// @todo switch to process's page directory
+
+        /// @todo unmap parent process pages from child process page table
+
         // copy process's pages
         ok = copyProcessPages(newProcInfo, getCurrentProcessInfo());
     }
@@ -301,10 +309,24 @@ void ProcessMgr::createProcessPageTables(ProcessInfo* newProcInfo)
     mapPageTable(pageDir, newProcInfo->upperPageTable.physicalAddr, upperIdx, true);
 }
 
-bool ProcessMgr::copyProcessPageTables(ProcessInfo* /*dstProc*/, ProcessInfo* /*srcProc*/)
+void ProcessMgr::copyProcessPageTables(ProcessInfo* dstProc, ProcessInfo* srcProc)
 {
-    /// @todo implement
-    return false;
+    uintptr_t* dstPageDir = reinterpret_cast<uintptr_t*>(dstProc->pageDir.virtualAddr);
+    uintptr_t* dstLowerPageTable = reinterpret_cast<uintptr_t*>(dstProc->lowerPageTable.virtualAddr);
+    uintptr_t* dstUpperPageTable = reinterpret_cast<uintptr_t*>(dstProc->upperPageTable.virtualAddr);
+    uintptr_t* srcLowerPageTable = reinterpret_cast<uintptr_t*>(srcProc->lowerPageTable.virtualAddr);
+    uintptr_t* srcUpperPageTable = reinterpret_cast<uintptr_t*>(srcProc->upperPageTable.virtualAddr);
+
+    // copy page tables
+    memcpy(dstLowerPageTable, srcLowerPageTable, PAGE_SIZE);
+    memcpy(dstUpperPageTable, srcUpperPageTable, PAGE_SIZE);
+
+    // map lower page table in page directory
+    mapPageTable(dstPageDir, dstProc->lowerPageTable.physicalAddr, 0, true);
+
+    // map upper page table in page directory right before kernel page table
+    int upperIdx = (KERNEL_VIRTUAL_BASE - PAGE_SIZE) >> 22;
+    mapPageTable(dstPageDir, dstProc->upperPageTable.physicalAddr, upperIdx, true);
 }
 
 bool ProcessMgr::setUpProgram(const multiboot_mod_list* module, ProcessInfo* newProcInfo)

@@ -143,7 +143,7 @@ private:
      * @brief Copy a process's page tables for code and stack from another
      * process.
      */
-    bool copyProcessPageTables(ProcessInfo* dstProc, ProcessInfo* srcProc);
+    void copyProcessPageTables(ProcessInfo* dstProc, ProcessInfo* srcProc);
 
     /**
      * @brief Set up the program for the process by copying the
