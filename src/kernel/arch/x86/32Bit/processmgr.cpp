@@ -233,24 +233,26 @@ bool ProcessMgr::initPaging(ProcessInfo* procInfo, uintptr_t* pageTable)
             return false;
         }
 
-        /// @todo auto-map instead of using hard-coded addresses
+        // We need to map the page dir and table to modify them.
         uintptr_t virAddr = 0;
+        if (!mapPage((KERNEL_VIRTUAL_BASE >> 22), pageTable, virAddr, phyAddr))
+        {
+            logError("Could not map page.");
+            return false;
+        }
+
         switch (i)
         {
         case 0:
-            virAddr = PAGE_DIR_VIRTUAL_ADDRESS;
             procInfo->pageDir = {virAddr, phyAddr};
             break;
         case 1:
-            virAddr = PAGE_TABLE1_VIRTUAL_ADDRESS;
             procInfo->kernelPageTable = {virAddr, phyAddr};
             break;
         case 2:
-            virAddr = PAGE_TABLE2_VIRTUAL_ADDRESS;
             procInfo->lowerPageTable = {virAddr, phyAddr};
             break;
         case 3:
-            virAddr = PAGE_TABLE3_VIRTUAL_ADDRESS;
             procInfo->upperPageTable = {virAddr, phyAddr};
             break;
         default:
@@ -258,9 +260,6 @@ bool ProcessMgr::initPaging(ProcessInfo* procInfo, uintptr_t* pageTable)
             return false;
             break;
         }
-
-        // We need to map the page dir and table to modify them.
-        mapPage(pageTable, virAddr, phyAddr);
     }
 
     return true;
@@ -419,13 +418,19 @@ bool ProcessMgr::copyProcessPages(ProcessInfo* dstProc, ProcessInfo* srcProc)
 
         // temporarily map the destination page in the current process's page
         // table so we can copy to it
-        mapPage(srcKernelPageTable, TEMP_VIRTUAL_ADDRESS, srcPageInfo.physicalAddr);
+        uintptr_t tempAddr = 0;
+        bool ok = mapPage((KERNEL_VIRTUAL_BASE >> 22), srcKernelPageTable, tempAddr, srcPageInfo.physicalAddr);
+        if (!ok)
+        {
+            logError("Could not map temporary page.");
+            return false;
+        }
 
         // copy the page
-        memcpy(reinterpret_cast<void*>(TEMP_VIRTUAL_ADDRESS), reinterpret_cast<const void*>(virAddr), PAGE_SIZE);
+        memcpy(reinterpret_cast<void*>(tempAddr), reinterpret_cast<const void*>(virAddr), PAGE_SIZE);
 
         // unmap the destination page from the current process's page table
-        unmapPage(srcKernelPageTable, TEMP_VIRTUAL_ADDRESS);
+        unmapPage(srcKernelPageTable, tempAddr);
     }
 
     return true;

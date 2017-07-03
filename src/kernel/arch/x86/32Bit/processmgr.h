@@ -95,13 +95,6 @@ public:
     ProcessInfo* getCurrentProcessInfo();
 
 private:
-    /// @todo auto-map pages instead of using these hard-coded address
-    constexpr static uintptr_t PAGE_DIR_VIRTUAL_ADDRESS = 0xc03f'0000;
-    constexpr static uintptr_t PAGE_TABLE1_VIRTUAL_ADDRESS = PAGE_DIR_VIRTUAL_ADDRESS + PAGE_SIZE * 1;
-    constexpr static uintptr_t PAGE_TABLE2_VIRTUAL_ADDRESS = PAGE_DIR_VIRTUAL_ADDRESS + PAGE_SIZE * 2;
-    constexpr static uintptr_t PAGE_TABLE3_VIRTUAL_ADDRESS = PAGE_DIR_VIRTUAL_ADDRESS + PAGE_SIZE * 3;
-    constexpr static uintptr_t TEMP_VIRTUAL_ADDRESS = PAGE_DIR_VIRTUAL_ADDRESS + PAGE_SIZE * 4;
-
     constexpr static int MAX_NUM_PROCESSES = 4;
     ProcessInfo processInfo[MAX_NUM_PROCESSES];
 
