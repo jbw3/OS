@@ -75,6 +75,30 @@ void mapPage(uint32_t* pageTable, uint32_t virtualAddr, uint32_t physicalAddr, b
     pageTable[pageTableIdx] = pageTableEntry;
 }
 
+bool mapPage(int pageDirIdx, uint32_t* pageTable, uint32_t& virtualAddr, uint32_t physicalAddr, bool user)
+{
+    for (int idx = 0; idx < PAGE_TABLE_NUM_ENTRIES; ++idx)
+    {
+        uint32_t entry = pageTable[idx];
+        if ( (entry & PAGE_TABLE_PRESENT) == 0 )
+        {
+            uint32_t newEntry = physicalAddr & PAGE_TABLE_ADDRESS;  // set address
+            newEntry |= PAGE_TABLE_READ_WRITE | PAGE_TABLE_PRESENT; // set read/write and present bits
+            if (user)
+            {
+                newEntry |= PAGE_TABLE_USER; // set user privilege
+            }
+
+            pageTable[idx] = newEntry;
+
+            virtualAddr = (pageDirIdx << 22) | (idx << 12);
+            return true;
+        }
+    }
+
+    return false;
+}
+
 void unmapPage(uint32_t* pageTable, uint32_t virtualAddr)
 {
     // calculate the page table index

@@ -94,6 +94,11 @@ void mapPageTable(uint32_t* pageDir, uint32_t pageTable, int pageDirIdx, bool us
 void mapPage(uint32_t* pageTable, uint32_t virtualAddr, uint32_t physicalAddr, bool user = false);
 
 /**
+ * @brief Map a page in the first available page table entry and return the virtual address.
+ */
+bool mapPage(int pageDirIdx, uint32_t* pageTable, uint32_t& virtualAddr, uint32_t physicalAddr, bool user = false);
+
+/**
  * @brief Unmap a page from a page table.
  */
 void unmapPage(uint32_t* pageTable, uint32_t virtualAddr);
