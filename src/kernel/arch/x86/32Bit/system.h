@@ -56,6 +56,11 @@ uint32_t getRegCR2();
 void switchToUserMode(uintptr_t userStackAddr, uintptr_t* currentStackAddr);
 
 /**
+ * @brief Switch to user mode (privilege level 3) and set the page directory
+ */
+void switchToUserModeAndSetPageDir(uintptr_t userStackAddr, uintptr_t* currentStackAddr, uintptr_t pageDirAddr);
+
+/**
  * @brief Switch to the given process's stack.
  */
 void switchToProcessStack(uintptr_t procStack);

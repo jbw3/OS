@@ -67,6 +67,9 @@ private:
 
         PageFrameInfo upperPageTable;
 
+        /// saves the process's stack before switching to another process
+        uintptr_t stack;
+
     private:
         /// The addresses of pages used by the process for code, data,
         /// and stack.

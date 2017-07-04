@@ -159,7 +159,19 @@ bool ProcessMgr::forkCurrentProcess()
         // unmap child process pages from parent process page table
         unmapPages(newProcInfo, currentKernelPageTable);
 
-        /// @todo switch to process
+        // allocate a process ID
+        newProcInfo->id = getNewId();
+
+        // set the ProcessInfo pointer
+        *ProcessInfo::PROCESS_INFO = newProcInfo;
+
+        // set the kernel stack for the process
+        setKernelStack(ProcessInfo::KERNEL_STACK_START);
+
+        // switch to user mode, set page dir, and run process
+        switchToUserModeAndSetPageDir(ProcessInfo::USER_STACK_PAGE + PAGE_SIZE - 4,
+                                      &getCurrentProcessInfo()->stack,
+                                      newProcInfo->pageDir.physicalAddr);
     }
     else
     {
@@ -408,7 +420,7 @@ bool ProcessMgr::copyProcessPages(ProcessInfo* dstProc, ProcessInfo* srcProc)
         // temporarily map the destination page in the current process's page
         // table so we can copy to it
         uintptr_t tempAddr = 0;
-        bool ok = mapPage((KERNEL_VIRTUAL_BASE >> 22), srcKernelPageTable, tempAddr, srcPageInfo.physicalAddr);
+        bool ok = mapPage((KERNEL_VIRTUAL_BASE >> 22), srcKernelPageTable, tempAddr, phyAddr);
         if (!ok)
         {
             logError("Could not map temporary page.");

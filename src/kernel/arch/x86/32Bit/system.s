@@ -77,6 +77,32 @@ switchToUserMode:
 
 	iret
 
+global switchToUserModeAndSetPageDir
+switchToUserModeAndSetPageDir:
+	; save registers
+	pusha
+
+	; save current stack pointer
+	mov eax, [esp + 40]
+	mov [eax], esp
+
+	; save the user mode stack pointer passed as an argument because
+	; we're about to switch the page dir and we won't have access to it
+	mov ecx, [esp + 36]
+
+	; set page directory
+	mov eax, [esp + 44]
+	mov cr3, eax
+
+	; set up stack for interrupt return
+	push USER_DATA_SEGMENT_SELECTOR | USER_PL	; user mode stack segment selector
+	push ecx									; user mode stack pointer (function argument)
+	pushf										; user mode control flags
+	push USER_CODE_SEGMENT_SELECTOR | USER_PL	; user mode code segment selector
+	push 0										; instruction pointer to user mode code
+
+	iret
+
 global switchToProcessStack
 switchToProcessStack:
 	; restore stack pointer
