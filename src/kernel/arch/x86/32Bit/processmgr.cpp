@@ -162,16 +162,17 @@ bool ProcessMgr::forkCurrentProcess()
         // allocate a process ID
         newProcInfo->id = getNewId();
 
-        // set the ProcessInfo pointer
-        *ProcessInfo::PROCESS_INFO = newProcInfo;
-
         // set the kernel stack for the process
         setKernelStack(ProcessInfo::KERNEL_STACK_START);
 
-        // switch to user mode, set page dir, and run process
-        switchToUserModeAndSetPageDir(ProcessInfo::USER_STACK_PAGE + PAGE_SIZE - 4,
-                                      &getCurrentProcessInfo()->stack,
-                                      newProcInfo->pageDir.physicalAddr);
+        // save current process stack and switch to new process's page directory
+        int isChildProcess = forkProcess(newProcInfo->pageDir.physicalAddr, &getCurrentProcessInfo()->stack);
+
+        if (isChildProcess)
+        {
+            // set the ProcessInfo pointer
+            *ProcessInfo::PROCESS_INFO = newProcInfo;
+        }
     }
     else
     {

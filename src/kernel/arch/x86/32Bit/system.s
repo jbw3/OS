@@ -77,31 +77,31 @@ switchToUserMode:
 
 	iret
 
-global switchToUserModeAndSetPageDir
-switchToUserModeAndSetPageDir:
+global forkProcess
+forkProcess:
+	mov ecx, [esp + 4] ; pageDirAddr
+	mov edx, [esp + 8] ; currentStackAddr
+
+	; return false for parent process
+	; (this will get pushed to the stack and restored when
+	; we switch back to the parent process)
+	mov eax, 0
+
 	; save registers
 	pusha
 
 	; save current stack pointer
-	mov eax, [esp + 40]
-	mov [eax], esp
+	mov [edx], esp
 
-	; save the user mode stack pointer passed as an argument because
-	; we're about to switch the page dir and we won't have access to it
-	mov ecx, [esp + 36]
+	; switch page directory
+	mov cr3, ecx
 
-	; set page directory
-	mov eax, [esp + 44]
-	mov cr3, eax
+	; we're in the child process now, so get rid of pushed registers
+	add esp, 32
 
-	; set up stack for interrupt return
-	push USER_DATA_SEGMENT_SELECTOR | USER_PL	; user mode stack segment selector
-	push ecx									; user mode stack pointer (function argument)
-	pushf										; user mode control flags
-	push USER_CODE_SEGMENT_SELECTOR | USER_PL	; user mode code segment selector
-	push 0										; instruction pointer to user mode code
-
-	iret
+	; return true for child process
+	mov eax, 1
+	ret
 
 global switchToProcessStack
 switchToProcessStack:

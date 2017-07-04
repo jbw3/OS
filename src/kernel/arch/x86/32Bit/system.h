@@ -51,14 +51,15 @@ uint32_t getStackOffset();
 uint32_t getRegCR2();
 
 /**
- * @brief Switch to user mode (privilege level 3)
+ * @brief Switch to user mode (privilege level 3).
  */
 void switchToUserMode(uintptr_t userStackAddr, uintptr_t* currentStackAddr);
 
 /**
- * @brief Switch to user mode (privilege level 3) and set the page directory
+ * @brief Initialize a new process's stack.
+ * @return 1 for the new process; 0 for the original process
  */
-void switchToUserModeAndSetPageDir(uintptr_t userStackAddr, uintptr_t* currentStackAddr, uintptr_t pageDirAddr);
+int forkProcess(uint32_t pageDirAddr, uint32_t* currentStackAddr);
 
 /**
  * @brief Switch to the given process's stack.
