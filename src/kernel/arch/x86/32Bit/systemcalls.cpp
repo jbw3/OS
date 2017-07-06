@@ -1,3 +1,4 @@
+#include "keyboard.h"
 #include "processmgr.h"
 #include "screen.h"
 #include "system.h"
@@ -27,6 +28,27 @@ pid_t fork()
 pid_t getpid()
 {
     return processMgr.getCurrentProcessInfo()->id;
+}
+
+ssize_t read(int fildes, void* buf, size_t nbyte)
+{
+    // only support stdin right now
+    if (fildes != STDIN_FILENO)
+    {
+        return -1;
+    }
+
+    os::Keyboard::processQueue();
+
+    char ch;
+    size_t idx = 0;
+    while (idx < nbyte && screen.read(ch))
+    {
+        reinterpret_cast<char*>(buf)[idx] = ch;
+        ++idx;
+    }
+
+    return static_cast<ssize_t>(idx);
 }
 
 ssize_t write(int fildes, const void* buf, size_t nbyte)
@@ -64,7 +86,7 @@ const void* SYSTEM_CALLS[SYSTEM_CALLS_SIZE] = {
     reinterpret_cast<const void*>(systemcall::getpid),
     reinterpret_cast<const void*>(systemcall::exit),
     reinterpret_cast<const void*>(systemcall::fork),
-    nullptr,
+    reinterpret_cast<const void*>(systemcall::read),
     nullptr,
     nullptr,
     nullptr,

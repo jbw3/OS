@@ -14,11 +14,20 @@ pid_t fork()
     return systemCall(SYSTEM_CALL_FORK);
 }
 
+ssize_t read(int fildes, void* buf, size_t nbyte)
+{
+    ssize_t rc = systemCall(SYSTEM_CALL_READ,
+                            fildes,
+                            buf,
+                            nbyte);
+    return rc;
+}
+
 ssize_t write(int fildes, const void* buf, size_t nbyte)
 {
     ssize_t rc = systemCall(SYSTEM_CALL_WRITE,
                             fildes,
-                            reinterpret_cast<uint32_t>(buf),
+                            buf,
                             nbyte);
     return rc;
 }
