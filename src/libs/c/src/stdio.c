@@ -5,6 +5,24 @@
 
 #include "stringutils.h"
 
+int getchar()
+{
+    char ch;
+    ssize_t numRead = -1;
+
+    do
+    {
+        numRead = read(STDIN_FILENO, &ch, 1);
+    } while (numRead == 0);
+
+    if (numRead < 0)
+    {
+        return EOF;
+    }
+
+    return ch;
+}
+
 int putchar(int ch)
 {
     unsigned char uChar = (unsigned char)(ch);

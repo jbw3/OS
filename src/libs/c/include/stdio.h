@@ -10,6 +10,8 @@ extern "C"
 
 typedef __builtin_va_list va_list;
 
+int getchar();
+
 int putchar(int ch);
 
 int printf(const char* fmt, ...);
