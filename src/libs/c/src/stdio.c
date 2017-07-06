@@ -31,6 +31,26 @@ int putchar(int ch)
     return (status < 0) ? EOF : ch;
 }
 
+int puts(const char* s)
+{
+    size_t len = strlen(s);
+
+    ssize_t status = write(STDOUT_FILENO, s, len);
+    if (status < 0)
+    {
+        return EOF;
+    }
+
+    const char newline = '\n';
+    status = write(STDOUT_FILENO, &newline, 1);
+    if (status < 0)
+    {
+        return EOF;
+    }
+
+    return 0;
+}
+
 int printf(const char* fmt, ...)
 {
     va_list args;
