@@ -46,13 +46,42 @@ int ProcessMgr::ProcessInfo::getNumPages() const
 }
 
 ProcessMgr::ProcessMgr() :
-    pageFrameMgr(nullptr)
+    pageFrameMgr(nullptr),
+    mbootInfo(nullptr)
 {
 }
 
 void ProcessMgr::setPageFrameMgr(PageFrameMgr* pageFrameMgrPtr)
 {
     pageFrameMgr = pageFrameMgrPtr;
+}
+
+void ProcessMgr::setMultibootInfo(const multiboot_info* multibootInfo)
+{
+    mbootInfo = multibootInfo;
+}
+
+void ProcessMgr::mainloop()
+{
+    const multiboot_mod_list* initModule = nullptr;
+    bool found = findModule("init", initModule);
+    if (!found)
+    {
+        PANIC("Could not find init program.");
+    }
+
+    // kick off init process
+    createProcess(initModule);
+
+    while (true)
+    {
+        /// @todo temporary
+        screen << "loop\n";
+        for (int i = 0; i < 20; ++i)
+        {
+            asm volatile ("hlt");
+        }
+    }
 }
 
 void ProcessMgr::createProcess(const multiboot_mod_list* module)
@@ -194,6 +223,32 @@ void ProcessMgr::exitCurrentProcess()
 ProcessMgr::ProcessInfo* ProcessMgr::getCurrentProcessInfo()
 {
     return *ProcessInfo::PROCESS_INFO;
+}
+
+bool ProcessMgr::findModule(const char* name, const multiboot_mod_list*& module)
+{
+    bool found = false;
+    uint32_t addr = mbootInfo->mods_addr + KERNEL_VIRTUAL_BASE;
+    uint32_t count = mbootInfo->mods_count;
+
+    for (uint32_t i = 0; i < count; ++i)
+    {
+        // get module info struct
+        const multiboot_mod_list* modulePtr = reinterpret_cast<const multiboot_mod_list*>(addr);
+
+        // check if name matches
+        const char* modName = reinterpret_cast<const char*>(modulePtr->cmdline + KERNEL_VIRTUAL_BASE);
+        if (strcmp(name, modName) == 0)
+        {
+            module = modulePtr;
+            found = true;
+            break;
+        }
+
+        addr += sizeof(multiboot_mod_list);
+    }
+
+    return found;
 }
 
 bool ProcessMgr::getNewProcInfo(ProcessInfo*& procInfo)

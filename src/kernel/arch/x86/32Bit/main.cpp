@@ -51,18 +51,19 @@ void kernelMain(const uint32_t MULTIBOOT_MAGIC_NUM, const multiboot_info* mbootI
     PageFrameMgr pageFrameMgr(mbootInfo);
 
     processMgr.setPageFrameMgr(&pageFrameMgr);
+    processMgr.setMultibootInfo(mbootInfo);
 
-    screen.write("Sandbox OS\n");
+    processMgr.mainloop();
 
-    Shell sh(mbootInfo);
+    // Shell sh(mbootInfo);
 
-    while (true)
-    {
-        os::Keyboard::processQueue();
+    // while (true)
+    // {
+    //     os::Keyboard::processQueue();
 
-        sh.update();
+    //     sh.update();
 
-        // halt CPU until an interrupt occurs
-        asm volatile ("hlt");
-    }
+    //     // halt CPU until an interrupt occurs
+    //     asm volatile ("hlt");
+    // }
 }

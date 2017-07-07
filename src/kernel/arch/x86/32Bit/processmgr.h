@@ -86,6 +86,10 @@ public:
 
     void setPageFrameMgr(PageFrameMgr* pageFrameMgrPtr);
 
+    void setMultibootInfo(const multiboot_info* multibootInfo);
+
+    void mainloop();
+
     void createProcess(const multiboot_mod_list* module);
 
     bool forkCurrentProcess();
@@ -104,8 +108,16 @@ private:
     /// the page frame manager
     PageFrameMgr* pageFrameMgr;
 
+    /// the multiboot info
+    const multiboot_info* mbootInfo;
+
     /// the kernel stack before switching to a process
     uintptr_t kernelStack;
+
+    /**
+     * @brief Find the multiboot module with the given name.
+     */
+    bool findModule(const char* name, const multiboot_mod_list*& module);
 
     /**
      * @brief Gets an empty entry in the process info table.
