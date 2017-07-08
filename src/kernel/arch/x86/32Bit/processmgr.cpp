@@ -245,20 +245,27 @@ bool ProcessMgr::forkProcess(ProcessInfo* procInfo)
         // copy process page tables
         copyProcessPageTables(newProcInfo, procInfo);
 
-        // unmap process pages from kernel page table
-        unmapPages(newProcInfo, getKernelPageTableStart());
+        // copy the stack pointer
+        newProcInfo->stack = procInfo->stack;
 
-        // switch to process's page directory
-        setPageDirectory(newProcInfo->pageDir.physicalAddr);
+        screen << os::Screen::hex
+               << newProcInfo->stack << '\n'
+               << os::Screen::dec;
 
         // copy process's pages
         ok = copyProcessPages(newProcInfo, procInfo);
     }
 
+    // unmap process pages from kernel page table
+    unmapPages(newProcInfo, getKernelPageTableStart());
+
     if (ok)
     {
         // allocate a process ID
         newProcInfo->id = getNewId();
+
+        // switch to process's page directory
+        setPageDirectory(newProcInfo->pageDir.physicalAddr);
 
         // set the ProcessInfo pointer
         *ProcessInfo::PROCESS_INFO = newProcInfo;
@@ -469,14 +476,14 @@ bool ProcessMgr::copyProcessPages(ProcessInfo* dstProc, ProcessInfo* srcProc)
         ProcessInfo::PageFrameInfo srcPageInfo = srcProc->getPage(i);
 
         // allocate a page
-        uintptr_t phyAddr = pageFrameMgr->allocPageFrame();
-        if (phyAddr == 0)
+        uintptr_t dstPhyAddr = pageFrameMgr->allocPageFrame();
+        if (dstPhyAddr == 0)
         {
             logError("Could not allocate a page frame for the new process.");
             return false;
         }
         uintptr_t virAddr = srcPageInfo.virtualAddr;
-        dstProc->addPage({virAddr, phyAddr});
+        dstProc->addPage({virAddr, dstPhyAddr});
 
         // find page table to map page into
         uintptr_t* dstPageTable = nullptr;
@@ -498,23 +505,30 @@ bool ProcessMgr::copyProcessPages(ProcessInfo* dstProc, ProcessInfo* srcProc)
         }
 
         // map the page
-        mapPage(dstPageTable, virAddr, phyAddr, true);
+        mapPage(dstPageTable, virAddr, dstPhyAddr, true);
 
-        // temporarily map the destination page in the current process's page
-        // table so we can copy to it
-        uintptr_t tempAddr = 0;
-        bool ok = mapPage((KERNEL_VIRTUAL_BASE >> 22), srcKernelPageTable, tempAddr, phyAddr);
+        // temporarily map the pages in the kernel's page table so we can copy
+        uintptr_t dstTempAddr = 0;
+        uintptr_t srcTempAddr = 0;
+        bool ok = mapPage((KERNEL_VIRTUAL_BASE >> 22), getKernelPageTableStart(), dstTempAddr, dstPhyAddr);
         if (!ok)
         {
-            logError("Could not map temporary page.");
+            logError("Could not map destination temporary page.");
+            return false;
+        }
+        ok = mapPage((KERNEL_VIRTUAL_BASE >> 22), getKernelPageTableStart(), srcTempAddr, srcPageInfo.physicalAddr);
+        if (!ok)
+        {
+            logError("Could not map source temporary page.");
             return false;
         }
 
         // copy the page
-        memcpy(reinterpret_cast<void*>(tempAddr), reinterpret_cast<const void*>(virAddr), PAGE_SIZE);
+        memcpy(reinterpret_cast<void*>(dstTempAddr), reinterpret_cast<const void*>(srcTempAddr), PAGE_SIZE);
 
-        // unmap the destination page from the current process's page table
-        unmapPage(srcKernelPageTable, tempAddr);
+        // unmap the temporary pages from the kernel's page table
+        unmapPage(getKernelPageTableStart(), dstTempAddr);
+        unmapPage(getKernelPageTableStart(), srcTempAddr);
     }
 
     return true;
