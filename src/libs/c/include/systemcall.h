@@ -9,9 +9,6 @@ const uint32_t SYSTEM_CALL_EXIT   =  2;
 const uint32_t SYSTEM_CALL_FORK   =  3;
 const uint32_t SYSTEM_CALL_READ   =  4;
 
-const uint32_t SYSTEM_CALL_TEST   =  9;
-const uint32_t SYSTEM_CALL_TEST3  = 10;
-
 extern "C"
 uint32_t systemCallNumArgs(uint32_t sysCallNum, uint32_t numArgs, ...);
 

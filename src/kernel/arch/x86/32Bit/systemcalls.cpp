@@ -61,19 +61,9 @@ ssize_t write(int fildes, const void* buf, size_t nbyte)
     return 0;
 }
 
-void test()
-{
-    screen << "system call test\n";
-}
-
-void test3(int arg1, int arg2, int arg3)
-{
-    screen << "system call test: " << arg1 << ", " << arg2 << ", " << arg3 << '\n';
-}
-
 } // namespace systemcall
 
-constexpr uint32_t SYSTEM_CALLS_SIZE = 11;
+constexpr uint32_t SYSTEM_CALLS_SIZE = 16;
 const void* SYSTEM_CALLS[SYSTEM_CALLS_SIZE] = {
     reinterpret_cast<const void*>(systemcall::write),
     reinterpret_cast<const void*>(systemcall::getpid),
@@ -84,8 +74,13 @@ const void* SYSTEM_CALLS[SYSTEM_CALLS_SIZE] = {
     nullptr,
     nullptr,
     nullptr,
-    reinterpret_cast<const void*>(systemcall::test),
-    reinterpret_cast<const void*>(systemcall::test3),
+    nullptr,
+    nullptr,
+    nullptr,
+    nullptr,
+    nullptr,
+    nullptr,
+    nullptr,
 };
 
 extern "C"
