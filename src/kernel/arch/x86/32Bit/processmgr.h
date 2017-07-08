@@ -106,6 +106,8 @@ private:
     constexpr static int MAX_NUM_PROCESSES = 4;
     ProcessInfo processInfo[MAX_NUM_PROCESSES];
 
+    int currentProcIdx;
+
     enum class EAction
     {
         /// perform no action

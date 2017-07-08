@@ -46,6 +46,7 @@ int ProcessMgr::ProcessInfo::getNumPages() const
 }
 
 ProcessMgr::ProcessMgr() :
+    currentProcIdx(0),
     pageFrameMgr(nullptr),
     mbootInfo(nullptr)
 {
@@ -89,6 +90,9 @@ void ProcessMgr::mainloop()
 
         // reset action
         procAction = EAction::eNone;
+
+        // switch to process
+        switchToProcessFromKernel(&processInfo[currentProcIdx]);
 
         /// @todo temporary
         screen << "loop\n";
