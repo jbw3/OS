@@ -90,6 +90,7 @@ public:
 
     void mainloop();
 
+    /// @todo make this private
     void createProcess(const multiboot_mod_list* module);
 
     bool forkCurrentProcess();
@@ -105,6 +106,15 @@ private:
     constexpr static int MAX_NUM_PROCESSES = 4;
     ProcessInfo processInfo[MAX_NUM_PROCESSES];
 
+    enum class EAction
+    {
+        /// perform no action
+        eNone,
+
+        /// fork the process
+        eFork,
+    };
+
     /// the page frame manager
     PageFrameMgr* pageFrameMgr;
 
@@ -114,10 +124,24 @@ private:
     /// the kernel stack before switching to a process
     uintptr_t kernelStack;
 
+    /// an action to perform on a process
+    EAction procAction;
+
+    /// the process to perform the action on
+    ProcessInfo* actionProc;
+
+    /// whether the action was successful
+    bool actionSuccessful;
+
     /**
      * @brief Find the multiboot module with the given name.
      */
     bool findModule(const char* name, const multiboot_mod_list*& module);
+
+    /**
+     * @brief Fork the given process.
+     */
+    bool forkProcess(ProcessInfo* procInfo);
 
     /**
      * @brief Gets an empty entry in the process info table.
@@ -174,6 +198,16 @@ private:
      * cannot be found, a null pointer is returned.
      */
     ProcessInfo* findProcess(pid_t id);
+
+    /**
+     * @brief Switch to the kernel from the current process.
+     */
+    void switchToKernelFromProcess();
+
+    /**
+     * @brief Switch to the given process from the kernel.
+     */
+    void switchToProcessFromKernel(ProcessInfo* procInfo);
 
     /**
      * @brief Clean up resources used by a process.

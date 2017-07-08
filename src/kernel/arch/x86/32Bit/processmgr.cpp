@@ -75,6 +75,21 @@ void ProcessMgr::mainloop()
 
     while (true)
     {
+        // process actions
+        switch (procAction)
+        {
+        case EAction::eNone:
+            // do nothing
+            break;
+
+        case EAction::eFork:
+            actionSuccessful = forkProcess(actionProc);
+            break;
+        }
+
+        // reset action
+        procAction = EAction::eNone;
+
         /// @todo temporary
         screen << "loop\n";
         for (int i = 0; i < 20; ++i)
@@ -155,69 +170,20 @@ void ProcessMgr::createProcess(const multiboot_mod_list* module)
 
 bool ProcessMgr::forkCurrentProcess()
 {
-    bool ok = true;
+    procAction = EAction::eFork;
+    actionProc = getCurrentProcessInfo();
 
-    // find an entry in the process info table
-    ProcessInfo* newProcInfo = nullptr;
-    ok = getNewProcInfo(newProcInfo);
+    // switch to kernel
+    switchToKernelFromProcess();
 
-    uintptr_t* currentKernelPageTable = reinterpret_cast<uintptr_t*>(getCurrentProcessInfo()->kernelPageTable.virtualAddr);
-
-    if (ok)
-    {
-        ok = initPaging(newProcInfo, currentKernelPageTable);
-    }
-
-    if (ok)
-    {
-        // copy kernel page table
-        copyKernelPageTable(newProcInfo, currentKernelPageTable);
-
-        // copy process page tables
-        copyProcessPageTables(newProcInfo, getCurrentProcessInfo());
-
-        // copy process's pages
-        ok = copyProcessPages(newProcInfo, getCurrentProcessInfo());
-    }
-
-    if (ok)
-    {
-        // unmap parent process pages from child process page table
-        unmapPages(getCurrentProcessInfo(), reinterpret_cast<uintptr_t*>(newProcInfo->kernelPageTable.virtualAddr));
-
-        // unmap child process pages from parent process page table
-        unmapPages(newProcInfo, currentKernelPageTable);
-
-        // allocate a process ID
-        newProcInfo->id = getNewId();
-
-        // set the kernel stack for the process
-        setKernelStack(ProcessInfo::KERNEL_STACK_START);
-
-        // save current process stack and switch to new process's page directory
-        int isChildProcess = forkProcess(newProcInfo->pageDir.physicalAddr, &getCurrentProcessInfo()->stack);
-
-        if (isChildProcess)
-        {
-            // set the ProcessInfo pointer
-            *ProcessInfo::PROCESS_INFO = newProcInfo;
-        }
-    }
-    else
-    {
-        // if we get here, something went wrong and we need to
-        // clean things up
-
-        cleanUpProcess(newProcInfo);
-    }
-
-    return ok;
+    // we resume here after the fork is complete
+    return actionSuccessful;
 }
 
 void ProcessMgr::exitCurrentProcess()
 {
     // switch back to kernel stack
-    switchToProcessStack(kernelStack);
+    switchToKernelFromProcess();
 }
 
 ProcessMgr::ProcessInfo* ProcessMgr::getCurrentProcessInfo()
@@ -249,6 +215,60 @@ bool ProcessMgr::findModule(const char* name, const multiboot_mod_list*& module)
     }
 
     return found;
+}
+
+bool ProcessMgr::forkProcess(ProcessInfo* procInfo)
+{
+    bool ok = true;
+
+    // find an entry in the process info table
+    ProcessInfo* newProcInfo = nullptr;
+    ok = getNewProcInfo(newProcInfo);
+
+    if (ok)
+    {
+        ok = initPaging(newProcInfo, getKernelPageTableStart());
+    }
+
+    if (ok)
+    {
+        // copy kernel page table
+        copyKernelPageTable(newProcInfo, getKernelPageTableStart());
+
+        // copy process page tables
+        copyProcessPageTables(newProcInfo, procInfo);
+
+        // unmap process pages from kernel page table
+        unmapPages(newProcInfo, getKernelPageTableStart());
+
+        // switch to process's page directory
+        setPageDirectory(newProcInfo->pageDir.physicalAddr);
+
+        // copy process's pages
+        ok = copyProcessPages(newProcInfo, procInfo);
+    }
+
+    if (ok)
+    {
+        // allocate a process ID
+        newProcInfo->id = getNewId();
+
+        // set the ProcessInfo pointer
+        *ProcessInfo::PROCESS_INFO = newProcInfo;
+    }
+    else
+    {
+        // if we get here, something went wrong and we need to
+        // clean things up
+
+        cleanUpProcess(newProcInfo);
+    }
+
+    // switch back to kernel's page directory
+    uintptr_t kernelPageDirPhyAddr = reinterpret_cast<uintptr_t>(getKernelPageDirStart()) - KERNEL_VIRTUAL_BASE;
+    setPageDirectory(kernelPageDirPhyAddr);
+
+    return ok;
 }
 
 bool ProcessMgr::getNewProcInfo(ProcessInfo*& procInfo)
@@ -534,6 +554,24 @@ ProcessMgr::ProcessInfo* ProcessMgr::findProcess(pid_t id)
     }
 
     return nullptr;
+}
+
+void ProcessMgr::switchToKernelFromProcess()
+{
+    // switch to kernel
+    switchToProcessStack(kernelStack, &getCurrentProcessInfo()->stack);
+}
+
+void ProcessMgr::switchToProcessFromKernel(ProcessInfo* procInfo)
+{
+    // switch to process's page directory
+    setPageDirectory(procInfo->pageDir.physicalAddr);
+
+    // set the kernel stack for the process
+    setKernelStack(ProcessInfo::KERNEL_STACK_START);
+
+    // switch to process
+    switchToProcessStack(procInfo->stack, &kernelStack);
 }
 
 void ProcessMgr::cleanUpProcess(ProcessInfo* procInfo)

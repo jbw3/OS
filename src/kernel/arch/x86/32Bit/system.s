@@ -103,10 +103,19 @@ forkProcess:
 	mov eax, 1
 	ret
 
+; param1: new stack address
+; param2: pointer to save current stack address
 global switchToProcessStack
 switchToProcessStack:
-	; restore stack pointer
-	mov esp, [esp + 4]
+	; save registers on current stack
+	pusha
+
+	; save current stack pointer
+	mov eax, [esp + 40]
+	mov [eax], esp
+
+	; switch to new stack
+	mov esp, [esp + 36]
 
 	; restore registers
 	popa
