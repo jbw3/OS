@@ -113,8 +113,11 @@ private:
         /// perform no action
         eNone,
 
-        /// fork the process
+        /// fork a process
         eFork,
+
+        /// exit a process
+        eExit,
     };
 
     /// the page frame manager
@@ -200,6 +203,11 @@ private:
      * cannot be found, a null pointer is returned.
      */
     ProcessInfo* findProcess(pid_t id);
+
+    /**
+     * @brief Get the next scheduled process.
+     */
+    ProcessInfo* getNextScheduledProcess();
 
     /**
      * @brief Switch to the kernel from the current process.

@@ -64,6 +64,8 @@ void ProcessMgr::setMultibootInfo(const multiboot_info* multibootInfo)
 
 void ProcessMgr::mainloop()
 {
+    ProcessInfo* proc = nullptr;
+
     const multiboot_mod_list* initModule = nullptr;
     bool found = findModule("init", initModule);
     if (!found)
@@ -73,9 +75,17 @@ void ProcessMgr::mainloop()
 
     // kick off init process
     createProcess(initModule);
+    proc = &processInfo[currentProcIdx];
 
     while (true)
     {
+        // switch to kernel's page directory
+        uintptr_t kernelPageDirPhyAddr = reinterpret_cast<uintptr_t>(getKernelPageDirStart()) - KERNEL_VIRTUAL_BASE;
+        setPageDirectory(kernelPageDirPhyAddr);
+
+        // enable interrupts
+        setInt();
+
         // process actions
         switch (procAction)
         {
@@ -86,19 +96,20 @@ void ProcessMgr::mainloop()
         case EAction::eFork:
             actionSuccessful = forkProcess(actionProc);
             break;
+
+        case EAction::eExit:
+            cleanUpProcess(actionProc);
+            proc = getNextScheduledProcess();
+            break;
         }
 
         // reset action
         procAction = EAction::eNone;
 
-        // switch to process
-        switchToProcessFromKernel(&processInfo[currentProcIdx]);
-
-        /// @todo temporary
-        screen << "loop\n";
-        for (int i = 0; i < 20; ++i)
+        if (proc != nullptr)
         {
-            asm volatile ("hlt");
+            // switch to process
+            switchToProcessFromKernel(proc);
         }
     }
 }
@@ -147,17 +158,6 @@ void ProcessMgr::createProcess(const multiboot_mod_list* module)
 
         // switch to user mode and run process
         switchToUserMode(ProcessInfo::USER_STACK_PAGE + PAGE_SIZE - 4, &kernelStack);
-
-        // --- we get back here when the process has exited ---
-
-        // switch to kernel's page directory
-        uintptr_t kernelPageDirPhyAddr = reinterpret_cast<uintptr_t>(getKernelPageDirStart()) - KERNEL_VIRTUAL_BASE;
-        setPageDirectory(kernelPageDirPhyAddr);
-
-        // enable interrupts
-        setInt();
-
-        cleanUpProcess(newProcInfo);
     }
     else
     {
@@ -186,7 +186,10 @@ bool ProcessMgr::forkCurrentProcess()
 
 void ProcessMgr::exitCurrentProcess()
 {
-    // switch back to kernel stack
+    procAction = EAction::eExit;
+    actionProc = getCurrentProcessInfo();
+
+    // switch to kernel
     switchToKernelFromProcess();
 }
 
@@ -554,6 +557,33 @@ ProcessMgr::ProcessInfo* ProcessMgr::findProcess(pid_t id)
         if (processInfo[i].id == id)
         {
             return &processInfo[i];
+        }
+    }
+
+    return nullptr;
+}
+
+ProcessMgr::ProcessInfo* ProcessMgr::getNextScheduledProcess()
+{
+    currentProcIdx = (currentProcIdx == MAX_NUM_PROCESSES - 1) ? 0 : currentProcIdx + 1;
+
+    bool wrapped = false;
+    int startIdx = currentProcIdx;
+    while (currentProcIdx != startIdx || !wrapped)
+    {
+        if (processInfo[currentProcIdx].id != 0)
+        {
+            return &processInfo[currentProcIdx];
+        }
+
+        if (currentProcIdx == MAX_NUM_PROCESSES - 1)
+        {
+            currentProcIdx = 0;
+            wrapped = true;
+        }
+        else
+        {
+            ++currentProcIdx;
         }
     }
 
