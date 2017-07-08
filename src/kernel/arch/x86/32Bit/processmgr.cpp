@@ -108,6 +108,10 @@ void ProcessMgr::mainloop()
             break;
         }
 
+        case EAction::eYield:
+            proc = getNextScheduledProcess();
+            break;
+
         case EAction::eExit:
             cleanUpProcess(actionProc);
             proc = getNextScheduledProcess();
@@ -121,6 +125,11 @@ void ProcessMgr::mainloop()
         {
             // switch to process
             switchToProcessFromKernel(proc);
+        }
+        else
+        {
+            // halt if there are no more processes
+            asm volatile ("hlt");
         }
     }
 }
@@ -193,6 +202,15 @@ pid_t ProcessMgr::forkCurrentProcess()
 
     // we resume here after the fork is complete
     return getCurrentProcessInfo()->actionResult.pid;
+}
+
+void ProcessMgr::yieldCurrentProcess()
+{
+    procAction = EAction::eYield;
+    actionProc = getCurrentProcessInfo();
+
+    // switch to kernel
+    switchToKernelFromProcess();
 }
 
 void ProcessMgr::exitCurrentProcess()

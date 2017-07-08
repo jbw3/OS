@@ -44,6 +44,13 @@ ssize_t read(int fildes, void* buf, size_t nbyte)
     return static_cast<ssize_t>(idx);
 }
 
+int sched_yield()
+{
+    processMgr.yieldCurrentProcess();
+
+    return 0;
+}
+
 ssize_t write(int fildes, const void* buf, size_t nbyte)
 {
     // only support stdout right now
@@ -70,7 +77,7 @@ const void* SYSTEM_CALLS[SYSTEM_CALLS_SIZE] = {
     reinterpret_cast<const void*>(systemcall::exit),
     reinterpret_cast<const void*>(systemcall::fork),
     reinterpret_cast<const void*>(systemcall::read),
-    nullptr,
+    reinterpret_cast<const void*>(systemcall::sched_yield),
     nullptr,
     nullptr,
     nullptr,

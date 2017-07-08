@@ -101,6 +101,8 @@ public:
 
     pid_t forkCurrentProcess();
 
+    void yieldCurrentProcess();
+
     void exitCurrentProcess();
 
     /**
@@ -121,6 +123,9 @@ private:
 
         /// fork a process
         eFork,
+
+        /// yield a process
+        eYield,
 
         /// exit a process
         eExit,
