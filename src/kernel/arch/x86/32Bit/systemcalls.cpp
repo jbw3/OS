@@ -15,20 +15,7 @@ void exit(int /*status*/)
 
 pid_t fork()
 {
-    pid_t childId = processMgr.forkCurrentProcess();
-
-    if (childId < 0)
-    {
-        return -1;
-    }
-    else if (childId == processMgr.getCurrentProcessInfo()->id)
-    {
-        return 0;
-    }
-    else
-    {
-        return childId;
-    }
+    return processMgr.forkCurrentProcess();
 }
 
 pid_t getpid()

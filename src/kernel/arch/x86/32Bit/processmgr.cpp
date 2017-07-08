@@ -94,8 +94,19 @@ void ProcessMgr::mainloop()
             break;
 
         case EAction::eFork:
-            actionResult.pid = forkProcess(actionProc);
+        {
+            ProcessInfo* newProc = forkProcess(actionProc);
+            if (newProc == nullptr)
+            {
+                actionProc->actionResult.pid = -1;
+            }
+            else
+            {
+                actionProc->actionResult.pid = newProc->id;
+                newProc->actionResult.pid = 0;
+            }
             break;
+        }
 
         case EAction::eExit:
             cleanUpProcess(actionProc);
@@ -181,7 +192,7 @@ pid_t ProcessMgr::forkCurrentProcess()
     switchToKernelFromProcess();
 
     // we resume here after the fork is complete
-    return actionResult.pid;
+    return getCurrentProcessInfo()->actionResult.pid;
 }
 
 void ProcessMgr::exitCurrentProcess()
@@ -224,7 +235,7 @@ bool ProcessMgr::findModule(const char* name, const multiboot_mod_list*& module)
     return found;
 }
 
-pid_t ProcessMgr::forkProcess(ProcessInfo* procInfo)
+ProcessMgr::ProcessInfo* ProcessMgr::forkProcess(ProcessInfo* procInfo)
 {
     bool ok = true;
 
@@ -278,7 +289,7 @@ pid_t ProcessMgr::forkProcess(ProcessInfo* procInfo)
     uintptr_t kernelPageDirPhyAddr = reinterpret_cast<uintptr_t>(getKernelPageDirStart()) - KERNEL_VIRTUAL_BASE;
     setPageDirectory(kernelPageDirPhyAddr);
 
-    return ok ? newProcInfo->id : -1;
+    return ok ? newProcInfo : nullptr;
 }
 
 bool ProcessMgr::getNewProcInfo(ProcessInfo*& procInfo)

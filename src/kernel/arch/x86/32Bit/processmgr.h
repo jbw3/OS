@@ -70,6 +70,12 @@ private:
         /// saves the process's stack before switching to another process
         uintptr_t stack;
 
+        /// an action's result
+        union ActionResult
+        {
+            pid_t pid;
+        } actionResult;
+
     private:
         /// The addresses of pages used by the process for code, data,
         /// and stack.
@@ -135,12 +141,6 @@ private:
     /// the process to perform the action on
     ProcessInfo* actionProc;
 
-    /// the action's result
-    union ActionResult
-    {
-        pid_t pid;
-    } actionResult;
-
     /**
      * @brief Find the multiboot module with the given name.
      */
@@ -149,7 +149,7 @@ private:
     /**
      * @brief Fork the given process.
      */
-    pid_t forkProcess(ProcessInfo* procInfo);
+    ProcessInfo* forkProcess(ProcessInfo* procInfo);
 
     /**
      * @brief Gets an empty entry in the process info table.
