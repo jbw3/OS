@@ -15,14 +15,20 @@ void exit(int /*status*/)
 
 pid_t fork()
 {
-    bool ok = processMgr.forkCurrentProcess();
-    if (!ok)
+    pid_t childId = processMgr.forkCurrentProcess();
+
+    if (childId < 0)
     {
         return -1;
     }
-
-    /// @todo return child ID to parent
-    return 0;
+    else if (childId == processMgr.getCurrentProcessInfo()->id)
+    {
+        return 0;
+    }
+    else
+    {
+        return childId;
+    }
 }
 
 pid_t getpid()

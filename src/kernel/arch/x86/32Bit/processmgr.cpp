@@ -94,7 +94,7 @@ void ProcessMgr::mainloop()
             break;
 
         case EAction::eFork:
-            actionSuccessful = forkProcess(actionProc);
+            actionResult.pid = forkProcess(actionProc);
             break;
 
         case EAction::eExit:
@@ -172,7 +172,7 @@ void ProcessMgr::createProcess(const multiboot_mod_list* module)
     }
 }
 
-bool ProcessMgr::forkCurrentProcess()
+pid_t ProcessMgr::forkCurrentProcess()
 {
     procAction = EAction::eFork;
     actionProc = getCurrentProcessInfo();
@@ -181,7 +181,7 @@ bool ProcessMgr::forkCurrentProcess()
     switchToKernelFromProcess();
 
     // we resume here after the fork is complete
-    return actionSuccessful;
+    return actionResult.pid;
 }
 
 void ProcessMgr::exitCurrentProcess()
@@ -224,7 +224,7 @@ bool ProcessMgr::findModule(const char* name, const multiboot_mod_list*& module)
     return found;
 }
 
-bool ProcessMgr::forkProcess(ProcessInfo* procInfo)
+pid_t ProcessMgr::forkProcess(ProcessInfo* procInfo)
 {
     bool ok = true;
 
@@ -278,7 +278,7 @@ bool ProcessMgr::forkProcess(ProcessInfo* procInfo)
     uintptr_t kernelPageDirPhyAddr = reinterpret_cast<uintptr_t>(getKernelPageDirStart()) - KERNEL_VIRTUAL_BASE;
     setPageDirectory(kernelPageDirPhyAddr);
 
-    return ok;
+    return ok ? newProcInfo->id : -1;
 }
 
 bool ProcessMgr::getNewProcInfo(ProcessInfo*& procInfo)
@@ -465,8 +465,6 @@ bool ProcessMgr::setUpProgram(const multiboot_mod_list* module, ProcessInfo* new
 
 bool ProcessMgr::copyProcessPages(ProcessInfo* dstProc, ProcessInfo* srcProc)
 {
-    uintptr_t* srcKernelPageTable = reinterpret_cast<uintptr_t*>(srcProc->kernelPageTable.virtualAddr);
-
     for (int i = 0; i < srcProc->getNumPages(); ++i)
     {
         ProcessInfo::PageFrameInfo srcPageInfo = srcProc->getPage(i);

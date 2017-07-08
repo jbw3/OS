@@ -5,7 +5,7 @@
 #define STDOUT_FILENO 1
 #define STDERR_FILENO 2
 
-typedef unsigned int pid_t;
+typedef int pid_t;
 typedef __SIZE_TYPE__ size_t;
 typedef long ssize_t;
 

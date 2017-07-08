@@ -93,7 +93,7 @@ public:
     /// @todo make this private
     void createProcess(const multiboot_mod_list* module);
 
-    bool forkCurrentProcess();
+    pid_t forkCurrentProcess();
 
     void exitCurrentProcess();
 
@@ -135,8 +135,11 @@ private:
     /// the process to perform the action on
     ProcessInfo* actionProc;
 
-    /// whether the action was successful
-    bool actionSuccessful;
+    /// the action's result
+    union ActionResult
+    {
+        pid_t pid;
+    } actionResult;
 
     /**
      * @brief Find the multiboot module with the given name.
@@ -146,7 +149,7 @@ private:
     /**
      * @brief Fork the given process.
      */
-    bool forkProcess(ProcessInfo* procInfo);
+    pid_t forkProcess(ProcessInfo* procInfo);
 
     /**
      * @brief Gets an empty entry in the process info table.

@@ -9,9 +9,10 @@ int main()
 
     printf("Before fork\n");
 
-    pid_t pid = fork();
+    pid_t rv = fork();
 
-    printf("After fork. pid = %i\n", pid);
+    printf("After fork. rv = %i\n", rv);
+    printf("pid: %i\n", getpid());
 
     return 0;
 }
