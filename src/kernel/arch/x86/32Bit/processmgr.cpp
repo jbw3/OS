@@ -248,10 +248,6 @@ bool ProcessMgr::forkProcess(ProcessInfo* procInfo)
         // copy the stack pointer
         newProcInfo->stack = procInfo->stack;
 
-        screen << os::Screen::hex
-               << newProcInfo->stack << '\n'
-               << os::Screen::dec;
-
         // copy process's pages
         ok = copyProcessPages(newProcInfo, procInfo);
     }
