@@ -121,7 +121,7 @@ struct RootSystemDescriptionTable
 struct BaseAddrAlloc    // cls: better name?
 {
     uint64_t EnhancedConfigBaseAddress;     // Base address of enhanced configuration mechanism
-    uint16_t PciSegmentGroupNumber;         // PCI Segment Group Number
+    uint16_t PciSegmentGroupNumber;         // PCI Segment Group Number (allows access to > 256 bus segments)
     uint8_t StartPciBusNumber;              // Start PCI bus number decoded by this host bridge
     uint8_t EndPciBusNumber;                // End PCI bus number decoded by this host bridge
     uint32_t Reserved;
@@ -213,6 +213,15 @@ Acpi::Acpi(PageFrameMgr* pageFrameMgr)
             acpi::BaseAddrAlloc* configSpaceArray = mcfg->getConfigSpaceArray();
             screen << "configSpaceArray: 0x" << configSpaceArray << "\n";
             screen << "configSpace[0] enhanced config base address: 0x" << configSpaceArray[0].EnhancedConfigBaseAddress << "\n";
+            screen << "configSpace[0] segment group #: 0x" << configSpaceArray[0].PciSegmentGroupNumber << "\n";
+            screen << "configSpace[0] start pci bus #: 0x" << configSpaceArray[0].StartPciBusNumber << "\n";
+            screen << "configSpace[0] end pci bus #: 0x" << configSpaceArray[0].EndPciBusNumber << "\n";
+
+            // todo:
+            // it looks like the PCIe config space for all devices are basically "adjacent" to one another
+            // in memory...the single entry I am getting from the MCFG table is the "Root Complex" for
+            // PCI domain 0 (or PCI Segment Group 0). I just need to start looking for valid VendorIDs
+            // using the addressing scheme shown on OSDEV...
         }
     }
 }
