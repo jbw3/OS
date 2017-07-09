@@ -23,6 +23,7 @@ ProcessMgr::ProcessInfo::ProcessInfo()
 void ProcessMgr::ProcessInfo::reset()
 {
     id = 0;
+    parentId = 0;
     pageDir = {0, 0};
     kernelPageTable = {0, 0};
     lowerPageTable = {0, 0};
@@ -288,6 +289,9 @@ ProcessMgr::ProcessInfo* ProcessMgr::forkProcess(ProcessInfo* procInfo)
     {
         // allocate a process ID
         newProcInfo->id = getNewId();
+
+        // set parent process ID
+        newProcInfo->parentId = procInfo->id;
 
         // switch to process's page directory
         setPageDirectory(newProcInfo->pageDir.physicalAddr);

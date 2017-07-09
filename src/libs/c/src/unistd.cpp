@@ -9,6 +9,11 @@ pid_t getpid()
     return systemCall(SYSTEM_CALL_GETPID);
 }
 
+pid_t getppid()
+{
+    return systemCall(SYSTEM_CALL_GETPPID);
+}
+
 pid_t fork()
 {
     return systemCall(SYSTEM_CALL_FORK);

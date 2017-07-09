@@ -49,6 +49,9 @@ private:
         /// Unique ID for the process.
         pid_t id;
 
+        /// Process's parent ID.
+        pid_t parentId;
+
         ProcessInfo();
 
         void reset();

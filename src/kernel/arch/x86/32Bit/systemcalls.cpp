@@ -23,6 +23,11 @@ pid_t getpid()
     return processMgr.getCurrentProcessInfo()->id;
 }
 
+pid_t getppid()
+{
+    return processMgr.getCurrentProcessInfo()->parentId;
+}
+
 ssize_t read(int fildes, void* buf, size_t nbyte)
 {
     // only support stdin right now
@@ -78,7 +83,7 @@ const void* SYSTEM_CALLS[SYSTEM_CALLS_SIZE] = {
     reinterpret_cast<const void*>(systemcall::fork),
     reinterpret_cast<const void*>(systemcall::read),
     reinterpret_cast<const void*>(systemcall::sched_yield),
-    nullptr,
+    reinterpret_cast<const void*>(systemcall::getppid),
     nullptr,
     nullptr,
     nullptr,

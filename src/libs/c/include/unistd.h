@@ -16,6 +16,8 @@ extern "C"
 
 pid_t getpid();
 
+pid_t getppid();
+
 pid_t fork();
 
 ssize_t read(int fildes, void* buf, size_t nbyte);
