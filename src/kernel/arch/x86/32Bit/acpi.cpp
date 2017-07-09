@@ -154,6 +154,13 @@ struct BaseAddrAlloc    // cls: better name?
 
     }   /// acpi
 
+uint32_t getPciConfigSpace(uint32_t ecamBase, uint8_t bus, uint8_t device, uint8_t function=0)
+{
+    // cls todo: need to take the "starting bus #" into account here if the bus # for this
+    // config area starts @ a nonzero # (e.g. bus 3 and up)
+    return ecamBase + (bus << 20 | device << 15 | function << 12);
+}
+
 Acpi::Acpi(PageFrameMgr* pageFrameMgr)
     : _pageFrameMgr(pageFrameMgr)
 {
@@ -217,11 +224,22 @@ Acpi::Acpi(PageFrameMgr* pageFrameMgr)
             screen << "configSpace[0] start pci bus #: 0x" << configSpaceArray[0].StartPciBusNumber << "\n";
             screen << "configSpace[0] end pci bus #: 0x" << configSpaceArray[0].EndPciBusNumber << "\n";
 
-            // todo:
-            // it looks like the PCIe config space for all devices are basically "adjacent" to one another
-            // in memory...the single entry I am getting from the MCFG table is the "Root Complex" for
-            // PCI domain 0 (or PCI Segment Group 0). I just need to start looking for valid VendorIDs
-            // using the addressing scheme shown on OSDEV...
+            uint32_t ecamPhysAddress = (uint32_t)(configSpaceArray[0].EnhancedConfigBaseAddress & 0x00000000FFFFFFFF);
+            uint32_t ecamBaseAddress = mem::toVirtualKernelAddr(ecamPhysAddress);
+            screen << "ecam base: 0x" << ecamBaseAddress << "\n";
+
+            for (uint8_t bus = 0; bus < 256; bus++)
+            {
+                for (uint8_t device = 0; device < 32; device++)
+                {
+                    // tmp: hardcode function to 0
+                    uint32_t deviceConfig = getPciConfigSpace(ecamBaseAddress, bus, device, 0);
+                    uint16_t* vendorId = (uint16_t*)(deviceConfig);
+                    screen << "bus " << bus << ", device " << device << ": 0x" << deviceConfig << "\n";
+                    screen << "vendorID: 0x" << *vendorId << "\n";
+                }
+                break;  //tmp
+            }
         }
     }
 }
