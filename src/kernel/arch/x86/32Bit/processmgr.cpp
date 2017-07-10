@@ -570,10 +570,10 @@ pid_t ProcessMgr::getNewId()
     {
         invalidId = false;
 
-        // make sure the ID is not 0
-        if (nextId == 0)
+        // make sure the ID is a positive number
+        if (nextId <= 0)
         {
-            ++nextId;
+            nextId = 1;
         }
 
         // make sure no other process has the same ID
