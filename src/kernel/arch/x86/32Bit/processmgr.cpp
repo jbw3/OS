@@ -283,7 +283,10 @@ ProcessMgr::ProcessInfo* ProcessMgr::forkProcess(ProcessInfo* procInfo)
     }
 
     // unmap process pages from kernel page table
-    unmapPages(newProcInfo, getKernelPageTableStart());
+    if (newProcInfo != nullptr)
+    {
+        unmapPages(newProcInfo, getKernelPageTableStart());
+    }
 
     if (ok)
     {
@@ -304,7 +307,10 @@ ProcessMgr::ProcessInfo* ProcessMgr::forkProcess(ProcessInfo* procInfo)
         // if we get here, something went wrong and we need to
         // clean things up
 
-        cleanUpProcess(newProcInfo);
+        if (newProcInfo != nullptr)
+        {
+            cleanUpProcess(newProcInfo);
+        }
     }
 
     // switch back to kernel's page directory
