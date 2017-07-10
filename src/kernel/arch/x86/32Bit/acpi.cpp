@@ -228,15 +228,30 @@ Acpi::Acpi(PageFrameMgr* pageFrameMgr)
             uint32_t ecamBaseAddress = mem::toVirtualKernelAddr(ecamPhysAddress);
             screen << "ecam base: 0x" << ecamBaseAddress << "\n";
 
-            for (uint8_t bus = 0; bus < 256; bus++)
+            // map entire ECAM memory area
+            // 256 buses * 32 devices * 8 functions * 4KB config space = 256MB config space total
+            // 256MB/4KB pages = 65536 pages
+            int NUM_PCI_CONFIG_SPACE_PAGES = 65536;
+            for (int i = 1; i < NUM_PCI_CONFIG_SPACE_PAGES; i++)    // skip first page...we already mapped it
+            {
+                // these should all be mapped in order, so we don't really care to save the
+                // address here...
+                uint32_t configPageAddress = mem::toVirtualKernelAddr(ecamPhysAddress + (i*4096));
+            }
+
+            for (int bus = 0; bus < 256; bus++)
             {
                 for (uint8_t device = 0; device < 32; device++)
                 {
                     // tmp: hardcode function to 0
                     uint32_t deviceConfig = getPciConfigSpace(ecamBaseAddress, bus, device, 0);
+
                     uint16_t* vendorId = (uint16_t*)(deviceConfig);
-                    screen << "bus " << bus << ", device " << device << ": 0x" << deviceConfig << "\n";
-                    screen << "vendorID: 0x" << *vendorId << "\n";
+                    if (*vendorId != 0xFFFF)
+                    {
+                        screen << "bus " << bus << ", device " << device << ": 0x" << deviceConfig << "\n";
+                        screen << "vendorID: 0x" << *vendorId << "\n";
+                    }
                 }
                 break;  //tmp
             }
