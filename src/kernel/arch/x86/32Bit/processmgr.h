@@ -114,7 +114,7 @@ public:
     ProcessInfo* getCurrentProcessInfo();
 
 private:
-    constexpr static int MAX_NUM_PROCESSES = 4;
+    constexpr static int MAX_NUM_PROCESSES = 32;
     ProcessInfo processInfo[MAX_NUM_PROCESSES];
 
     int currentProcIdx;
