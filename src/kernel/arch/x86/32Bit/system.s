@@ -75,6 +75,18 @@ switchToUserMode:
 	push USER_CODE_SEGMENT_SELECTOR | USER_PL	; user mode code segment selector
 	push 0										; instruction pointer to user mode code
 
+	; disable interrupts before setting up segments
+	; (do this after pushf so interrupts will be
+	; enabled after iret)
+	cli
+
+	; set up segments
+	mov eax, USER_DATA_SEGMENT_SELECTOR | USER_PL
+	mov ds, ax
+	mov es, ax
+	mov fs, ax
+	mov gs, ax
+
 	iret
 
 global forkProcess
