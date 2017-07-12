@@ -1,18 +1,64 @@
+#include "sched.h"
 #include "stddef.h"
 #include "stdio.h"
+#include "stdlib.h"
 #include "string.h"
 #include "unistd.h"
 
+void child(int num)
+{
+    char ch = 'A' + num;
+    printf("child pid: %i, parent: %i\n", getpid(), getppid());
+
+    for (int i = 0; i < 10; ++i)
+    {
+        putchar(ch);
+        sched_yield();
+    }
+}
+
 int main()
 {
-    printf("init\npid: %i\n", getpid());
+    printf("parent pid: %i\n", getpid());
 
-    printf("Before fork\n");
+    char ch;
+    char str[32];
+    char* ptr = str;
+    for (int i = 0; i < 32; ++i)
+    {
+        ch = getchar();
+        putchar(ch);
 
-    pid_t rv = fork();
+        if (ch == '\n')
+        {
+            break;
+        }
+        else
+        {
+            *(ptr++) = ch;
+        }
+    }
 
-    printf("After fork. rv = %i\n", rv);
-    printf("pid: %i\n", getpid());
+    *ptr = '\0';
 
+    int numChildren = atoi(str);
+
+    for (int i = 0; i < numChildren; ++i)
+    {
+        pid_t pid = fork();
+        printf("%i, %i\n", getpid(), pid);
+        if (pid < 0)
+        {
+            printf("Fork failed\n");
+        }
+        else if (pid == 0)
+        {
+            child(i);
+            printf("\n%i is done", getpid());
+            exit(0);
+        }
+    }
+
+    printf("%i is done\n", getpid());
     return 0;
 }
