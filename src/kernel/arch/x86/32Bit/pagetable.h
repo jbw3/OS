@@ -35,6 +35,12 @@ public:
     bool isFull();
 
     /**
+     * @brief Initializes the entire page table by marking each page
+     * table entry as available
+     */
+    void initPageTable();
+
+    /**
      * @brief Returns the index of the next available page in the
      * page table.
      */

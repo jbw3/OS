@@ -236,7 +236,9 @@ Acpi::Acpi(PageFrameMgr* pageFrameMgr)
             {
                 // these should all be mapped in order, so we don't really care to save the
                 // address here...
-                uint32_t configPageAddress = mem::toVirtualKernelAddr(ecamPhysAddress + (i*4096));
+                uint32_t configPagePhysAddr = ecamPhysAddress + (i*4096);
+                uint32_t configPageAddress = mem::toVirtualKernelAddr(configPagePhysAddr);
+                //screen << "mapped 0x" << configPagePhysAddr << " to 0x" << configPageAddress << "\n";
             }
 
             for (int bus = 0; bus < 256; bus++)
@@ -245,6 +247,7 @@ Acpi::Acpi(PageFrameMgr* pageFrameMgr)
                 {
                     // tmp: hardcode function to 0
                     uint32_t deviceConfig = getPciConfigSpace(ecamBaseAddress, bus, device, 0);
+                    //screen << "accessing 0x" << deviceConfig << "\n";
 
                     uint16_t* vendorId = (uint16_t*)(deviceConfig);
                     if (*vendorId != 0xFFFF)
@@ -253,7 +256,7 @@ Acpi::Acpi(PageFrameMgr* pageFrameMgr)
                         screen << "vendorID: 0x" << *vendorId << "\n";
                     }
                 }
-                break;  //tmp
+                //break;  //tmp
             }
         }
     }

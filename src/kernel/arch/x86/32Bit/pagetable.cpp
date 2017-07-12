@@ -39,6 +39,14 @@ bool PageTable::isEmpty()
     return true;    // each entry was inactive
 }
 
+void PageTable::initPageTable()
+{
+    for (int i = 0; i < PAGE_TABLE_NUM_ENTRIES; i++)
+    {
+        _pageTable[i] &= ~PAGE_TABLE_PRESENT;
+    }
+}
+
 uint16_t PageTable::nextAvailablePage()
 {
     for (uint16_t i = 0; i < PAGE_TABLE_NUM_ENTRIES; i++)
