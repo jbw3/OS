@@ -89,32 +89,6 @@ switchToUserMode:
 
 	iret
 
-global forkProcess
-forkProcess:
-	mov ecx, [esp + 4] ; pageDirAddr
-	mov edx, [esp + 8] ; currentStackAddr
-
-	; return false for parent process
-	; (this will get pushed to the stack and restored when
-	; we switch back to the parent process)
-	mov eax, 0
-
-	; save registers
-	pusha
-
-	; save current stack pointer
-	mov [edx], esp
-
-	; switch page directory
-	mov cr3, ecx
-
-	; we're in the child process now, so get rid of pushed registers
-	add esp, 32
-
-	; return true for child process
-	mov eax, 1
-	ret
-
 ; param1: new stack address
 ; param2: pointer to save current stack address
 global switchToProcessStack

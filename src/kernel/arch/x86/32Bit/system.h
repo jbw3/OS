@@ -56,14 +56,6 @@ uint32_t getRegCR2();
 void switchToUserMode(uintptr_t userStackAddr, uintptr_t* currentStackAddr);
 
 /**
- * @todo Is this needed?
- *
- * @brief Initialize a new process's stack.
- * @return 1 for the new process; 0 for the original process
- */
-int forkProcess(uint32_t pageDirAddr, uint32_t* currentStackAddr);
-
-/**
  * @brief Switch to the given process's stack.
  */
 void switchToProcessStack(uintptr_t newStackAddr, uintptr_t* currentStackAddr);
