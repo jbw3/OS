@@ -237,7 +237,7 @@ Acpi::Acpi(PageFrameMgr* pageFrameMgr)
                 // these should all be mapped in order, so we don't really care to save the
                 // address here...
                 uint32_t configPagePhysAddr = ecamPhysAddress + (i*4096);
-                uint32_t configPageAddress = mem::toVirtualKernelAddr(configPagePhysAddr);
+                uint32_t configPageAddress = mem::autoMapKernelPageForAddress(configPagePhysAddr, _pageFrameMgr);
                 //screen << "mapped 0x" << configPagePhysAddr << " to 0x" << configPageAddress << "\n";
             }
 

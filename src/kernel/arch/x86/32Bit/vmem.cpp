@@ -56,7 +56,7 @@ bool isMappedByKernel(uint32_t physAddr, uint32_t& virtAddr)
 
         // where do we put new page tables? need to inform PFM?
         auto pageFramePhys = pfMgr->allocPageFrame();
-        screen << "pageFramePhys 0x" << pageFramePhys << "\n";
+        //screen << "pageFramePhys 0x" << pageFramePhys << "\n";
         uint32_t newPDE =   (PAGE_DIR_ADDRESS & pageFramePhys) |
                             (PAGE_DIR_READ_WRITE) |
                             (PAGE_DIR_PRESENT);
