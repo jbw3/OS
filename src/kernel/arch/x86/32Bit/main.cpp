@@ -8,6 +8,7 @@
 #include "irq.h"
 #include "keyboard.h"
 #include "pageframemgr.h"
+#include "pagetable.h"
 #include "paging.h"
 #include "screen.h"
 #include "shell.h"
@@ -50,9 +51,21 @@ void kernelMain(const uint32_t MULTIBOOT_MAGIC_NUM, const multiboot_info* mbootI
     PageFrameMgr pageFrameMgr(mbootInfo);
     mem::setPageFrameMgr(&pageFrameMgr);    // cls: tmp hack...
 
+    // set up page table page table
+    uint32_t pageTablePTPhysAddr = pageFrameMgr.allocPageFrame();
+    auto kPageDir = getKernelPageDirStart();
+    auto lastPDEIdx = mem::lastUsedKernelPDEIndex();
+    mem::PageTable currentPT(&pageFrameMgr, kPageDir, lastPDEIdx);
+    auto pageTablePTAddr = currentPT.mapNextAvailablePageToAddress(pageTablePTPhysAddr);
+    uint32_t* pageTablePT = (uint32_t*)(pageTablePTAddr);
+
+    // cls: be careful setting up the PTPT, since some of the PageTable
+    // class's functionality depends on the existence of the PTPT.
+    // ---------------
+    // we can create a PageTable* reference to it as long as we provide a
+    // constructor that supplies the pointer to the page table explicitly
+
     screen.write("Sandbox OSa\n");
-    //char* buffer
-    //sprintf(buffer, "kernel page dir start: %u", *getKernelPageDirStart());
     screen.write(*getKernelPageDirStart());
     screen.write("\n");
 

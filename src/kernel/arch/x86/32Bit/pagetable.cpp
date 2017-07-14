@@ -1,8 +1,12 @@
 #include <pageframemgr.h>
 #include <pagetable.h>
 #include <paging.h>
+#include <screen.h>
+#include <system.h>
 
 namespace mem {
+
+static bool myFlag = false;
 
 PageTable::PageTable(PageFrameMgr* pfMgr, uint32_t* pageDir, uint16_t pageDirIdx)
     : _pageDir(pageDir),
@@ -10,6 +14,38 @@ PageTable::PageTable(PageFrameMgr* pfMgr, uint32_t* pageDir, uint16_t pageDirIdx
     _pfMgr(pfMgr)
 {
     _pageTable = getPageTablePointer(pageDir, pageDirIdx);
+    if (pageDirIdx == 0x301 && !myFlag)
+    {
+        myFlag = true;
+        screen << "0x301 page table pointer (phys): 0x" << (uint32_t)(pageDir[pageDirIdx] & PAGE_DIR_ADDRESS) << "\n";
+        screen << "0x301 page table pointer (virt): 0x" << _pageTable << "\n";
+        uint32_t ptPtrVal = (uint32_t)_pageTable;
+        uint32_t idx = (ptPtrVal & 0xFFC0'0000);
+        idx >>= 22;
+        uint32_t ptAddr = (uint32_t)pageDir[idx];
+        uint32_t ptVirtAddr = ptAddr + KERNEL_VIRTUAL_BASE;
+        uint32_t* ptPtr = (uint32_t*)ptVirtAddr;
+        uint32_t idx2 = (ptPtrVal & 0x003F'F000);
+        idx2 >>= 12;
+        screen << "pt's page table addr (phys): 0x" << ptAddr << "\n";
+        screen << "pt's page table addr (virt): 0x" << ptVirtAddr << "\n";
+        screen << "pt's page frame addr (phys): 0x" << ptPtr[idx2] << "\n";
+    }
+}
+
+uint32_t* PageTable::getPointer()
+{
+    return _pageTable;
+}
+
+uint32_t* PageTable::getPageDirPointer()
+{
+    return _pageDir;
+}
+
+uint16_t PageTable::getPageDirIndex()
+{
+    return _pageDirIdx;
 }
 
 bool PageTable::isFull()

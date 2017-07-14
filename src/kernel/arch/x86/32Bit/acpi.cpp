@@ -238,8 +238,23 @@ Acpi::Acpi(PageFrameMgr* pageFrameMgr)
                 // address here...
                 uint32_t configPagePhysAddr = ecamPhysAddress + (i*4096);
                 uint32_t configPageAddress = mem::autoMapKernelPageForAddress(configPagePhysAddr, _pageFrameMgr);
+                if (configPagePhysAddr == getPciConfigSpace(ecamPhysAddress, 4, 0, 0))
+                {
+                    screen << "bus 4 0x" << configPagePhysAddr << " mapped to 0x" << configPageAddress << "\n";
+                }
                 //screen << "mapped 0x" << configPagePhysAddr << " to 0x" << configPageAddress << "\n";
             }
+
+            // 0x114000 (next page table phys) is associated with 0xc0114000 using getPageTablePointer()
+            // but the virt address 0xc0114000 is actually mapped to phys 0xbfe...something
+
+            // 11.0000.0001 - 0x301
+            // 11.0000.0010 - 0x302
+            // c0000000
+            //   114000
+            // c0114000
+            // 11.0100.0000  01.0001.0100
+            // 340  114
 
             for (int bus = 0; bus < 256; bus++)
             {
@@ -252,8 +267,8 @@ Acpi::Acpi(PageFrameMgr* pageFrameMgr)
                     uint16_t* vendorId = (uint16_t*)(deviceConfig);
                     if (*vendorId != 0xFFFF)
                     {
-                        screen << "bus " << bus << ", device " << device << ": 0x" << deviceConfig << "\n";
-                        screen << "vendorID: 0x" << *vendorId << "\n";
+                        //screen << "bus " << bus << ", device " << device << ": 0x" << deviceConfig;
+                        //screen << " vendorID: 0x" << *vendorId << "\n";
                     }
                 }
                 //break;  //tmp

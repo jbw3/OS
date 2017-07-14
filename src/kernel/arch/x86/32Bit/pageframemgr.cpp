@@ -309,12 +309,7 @@ void PageFrameMgr::reservePageFrame(uint32_t addr)
 
     if (findPageFrame(addr, blockIdx, allocIdx, bitMask))
     {
-        // screen << os::Screen::bin;
-        // screen << "isAlloc: " << blocks[blockIdx].isAlloc[allocIdx] << "\n";
-        // screen << "bitMask: " << bitMask << "\n";
         blocks[blockIdx].isAlloc[allocIdx] |= bitMask;
-        // screen << "isAlloc: " << blocks[blockIdx].isAlloc[allocIdx] << "\n";
-        // screen << os::Screen::dec;
     }
 }
 

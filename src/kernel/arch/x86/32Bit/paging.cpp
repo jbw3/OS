@@ -75,8 +75,15 @@ void mapPage(const uint32_t* pageDir, uint32_t virtualAddr, uint32_t physicalAdd
  */
 uint32_t* getPageTablePointer(uint32_t* pageDir, uint16_t index)
 {
-    uint32_t physicalPTAddress = (pageDir[index] & PAGE_DIR_ADDRESS);
-    return reinterpret_cast<uint32_t*>(physicalPTAddress + KERNEL_VIRTUAL_BASE);
+    if (pageDir == getKernelPageDirStart())
+    {
+        uint32_t physicalPTAddress = (pageDir[index] & PAGE_DIR_ADDRESS);
+        return reinterpret_cast<uint32_t*>(physicalPTAddress + KERNEL_VIRTUAL_BASE);
+    }
+    else
+    {
+        // use PTPT
+    }
 }
 
 namespace mem {

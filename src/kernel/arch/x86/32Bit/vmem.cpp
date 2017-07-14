@@ -64,6 +64,21 @@ bool isMappedByKernel(uint32_t physAddr, uint32_t& virtAddr)
 
         mem::PageTable nextPageTable(pfMgr, _kPageDir, lastPDEIdx+1);
         nextPageTable.initPageTable();
+
+        if (pageFramePhys == 0x114000)
+        {
+            screen << "\n";
+            screen << "set newPDE to 0x" << (uint32_t)((lastPDEIdx+1) << 22) << "\n";
+            screen << "\n";
+
+            // the problem is, I need a way to get TO the page table (@ phys addr 0x114000)
+            // through virtual memory...
+
+            screen << "allocated 0x114000\n";
+            //uint32_t* entries = (uint32_t*)(pageFramePhys);
+            //screen << "114000 page table entries: 0x" <<
+        }
+
         return nextPageTable.mapNextAvailablePageToAddress(physAddr);
     }
  }

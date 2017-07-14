@@ -24,6 +24,23 @@ public:
     PageTable(PageFrameMgr* pfMgr, uint32_t* pageDir, uint16_t pageDirIdx);
 
     /**
+     * @brief Returns a (virtual) pointer to this page table
+     */
+    uint32_t* getPointer();
+
+    /**
+     * @brief Returns a (virtual) pointer to this page table's
+     * page directory
+     */
+    uint32_t* getPageDirPointer();
+
+    /**
+     * @brief Returns the index of this page table into its parent
+     * page directory
+     */
+    uint16_t getPageDirIndex();
+
+    /**
      * @brief Returns true if this page table has no active PTEs
      */
     bool isEmpty();
