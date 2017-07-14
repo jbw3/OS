@@ -9,6 +9,7 @@
 #include <unistd.h>
 
 #include "paging.h"
+#include "set.hpp"
 
 struct multiboot_mod_list;
 class PageFrameMgr;
@@ -115,9 +116,11 @@ public:
 
 private:
     constexpr static int MAX_NUM_PROCESSES = 32;
-    ProcessInfo processInfo[MAX_NUM_PROCESSES];
+    ProcessInfo processes[MAX_NUM_PROCESSES];
 
-    int currentProcIdx;
+    Set<ProcessInfo*, MAX_NUM_PROCESSES> runningProcs;
+
+    size_t currentProcIdx;
 
     enum class EAction
     {
@@ -208,12 +211,6 @@ private:
      * @brief Get an ID for a new process.
      */
     pid_t getNewId();
-
-    /**
-     * @brief Find the ProcessInfo for the given process ID. If the process ID
-     * cannot be found, a null pointer is returned.
-     */
-    ProcessInfo* findProcess(pid_t id);
 
     /**
      * @brief Get the next scheduled process.

@@ -76,7 +76,7 @@ void ProcessMgr::mainloop()
 
     // kick off init process
     createProcess(initModule);
-    proc = &processInfo[currentProcIdx];
+    proc = runningProcs[currentProcIdx];
 
     while (true)
     {
@@ -114,6 +114,7 @@ void ProcessMgr::mainloop()
             break;
 
         case EAction::eExit:
+            runningProcs.remove(actionProc);
             cleanUpProcess(actionProc);
             proc = getNextScheduledProcess();
             break;
@@ -173,6 +174,9 @@ void ProcessMgr::createProcess(const multiboot_mod_list* module)
 
         // set the ProcessInfo pointer
         *ProcessInfo::PROCESS_INFO = newProcInfo;
+
+        // add process to list of running processes
+        runningProcs.add(newProcInfo);
 
         // set the kernel stack for the process
         setKernelStack(ProcessInfo::KERNEL_STACK_START);
@@ -301,6 +305,9 @@ ProcessMgr::ProcessInfo* ProcessMgr::forkProcess(ProcessInfo* procInfo)
 
         // set the ProcessInfo pointer
         *ProcessInfo::PROCESS_INFO = newProcInfo;
+
+        // add process to list of running processes
+        runningProcs.add(newProcInfo);
     }
     else
     {
@@ -325,9 +332,9 @@ bool ProcessMgr::getNewProcInfo(ProcessInfo*& procInfo)
     procInfo = nullptr;
     for (int i = 0; i < MAX_NUM_PROCESSES; ++i)
     {
-        if (processInfo[i].id == 0)
+        if (processes[i].id == 0)
         {
-            procInfo = &processInfo[i];
+            procInfo = &processes[i];
             break;
         }
     }
@@ -585,7 +592,7 @@ pid_t ProcessMgr::getNewId()
         // make sure no other process has the same ID
         for (int i = 0; i < MAX_NUM_PROCESSES; ++i)
         {
-            if (processInfo[i].id == nextId)
+            if (processes[i].id == nextId)
             {
                 ++nextId;
                 invalidId = true;
@@ -597,44 +604,17 @@ pid_t ProcessMgr::getNewId()
     return nextId++;
 }
 
-ProcessMgr::ProcessInfo* ProcessMgr::findProcess(pid_t id)
-{
-    for (int i = 0; i < MAX_NUM_PROCESSES; ++i)
-    {
-        if (processInfo[i].id == id)
-        {
-            return &processInfo[i];
-        }
-    }
-
-    return nullptr;
-}
-
 ProcessMgr::ProcessInfo* ProcessMgr::getNextScheduledProcess()
 {
-    currentProcIdx = (currentProcIdx == MAX_NUM_PROCESSES - 1) ? 0 : currentProcIdx + 1;
-
-    bool wrapped = false;
-    int startIdx = currentProcIdx;
-    while (currentProcIdx != startIdx || !wrapped)
+    if (runningProcs.getSize() > 0)
     {
-        if (processInfo[currentProcIdx].id != 0)
-        {
-            return &processInfo[currentProcIdx];
-        }
-
-        if (currentProcIdx == MAX_NUM_PROCESSES - 1)
-        {
-            currentProcIdx = 0;
-            wrapped = true;
-        }
-        else
-        {
-            ++currentProcIdx;
-        }
+        currentProcIdx = (currentProcIdx >= runningProcs.getSize() - 1) ? 0 : currentProcIdx + 1;
+        return runningProcs[currentProcIdx];
     }
-
-    return nullptr;
+    else
+    {
+        return nullptr;
+    }
 }
 
 void ProcessMgr::switchToKernelFromProcess()
