@@ -266,8 +266,6 @@ void ProcessMgr::cleanUpCurrentProcessChild(ProcessInfo* childProc)
 {
     ProcessInfo* currentProc = getCurrentProcessInfo();
 
-    screen << currentProc->getId() << " is cleaning up " << childProc->getId() << '\n';
-
     currentProc->childProcesses.remove(childProc);
     cleanUpProcess(childProc);
 }
