@@ -19,7 +19,7 @@ class PageFrameMgr;
  */
 class ProcessMgr
 {
-private:
+public:
     /**
      * @brief Stores information about a process.
      */
@@ -44,14 +44,20 @@ private:
 
         static ProcessInfo* initProcess;
 
+        enum EStatus
+        {
+            /// The process is currently running.
+            eRunning,
+
+            /// The process has been terminated.
+            eTerminated,
+        };
+
         struct PageFrameInfo
         {
             uintptr_t virtualAddr;
             uintptr_t physicalAddr;
         };
-
-        /// Unique ID for the process.
-        pid_t id;
 
         /// Process's parent process.
         ProcessInfo* parentProcess;
@@ -66,6 +72,8 @@ private:
 
         void reset();
 
+        void start(pid_t pid);
+
         void exit();
 
         void addPage(const PageFrameInfo& info);
@@ -73,6 +81,10 @@ private:
         PageFrameInfo getPage(int i) const;
 
         int getNumPages() const;
+
+        pid_t getId() const;
+
+        EStatus getStatus() const;
 
         PageFrameInfo pageDir;
 
@@ -92,14 +104,18 @@ private:
         } actionResult;
 
     private:
+        /// Unique ID for the process.
+        pid_t id;
+
         /// The addresses of pages used by the process for code, data,
         /// and stack.
         PageFrameInfo pages[MAX_NUM_PAGES];
 
         int numPages;
+
+        EStatus status;
     };
 
-public:
     /**
      * @brief Constructor
      */
@@ -119,6 +135,8 @@ public:
     void yieldCurrentProcess();
 
     void exitCurrentProcess(int exitCode);
+
+    void cleanUpCurrentProcessChild(ProcessInfo* childProc);
 
     /**
      * @brief Get the ProcessInfo for calling process.

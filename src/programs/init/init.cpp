@@ -3,6 +3,7 @@
 #include "stdio.h"
 #include "stdlib.h"
 #include "string.h"
+#include "sys/wait.h"
 #include "unistd.h"
 
 void child(int num)
@@ -15,11 +16,12 @@ void child(int num)
         putchar(ch);
         sched_yield();
     }
+    putchar('\n');
 }
 
 int main()
 {
-    printf("parent pid: %i\n", getpid());
+    printf("init pid: %i\n", getpid());
 
     char ch;
     char str[32];
@@ -54,13 +56,22 @@ int main()
         else if (pid == 0)
         {
             child(i);
-            printf("\n%i is done", getpid());
+            printf("%i is done\n", getpid());
             exit(0);
         }
+
+        wait(nullptr);
     }
 
+    // clean up child processes
     while (true)
     {
+        pid_t pid = 0;
+        do
+        {
+            pid = waitpid(-1, nullptr, WNOHANG);
+        } while (pid > 0);
+
         sched_yield();
     }
 

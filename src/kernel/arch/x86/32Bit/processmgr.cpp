@@ -33,6 +33,13 @@ void ProcessMgr::ProcessInfo::reset()
     lowerPageTable = {0, 0};
     upperPageTable = {0, 0};
     numPages = 0;
+    status = eTerminated;
+}
+
+void ProcessMgr::ProcessInfo::start(pid_t pid)
+{
+    id = pid;
+    status = eRunning;
 }
 
 void ProcessMgr::ProcessInfo::exit()
@@ -42,6 +49,8 @@ void ProcessMgr::ProcessInfo::exit()
     {
         childProcesses[i]->parentProcess = initProcess;
     }
+
+    status = eTerminated;
 }
 
 void ProcessMgr::ProcessInfo::addPage(const PageFrameInfo& info)
@@ -57,6 +66,16 @@ ProcessMgr::ProcessInfo::PageFrameInfo ProcessMgr::ProcessInfo::getPage(int i) c
 int ProcessMgr::ProcessInfo::getNumPages() const
 {
     return numPages;
+}
+
+pid_t ProcessMgr::ProcessInfo::getId() const
+{
+    return id;
+}
+
+ProcessMgr::ProcessInfo::EStatus ProcessMgr::ProcessInfo::getStatus() const
+{
+    return status;
 }
 
 ProcessMgr::ProcessMgr() :
@@ -116,7 +135,7 @@ void ProcessMgr::mainloop()
             }
             else
             {
-                actionProc->actionResult.pid = newProc->id;
+                actionProc->actionResult.pid = newProc->getId();
                 newProc->actionResult.pid = 0;
             }
             break;
@@ -129,7 +148,6 @@ void ProcessMgr::mainloop()
         case EAction::eExit:
             runningProcs.remove(actionProc);
             actionProc->exit();
-            cleanUpProcess(actionProc);
             proc = getNextScheduledProcess();
             break;
         }
@@ -183,8 +201,8 @@ void ProcessMgr::createProcess(const multiboot_mod_list* module)
 
     if (ok)
     {
-        // allocate a process ID
-        newProcInfo->id = getNewId();
+        // allocate a process ID and start the process
+        newProcInfo->start(getNewId());
 
         // set the ProcessInfo pointer
         *ProcessInfo::PROCESS_INFO = newProcInfo;
@@ -242,6 +260,16 @@ void ProcessMgr::exitCurrentProcess(int exitCode)
 
     // switch to kernel
     switchToKernelFromProcess();
+}
+
+void ProcessMgr::cleanUpCurrentProcessChild(ProcessInfo* childProc)
+{
+    ProcessInfo* currentProc = getCurrentProcessInfo();
+
+    screen << currentProc->getId() << " is cleaning up " << childProc->getId() << '\n';
+
+    currentProc->childProcesses.remove(childProc);
+    cleanUpProcess(childProc);
 }
 
 ProcessMgr::ProcessInfo* ProcessMgr::getCurrentProcessInfo()
@@ -311,8 +339,8 @@ ProcessMgr::ProcessInfo* ProcessMgr::forkProcess(ProcessInfo* procInfo)
 
     if (ok)
     {
-        // allocate a process ID
-        newProcInfo->id = getNewId();
+        // allocate a process ID and start the process
+        newProcInfo->start(getNewId());
 
         // set parent process
         newProcInfo->parentProcess = procInfo;
@@ -352,7 +380,7 @@ bool ProcessMgr::getNewProcInfo(ProcessInfo*& procInfo)
     procInfo = nullptr;
     for (int i = 0; i < MAX_NUM_PROCESSES; ++i)
     {
-        if (processes[i].id == 0)
+        if (processes[i].getId() == 0)
         {
             procInfo = &processes[i];
             break;
@@ -612,7 +640,7 @@ pid_t ProcessMgr::getNewId()
         // make sure no other process has the same ID
         for (int i = 0; i < MAX_NUM_PROCESSES; ++i)
         {
-            if (processes[i].id == nextId)
+            if (processes[i].getId() == nextId)
             {
                 ++nextId;
                 invalidId = true;

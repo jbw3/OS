@@ -1,6 +1,7 @@
 #include "keyboard.h"
 #include "processmgr.h"
 #include "screen.h"
+#include "sys/wait.h"
 #include "system.h"
 #include "systemcalls.h"
 #include "unistd.h"
@@ -20,12 +21,12 @@ pid_t fork()
 
 pid_t getpid()
 {
-    return processMgr.getCurrentProcessInfo()->id;
+    return processMgr.getCurrentProcessInfo()->getId();
 }
 
 pid_t getppid()
 {
-    return processMgr.getCurrentProcessInfo()->parentProcess->id;
+    return processMgr.getCurrentProcessInfo()->parentProcess->getId();
 }
 
 ssize_t read(int fildes, void* buf, size_t nbyte)
@@ -56,6 +57,70 @@ int sched_yield()
     return 0;
 }
 
+pid_t waitpid(pid_t pid, int* stat_loc, int options)
+{
+    if ( options & (WCONTINUED | WUNTRACED) )
+    {
+        /// @todo support these options
+        return -1;
+    }
+
+    if (pid == 0 || pid < -1)
+    {
+        /// @todo support these options
+        return -1;
+    }
+
+    bool hang = !(options & WNOHANG);
+
+    ProcessMgr::ProcessInfo* proc = processMgr.getCurrentProcessInfo();
+    ProcessMgr::ProcessInfo* child = nullptr;
+    do
+    {
+        for (size_t i = 0; i < proc->childProcesses.getSize(); ++i)
+        {
+            ProcessMgr::ProcessInfo* p = proc->childProcesses[i];
+
+            // check if the child has terminated
+            if (p->getStatus() == ProcessMgr::ProcessInfo::eTerminated)
+            {
+                if (pid == -1 || pid == p->getId())
+                {
+                    child = p;
+                    break;
+                }
+            }
+        }
+
+        /// @todo remove once we have preemptive multitasking
+        if (child == nullptr && hang)
+        {
+            processMgr.yieldCurrentProcess();
+        }
+    } while (child == nullptr && hang);
+
+    if (child == nullptr)
+    {
+        return 0;
+    }
+    else
+    {
+        if (stat_loc != nullptr)
+        {
+            /// @todo encode more info in stat_loc (as required by posix)
+            *stat_loc = child->exitCode;
+        }
+
+        // save ID before we clean up the process
+        pid_t childId = child->getId();
+
+        // clean up process
+        processMgr.cleanUpCurrentProcessChild(child);
+
+        return childId;
+    }
+}
+
 ssize_t write(int fildes, const void* buf, size_t nbyte)
 {
     // only support stdout right now
@@ -84,7 +149,7 @@ const void* SYSTEM_CALLS[SYSTEM_CALLS_SIZE] = {
     reinterpret_cast<const void*>(systemcall::read),
     reinterpret_cast<const void*>(systemcall::sched_yield),
     reinterpret_cast<const void*>(systemcall::getppid),
-    nullptr,
+    reinterpret_cast<const void*>(systemcall::waitpid),
     nullptr,
     nullptr,
     nullptr,
