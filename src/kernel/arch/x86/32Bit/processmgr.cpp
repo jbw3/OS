@@ -15,6 +15,8 @@ ProcessMgr::ProcessInfo** ProcessMgr::ProcessInfo::PROCESS_INFO = reinterpret_ca
 // the kernel stack starts right after the ProcessInfo pointer
 const uintptr_t ProcessMgr::ProcessInfo::KERNEL_STACK_START = reinterpret_cast<uintptr_t>(ProcessMgr::ProcessInfo::PROCESS_INFO) - sizeof(ProcessMgr::ProcessInfo::PROCESS_INFO);
 
+ProcessMgr::ProcessInfo* ProcessMgr::ProcessInfo::initProcess = nullptr;
+
 ProcessMgr::ProcessInfo::ProcessInfo()
 {
     reset();
@@ -23,12 +25,23 @@ ProcessMgr::ProcessInfo::ProcessInfo()
 void ProcessMgr::ProcessInfo::reset()
 {
     id = 0;
-    parentId = 0;
+    parentProcess = nullptr;
+    childProcesses.clear();
+    exitCode = -1;
     pageDir = {0, 0};
     kernelPageTable = {0, 0};
     lowerPageTable = {0, 0};
     upperPageTable = {0, 0};
     numPages = 0;
+}
+
+void ProcessMgr::ProcessInfo::exit()
+{
+    // change the parent of all children to the init process
+    for (size_t i = 0; i < childProcesses.getSize(); ++i)
+    {
+        childProcesses[i]->parentProcess = initProcess;
+    }
 }
 
 void ProcessMgr::ProcessInfo::addPage(const PageFrameInfo& info)
@@ -115,6 +128,7 @@ void ProcessMgr::mainloop()
 
         case EAction::eExit:
             runningProcs.remove(actionProc);
+            actionProc->exit();
             cleanUpProcess(actionProc);
             proc = getNextScheduledProcess();
             break;
@@ -218,10 +232,13 @@ void ProcessMgr::yieldCurrentProcess()
     switchToKernelFromProcess();
 }
 
-void ProcessMgr::exitCurrentProcess()
+void ProcessMgr::exitCurrentProcess(int exitCode)
 {
+    ProcessInfo* currentProc = getCurrentProcessInfo();
+    currentProc->exitCode = exitCode;
+
     procAction = EAction::eExit;
-    actionProc = getCurrentProcessInfo();
+    actionProc = currentProc;
 
     // switch to kernel
     switchToKernelFromProcess();
@@ -297,8 +314,11 @@ ProcessMgr::ProcessInfo* ProcessMgr::forkProcess(ProcessInfo* procInfo)
         // allocate a process ID
         newProcInfo->id = getNewId();
 
-        // set parent process ID
-        newProcInfo->parentId = procInfo->id;
+        // set parent process
+        newProcInfo->parentProcess = procInfo;
+
+        // add new process to parent's children list
+        procInfo->childProcesses.add(newProcInfo);
 
         // switch to process's page directory
         setPageDirectory(newProcInfo->pageDir.physicalAddr);

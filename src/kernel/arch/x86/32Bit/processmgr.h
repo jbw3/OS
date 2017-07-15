@@ -28,6 +28,7 @@ private:
     public:
         constexpr static uintptr_t CODE_VIRTUAL_START = 0;
         constexpr static int MAX_NUM_PAGES = 8;
+        constexpr static size_t MAX_NUM_CHILDREN = 32;
 
         /// virtual address of the kernel stack page
         static const uintptr_t KERNEL_STACK_PAGE;
@@ -41,6 +42,8 @@ private:
         /// the start address of the kernel stack page
         static const uintptr_t KERNEL_STACK_START;
 
+        static ProcessInfo* initProcess;
+
         struct PageFrameInfo
         {
             uintptr_t virtualAddr;
@@ -50,12 +53,20 @@ private:
         /// Unique ID for the process.
         pid_t id;
 
-        /// Process's parent ID.
-        pid_t parentId;
+        /// Process's parent process.
+        ProcessInfo* parentProcess;
+
+        /// Process's child processes.
+        Set<ProcessInfo*, MAX_NUM_CHILDREN> childProcesses;
+
+        /// Exit code
+        int exitCode;
 
         ProcessInfo();
 
         void reset();
+
+        void exit();
 
         void addPage(const PageFrameInfo& info);
 
@@ -107,7 +118,7 @@ public:
 
     void yieldCurrentProcess();
 
-    void exitCurrentProcess();
+    void exitCurrentProcess(int exitCode);
 
     /**
      * @brief Get the ProcessInfo for calling process.

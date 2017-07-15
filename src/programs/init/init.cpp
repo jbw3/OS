@@ -59,6 +59,10 @@ int main()
         }
     }
 
-    printf("%i is done\n", getpid());
+    while (true)
+    {
+        sched_yield();
+    }
+
     return 0;
 }

@@ -8,9 +8,9 @@
 namespace systemcall
 {
 
-void exit(int /*status*/)
+void exit(int status)
 {
-    processMgr.exitCurrentProcess();
+    processMgr.exitCurrentProcess(status);
 }
 
 pid_t fork()
@@ -25,7 +25,7 @@ pid_t getpid()
 
 pid_t getppid()
 {
-    return processMgr.getCurrentProcessInfo()->parentId;
+    return processMgr.getCurrentProcessInfo()->parentProcess->id;
 }
 
 ssize_t read(int fildes, void* buf, size_t nbyte)
