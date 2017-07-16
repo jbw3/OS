@@ -6,22 +6,92 @@
 #include "sys/wait.h"
 #include "unistd.h"
 
-void child(int num)
+int getNumber(const char* prompt);
+
+void child();
+
+void grandchild(int num);
+
+int main()
 {
+    pid_t pid = 0;
+
+    pid = fork();
+    if (pid < 0)
+    {
+        printf("Fork failed\n");
+    }
+    else if (pid == 0)
+    {
+        child();
+        exit(0);
+    }
+
+    // clean up child processes
+    while (true)
+    {
+        do
+        {
+            pid = waitpid(-1, nullptr, WNOHANG);
+        } while (pid > 0);
+
+        sched_yield();
+    }
+
+    return 0;
+}
+
+void child()
+{
+    while (true)
+    {
+        int numChildren = getNumber("Number of processes: ");
+
+        for (int i = 0; i < numChildren; ++i)
+        {
+            pid_t pid = fork();
+            if (pid < 0)
+            {
+                printf("Fork failed\n");
+            }
+            else if (pid == 0)
+            {
+                grandchild(i);
+                exit(0);
+            }
+        }
+
+        // wait for children to finish
+        for (int i = 0; i < numChildren; ++i)
+        {
+            wait(nullptr);
+        }
+    }
+}
+
+void grandchild(int num)
+{
+    if (num == 0)
+    {
+        pid_t pid = fork();
+        if (pid > 0)
+        {
+            exit(0);
+        }
+    }
+
     char ch = 'A' + num;
-    printf("child pid: %i, parent: %i\n", getpid(), getppid());
 
     for (int i = 0; i < 10; ++i)
     {
         putchar(ch);
         sched_yield();
     }
-    putchar('\n');
 }
 
-int main()
+int getNumber(const char* prompt)
 {
-    printf("init pid: %i\n", getpid());
+    printf("%s", prompt);
 
     char ch;
     char str[32];
@@ -43,37 +113,5 @@ int main()
 
     *ptr = '\0';
 
-    int numChildren = atoi(str);
-
-    for (int i = 0; i < numChildren; ++i)
-    {
-        pid_t pid = fork();
-        printf("%i, %i\n", getpid(), pid);
-        if (pid < 0)
-        {
-            printf("Fork failed\n");
-        }
-        else if (pid == 0)
-        {
-            child(i);
-            printf("%i is done\n", getpid());
-            exit(0);
-        }
-
-        wait(nullptr);
-    }
-
-    // clean up child processes
-    while (true)
-    {
-        pid_t pid = 0;
-        do
-        {
-            pid = waitpid(-1, nullptr, WNOHANG);
-        } while (pid > 0);
-
-        sched_yield();
-    }
-
-    return 0;
+    return atoi(str);
 }
