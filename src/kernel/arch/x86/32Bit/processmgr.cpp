@@ -47,8 +47,13 @@ void ProcessMgr::ProcessInfo::exit()
     // change the parent of all children to the init process
     for (size_t i = 0; i < childProcesses.getSize(); ++i)
     {
-        childProcesses[i]->parentProcess = initProcess;
+        ProcessInfo* child = childProcesses[i];
+
+        child->parentProcess = initProcess;
+        initProcess->childProcesses.add(child);
     }
+
+    childProcesses.clear();
 
     status = eTerminated;
 }
@@ -108,7 +113,7 @@ void ProcessMgr::mainloop()
 
     // kick off init process
     createProcess(initModule);
-    proc = runningProcs[currentProcIdx];
+    proc = ProcessInfo::initProcess = runningProcs[currentProcIdx];
 
     while (true)
     {
