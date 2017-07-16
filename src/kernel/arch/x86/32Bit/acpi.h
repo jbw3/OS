@@ -11,10 +11,9 @@ namespace os {
 class Acpi
 {
 public:
-    Acpi(PageFrameMgr* pageFrameMgr);
+    Acpi();
 
 private:
-    PageFrameMgr* _pageFrameMgr;
 };
 
 }

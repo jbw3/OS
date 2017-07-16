@@ -38,7 +38,7 @@ bool isMappedByKernel(uint32_t physAddr, uint32_t& virtAddr);
  * This is useful when a specific physical address must be mapped, but the
  * exact virtual address is unimportant.
  */
-uint32_t autoMapKernelPageForAddress(uint32_t physAddr, PageFrameMgr* pfMgr);
+uint32_t autoMapKernelPageForAddress(uint32_t physAddr);
 // CLS TODO: consider mapping entire first 16MB phys to 3GB virt
 // for speed?
 

@@ -18,7 +18,15 @@ struct multiboot_info;
 class PageFrameMgr
 {
 public:
-    PageFrameMgr(const multiboot_info* mbootInfo);
+    /**
+     * @brief Initializes the PageFrameMgr singleton
+     */
+    //static void init(const multiboot_info* mbootInfo);
+
+    /**
+     * @brief Returns a pointer to the PageFrameMgr singleton
+     */
+    static PageFrameMgr* get(const multiboot_info* mbootInfo = nullptr);
 
     /**
      * @brief Allocate a page frame
@@ -45,6 +53,12 @@ public:
     void printBlocks() const;
 
 private:
+    /**
+     * @brief Constructs a PageFrameMgr using the supplied
+     * multiboot info
+     */
+    PageFrameMgr(const multiboot_info* mbootInfo);
+
     struct MemBlock
     {
         uint32_t startAddr;

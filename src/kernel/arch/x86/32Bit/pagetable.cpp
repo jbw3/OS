@@ -7,11 +7,18 @@
 namespace mem {
 
 static bool myFlag = false;
+static PageTable __ptPageTable;
 
-PageTable::PageTable(PageFrameMgr* pfMgr, uint32_t* pageDir, uint16_t pageDirIdx)
+PageTable::PageTable()
+    : _pageDir(nullptr),
+    _pageDirIdx(0),
+    _pageTable(nullptr)
+{
+}
+
+PageTable::PageTable(uint32_t* pageDir, uint16_t pageDirIdx)
     : _pageDir(pageDir),
-    _pageDirIdx(pageDirIdx),
-    _pfMgr(pfMgr)
+    _pageDirIdx(pageDirIdx)
 {
     _pageTable = getPageTablePointer(pageDir, pageDirIdx);
     if (pageDirIdx == 0x301 && !myFlag)
@@ -31,6 +38,24 @@ PageTable::PageTable(PageFrameMgr* pfMgr, uint32_t* pageDir, uint16_t pageDirIdx
         screen << "pt's page table addr (virt): 0x" << ptVirtAddr << "\n";
         screen << "pt's page frame addr (phys): 0x" << ptPtr[idx2] << "\n";
     }
+}
+
+// private PTPageTable constructor
+PageTable::PageTable(uint32_t* ptPageTable, uint32_t* pageDir, uint16_t pageDirIdx)
+    : _pageDir(pageDir),
+    _pageDirIdx(pageDirIdx),
+    _pageTable(ptPageTable)
+{
+}
+
+void PageTable::initPTPageTable(uint32_t* ptPageTable, uint32_t* pageDir, uint16_t pageDirIdx)
+{
+    __ptPageTable = PageTable(ptPageTable, pageDir, pageDirIdx);
+}
+
+PageTable* PageTable::getPTPageTable()
+{
+    return &__ptPageTable;
 }
 
 uint32_t* PageTable::getPointer()
@@ -101,7 +126,7 @@ uint32_t PageTable::mapNextAvailablePageToAddress(uint32_t physAddr)
     uint16_t offset = physAddr & 0xFFF;     // 12 bits offset
     uint32_t pageAddress = virtAddressOfPage(pageIdx);
     mapPage(_pageDir, pageAddress, physAddr);
-    _pfMgr->reservePageFrame(physAddr);    // mark as reserved for page frame manager
+    PageFrameMgr::get()->reservePageFrame(physAddr);    // mark as reserved for page frame manager
     return pageAddress + offset;    // return virt address now mapped to physAddr
 }
 

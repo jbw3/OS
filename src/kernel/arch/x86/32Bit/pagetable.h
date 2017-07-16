@@ -12,6 +12,12 @@ namespace mem {
 class PageTable
 {
 public:
+
+    /**
+     * @brief Default constructor
+     */
+    PageTable();
+
     /**
      * @brief Constructs a new PageTable instance that refers
      * to the page table at the given virtual address.
@@ -21,7 +27,21 @@ public:
      * @param pageDirIdx is the index in pageDir of the PDE that
      * points to this page table
      */
-    PageTable(PageFrameMgr* pfMgr, uint32_t* pageDir, uint16_t pageDirIdx);
+    PageTable(uint32_t* pageDir, uint16_t pageDirIdx);
+
+    /**
+     * @brief initPTPageTable creates the "page table" PageTable instance.
+     * If you do not know what this is DO NOT USE THIS FUNCTION! The page table
+     * PageTable is reserved ahead of time for creating new page tables, since
+     * there is a bit of a problem trying to create a new page table when you
+     * have already run out of space in the current one.
+     */
+    static void initPTPageTable(uint32_t* ptPageTable, uint32_t* pageDir, uint16_t pageDirIdx);
+
+    /**
+     * @brief Gets the page table PageTable singleton
+     */
+    static PageTable* getPTPageTable();
 
     /**
      * @brief Returns a (virtual) pointer to this page table
@@ -94,10 +114,16 @@ public:
     bool isMapped(uint32_t physAddr, uint32_t& virtAddr);
 
 private:
+    /**
+     * @brief PageTable constructor specifically for the "page table" PageTable instance.
+     * This constructor was made private to ensure that it doesn't get accidentally called
+     * in the future.
+     */
+    PageTable(uint32_t* ptPageTable, uint32_t* pageDir, uint16_t pageDirIdx);
+
     uint32_t* _pageDir;
     uint16_t _pageDirIdx;
     uint32_t* _pageTable;
-    PageFrameMgr* _pfMgr;
 };
 
 }

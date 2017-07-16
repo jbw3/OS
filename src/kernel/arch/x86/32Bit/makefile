@@ -28,7 +28,8 @@ CC = i686-elf-gcc
 CFLAGS = $(INCLUDES) -std=c11 -ffreestanding -Wall -Wextra $(C_DEPFLAGS)
 
 CXX = i686-elf-g++
-CXXFLAGS = $(INCLUDES) -std=c++1z -ffreestanding -Wall -Wextra -fno-exceptions -fno-rtti $(C_DEPFLAGS)
+CXXFLAGS = $(INCLUDES) -std=c++1z -ffreestanding -Wall -Wextra \
+-fno-threadsafe-statics -fno-exceptions -fno-rtti $(C_DEPFLAGS)
 
 AS = nasm
 ASFLAGS = -f elf32 -I$(SRCDIR)/ $(A_DEPFLAGS)

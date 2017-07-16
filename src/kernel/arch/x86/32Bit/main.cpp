@@ -48,14 +48,13 @@ void kernelMain(const uint32_t MULTIBOOT_MAGIC_NUM, const multiboot_info* mbootI
         return;
     }
 
-    PageFrameMgr pageFrameMgr(mbootInfo);
-    mem::setPageFrameMgr(&pageFrameMgr);    // cls: tmp hack...
+    PageFrameMgr::get(mbootInfo);
 
     // set up page table page table
-    uint32_t pageTablePTPhysAddr = pageFrameMgr.allocPageFrame();
+    uint32_t pageTablePTPhysAddr = PageFrameMgr::get()->allocPageFrame();
     auto kPageDir = getKernelPageDirStart();
     auto lastPDEIdx = mem::lastUsedKernelPDEIndex();
-    mem::PageTable currentPT(&pageFrameMgr, kPageDir, lastPDEIdx);
+    mem::PageTable currentPT(kPageDir, lastPDEIdx);
     auto pageTablePTAddr = currentPT.mapNextAvailablePageToAddress(pageTablePTPhysAddr);
     uint32_t* pageTablePT = (uint32_t*)(pageTablePTAddr);
 
@@ -69,7 +68,7 @@ void kernelMain(const uint32_t MULTIBOOT_MAGIC_NUM, const multiboot_info* mbootI
     screen.write(*getKernelPageDirStart());
     screen.write("\n");
 
-    os::Acpi acpi(&pageFrameMgr);
+    os::Acpi acpi;
 
     Shell sh(mbootInfo);
 

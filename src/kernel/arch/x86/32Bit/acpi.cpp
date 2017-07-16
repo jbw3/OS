@@ -161,8 +161,7 @@ uint32_t getPciConfigSpace(uint32_t ecamBase, uint8_t bus, uint8_t device, uint8
     return ecamBase + (bus << 20 | device << 15 | function << 12);
 }
 
-Acpi::Acpi(PageFrameMgr* pageFrameMgr)
-    : _pageFrameMgr(pageFrameMgr)
+Acpi::Acpi()
 {
     screen.write("ACPI Initializing...\n");
 
@@ -237,7 +236,7 @@ Acpi::Acpi(PageFrameMgr* pageFrameMgr)
                 // these should all be mapped in order, so we don't really care to save the
                 // address here...
                 uint32_t configPagePhysAddr = ecamPhysAddress + (i*4096);
-                uint32_t configPageAddress = mem::autoMapKernelPageForAddress(configPagePhysAddr, _pageFrameMgr);
+                uint32_t configPageAddress = mem::autoMapKernelPageForAddress(configPagePhysAddr);
                 if (configPagePhysAddr == getPciConfigSpace(ecamPhysAddress, 4, 0, 0))
                 {
                     screen << "bus 4 0x" << configPagePhysAddr << " mapped to 0x" << configPageAddress << "\n";
