@@ -138,6 +138,8 @@ public:
 
     void cleanUpCurrentProcessChild(ProcessInfo* childProc);
 
+    void processTimerInterrupt(const registers* regs);
+
     /**
      * @brief Get the ProcessInfo for calling process.
      */

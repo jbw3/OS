@@ -1,4 +1,5 @@
 #include "gdt.h"
+#include "irq.h"
 #include "multiboot.h"
 #include "pageframemgr.h"
 #include "processmgr.h"
@@ -273,6 +274,26 @@ void ProcessMgr::cleanUpCurrentProcessChild(ProcessInfo* childProc)
 
     currentProc->childProcesses.remove(childProc);
     cleanUpProcess(childProc);
+}
+
+void ProcessMgr::processTimerInterrupt(const registers* regs)
+{
+    static unsigned int count = 0;
+
+    if (count >= 10)
+    {
+        screen << '!';
+
+        sendPicEoi(regs);
+
+        yieldCurrentProcess();
+
+        count = 0;
+    }
+    else
+    {
+        ++count;
+    }
 }
 
 ProcessMgr::ProcessInfo* ProcessMgr::getCurrentProcessInfo()
