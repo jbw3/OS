@@ -48,7 +48,7 @@ void kernelMain(const uint32_t MULTIBOOT_MAGIC_NUM, const multiboot_info* mbootI
         return;
     }
 
-    PageFrameMgr::get(mbootInfo);
+    PageFrameMgr::init(mbootInfo);
 
     // set up page table page table
     uint32_t pageTablePTPhysAddr = PageFrameMgr::get()->allocPageFrame();

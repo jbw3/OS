@@ -14,7 +14,10 @@ class PageTable
 public:
 
     /**
-     * @brief Default constructor
+     * @brief Default constructor. Currently used only for cases
+     * when uninitialized variables have to be declared and then
+     * initialized later on (since we don't have malloc()
+     * capability yet).
      */
     PageTable();
 

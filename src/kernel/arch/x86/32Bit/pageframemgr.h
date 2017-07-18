@@ -18,15 +18,22 @@ struct multiboot_info;
 class PageFrameMgr
 {
 public:
+
+    /**
+     * @brief Default constructor. Currently used only for initializing
+     * static variables (since we don't have new() capability yet).
+     */
+    PageFrameMgr();
+
     /**
      * @brief Initializes the PageFrameMgr singleton
      */
-    //static void init(const multiboot_info* mbootInfo);
+    static void init(const multiboot_info* mbootInfo);
 
     /**
      * @brief Returns a pointer to the PageFrameMgr singleton
      */
-    static PageFrameMgr* get(const multiboot_info* mbootInfo = nullptr);
+    static PageFrameMgr* get();
 
     /**
      * @brief Allocate a page frame
@@ -57,7 +64,7 @@ private:
      * @brief Constructs a PageFrameMgr using the supplied
      * multiboot info
      */
-    PageFrameMgr(const multiboot_info* mbootInfo);
+    //PageFrameMgr(const multiboot_info* mbootInfo);
 
     struct MemBlock
     {
