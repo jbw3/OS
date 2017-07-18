@@ -44,27 +44,6 @@ PageFrameMgr::PageFrameMgr()
     blocks = nullptr;
 }
 
-// moved to init()
-// PageFrameMgr::PageFrameMgr(const multiboot_info* mbootInfo)
-// {
-//     constexpr unsigned int MAX_MEM_BLOCKS = 32;
-//     MemBlock memBlocks[MAX_MEM_BLOCKS];
-
-//     // initialize memory block data structure
-//     unsigned int numMemBlocks = 0;
-//     initMemBlocks(mbootInfo, memBlocks, MAX_MEM_BLOCKS, numMemBlocks);
-
-//     // get number of page frames
-//     uint32_t numPageFrames = 0;
-//     getMultibootMMapInfo(mbootInfo, numPageFrames);
-
-//     // allocate and initialize all needed page frame blocks at the end of the kernel
-//     initDataStruct(memBlocks, numMemBlocks);
-
-//     // mark page frame blocks used by kernel
-//     markKernel();
-// }
-
 void PageFrameMgr::initMemBlocks(const multiboot_info* mbootInfo, MemBlock* memBlocks, unsigned int memBlocksSize, unsigned int& numMemBlocks)
 {
     numMemBlocks = 0;

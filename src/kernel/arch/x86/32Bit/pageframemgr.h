@@ -60,12 +60,6 @@ public:
     void printBlocks() const;
 
 private:
-    /**
-     * @brief Constructs a PageFrameMgr using the supplied
-     * multiboot info
-     */
-    //PageFrameMgr(const multiboot_info* mbootInfo);
-
     struct MemBlock
     {
         uint32_t startAddr;

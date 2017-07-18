@@ -51,12 +51,19 @@ void kernelMain(const uint32_t MULTIBOOT_MAGIC_NUM, const multiboot_info* mbootI
     PageFrameMgr::init(mbootInfo);
 
     // set up page table page table
+    // 1. allocate new page frame which will be the ptpagetable
     uint32_t pageTablePTPhysAddr = PageFrameMgr::get()->allocPageFrame();
+    // 2. map this page frame into the next available slot in the current page table
+    //    so we can access the entries inside the ptpagetable
     auto kPageDir = getKernelPageDirStart();
-    auto lastPDEIdx = mem::lastUsedKernelPDEIndex();
-    mem::PageTable currentPT(kPageDir, lastPDEIdx);
+    auto pdeIndex = mem::lastUsedKernelPDEIndex();
+    mem::PageTable currentPT(kPageDir, pdeIndex);
     auto pageTablePTAddr = currentPT.mapNextAvailablePageToAddress(pageTablePTPhysAddr);
     uint32_t* pageTablePT = (uint32_t*)(pageTablePTAddr);
+    mem::PageTable::initPTPageTable(pageTablePT, kPageDir, pdeIndex);
+    // 3. map a PDE to the ptpagetable so that future page tables
+    //    can be fully mapped in virtual address space (pageDir[PDE]->PTPT[PTE]->newPageTable)
+    // TODO
 
     // cls: be careful setting up the PTPT, since some of the PageTable
     // class's functionality depends on the existence of the PTPT.

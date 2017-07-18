@@ -121,6 +121,8 @@ private:
      * @brief PageTable constructor specifically for the "page table" PageTable instance.
      * This constructor was made private to ensure that it doesn't get accidentally called
      * in the future.
+     * @param ptPageTable - the virtual address of the PTPageTable (whose physical page is
+     * mapped by some existing page table...)
      */
     PageTable(uint32_t* ptPageTable, uint32_t* pageDir, uint16_t pageDirIdx);
 
