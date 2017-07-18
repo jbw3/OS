@@ -8,9 +8,15 @@
 
 int getNumber(const char* prompt);
 
-void child();
+void forkTest();
 
-void grandchild(int num);
+void printCharYield(int num);
+
+void preemptTest();
+
+void printCharLoop(int num);
+
+void echoChar();
 
 int main()
 {
@@ -23,7 +29,8 @@ int main()
     }
     else if (pid == 0)
     {
-        child();
+        // forkTest();
+        preemptTest();
         exit(0);
     }
 
@@ -41,7 +48,7 @@ int main()
     return 0;
 }
 
-void child()
+void forkTest()
 {
     while (true)
     {
@@ -56,7 +63,7 @@ void child()
             }
             else if (pid == 0)
             {
-                grandchild(i);
+                printCharYield(i);
                 exit(0);
             }
         }
@@ -69,23 +76,53 @@ void child()
     }
 }
 
-void grandchild(int num)
+void printCharYield(int num)
 {
-    if (num == 0)
-    {
-        pid_t pid = fork();
-        if (pid > 0)
-        {
-            exit(0);
-        }
-    }
-
     char ch = 'A' + num;
 
     for (int i = 0; i < 10; ++i)
     {
         putchar(ch);
         sched_yield();
+    }
+}
+
+void preemptTest()
+{
+    for (int i = 0; i < 2; ++i)
+    {
+        pid_t pid = fork();
+        if (pid < 0)
+        {
+            printf("Fork failed\n");
+        }
+        else if (pid == 0)
+        {
+            if (i == 0) printCharLoop(i); else echoChar();
+            exit(0);
+        }
+    }
+}
+
+void printCharLoop(int num)
+{
+    char ch = 'A' + num;
+
+    while (true)
+    {
+        putchar(ch);
+
+        // spin wait
+        for (unsigned int i = 0; i < 50'000'000u; ++i);
+    }
+}
+
+void echoChar()
+{
+    while (true)
+    {
+        char ch = getchar();
+        putchar(ch);
     }
 }
 
