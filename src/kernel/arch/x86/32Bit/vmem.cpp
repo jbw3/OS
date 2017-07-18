@@ -11,8 +11,10 @@ static uint32_t* _kPageDir = getKernelPageDirStart();
 uint32_t toVirtualKernelAddr(uint32_t physAddr)
 {
     uint32_t virtAddr = 0;
+
     if (!isMappedByKernel(physAddr, virtAddr))
     {
+        screen << physAddr << " not mapped by kernel\n";
         virtAddr = autoMapKernelPageForAddress(physAddr);
     }
     return virtAddr;
@@ -25,11 +27,14 @@ bool isMappedByKernel(uint32_t physAddr, uint32_t& virtAddr)
     {
         if (_kPageDir[i] & PAGE_DIR_PRESENT)
         {
+            screen << "page dir " << i << " present\n";
             PageTable pt(_kPageDir, i);
             if (pt.isMapped(physAddr, virtAddr))
             {
+                screen << "mapped\n";
                 return true;    // physAddr is mapped, virtAddr has been set
             }
+            screen << "not mapped\n";
         }
     }
     return false;   // did not find a mapping

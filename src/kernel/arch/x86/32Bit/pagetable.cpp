@@ -6,8 +6,30 @@
 
 namespace mem {
 
+struct PageTablePointer
+{
+    /**
+     * @brief The index into the kernel page directory
+     * that corresponds to this page table
+     */
+    uint16_t kPageDirIdx;
+
+    /**
+     * @brief A pointer to the page table
+     */
+    uint32_t* pageTable;
+};
+
 static bool myFlag = false;
 static PageTable __ptPageTable;
+
+// 1K pages/pt * 4K/page = 4M/pt
+const int NUM_PAGE_TABLES = 256;    // 256 PTs map high 1GB of memory
+
+// array of page table pointers. Page tables are mapped
+// into the array based on pageDirIndex, offset from
+// the kernel's starting page dir index (768)
+static PageTablePointer __pageTablePtrs[NUM_PAGE_TABLES];
 
 PageTable::PageTable()
     : _pageDir(nullptr),
@@ -20,7 +42,8 @@ PageTable::PageTable(uint32_t* pageDir, uint16_t pageDirIdx)
     : _pageDir(pageDir),
     _pageDirIdx(pageDirIdx)
 {
-    _pageTable = getPageTablePointer(pageDir, pageDirIdx);
+    setPageTablePointer();
+
     if (pageDirIdx == 0x301 && !myFlag)
     {
         myFlag = true;
@@ -34,9 +57,9 @@ PageTable::PageTable(uint32_t* pageDir, uint16_t pageDirIdx)
         uint32_t* ptPtr = (uint32_t*)ptVirtAddr;
         uint32_t idx2 = (ptPtrVal & 0x003F'F000);
         idx2 >>= 12;
-        screen << "pt's page table addr (phys): 0x" << ptAddr << "\n";
-        screen << "pt's page table addr (virt): 0x" << ptVirtAddr << "\n";
-        screen << "pt's page frame addr (phys): 0x" << ptPtr[idx2] << "\n";
+        //screen << "pt's page table addr (phys): 0x" << ptAddr << "\n";
+        //screen << "pt's page table addr (virt): 0x" << ptVirtAddr << "\n";
+        //screen << "pt's page frame addr (phys): 0x" << ptPtr[idx2] << "\n";
     }
 }
 
@@ -50,7 +73,12 @@ PageTable::PageTable(uint32_t* ptPageTable, uint32_t* pageDir, uint16_t pageDirI
 
 void PageTable::initPTPageTable(uint32_t* ptPageTable, uint32_t* pageDir, uint16_t pageDirIdx)
 {
+    // go ahead and set up kernel page table pointer here
+    __pageTablePtrs[0].kPageDirIdx = KERNEL_PAGEDIR_START_IDX;
+    __pageTablePtrs[0].pageTable = getKernelPageDirStart();
+
     __ptPageTable = PageTable(ptPageTable, pageDir, pageDirIdx);
+    __ptPageTable.initPageTable();      // this sets up PTPT in pt pointer array
 }
 
 PageTable* PageTable::getPTPageTable()
@@ -106,6 +134,11 @@ void PageTable::initPageTable()
     {
         _pageTable[i] &= ~PAGE_TABLE_PRESENT;
     }
+
+    // init page table pointer
+    auto idx = ptArrayIndex();
+    __pageTablePtrs[idx].kPageDirIdx = _pageDirIdx;
+    __pageTablePtrs[idx].pageTable = _pageTable;
 }
 
 uint16_t PageTable::nextAvailablePage()
@@ -146,6 +179,8 @@ bool PageTable::isMapped(uint32_t physAddr, uint32_t& virtAddr)
 {
     for (uint16_t i = 0; i < PAGE_TABLE_NUM_ENTRIES; i++)
     {
+        //screen << "_pageTable value: 0x" << (uint32_t)_pageTable << "\n";
+        //screen << "accessed pageTable[i]\n";
         if (_pageTable[i] & PAGE_TABLE_PRESENT)
         {
             // get physical bounds of page frame
@@ -165,6 +200,16 @@ bool PageTable::isMapped(uint32_t physAddr, uint32_t& virtAddr)
         }
     }
     return false;   // no mappings found
+}
+
+int PageTable::ptArrayIndex()
+{
+    return _pageDirIdx - KERNEL_PAGEDIR_START_IDX;
+}
+
+void PageTable::setPageTablePointer()
+{
+    _pageTable = __pageTablePtrs[ptArrayIndex()].pageTable;
 }
 
 }

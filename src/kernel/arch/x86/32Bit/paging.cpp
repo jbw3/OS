@@ -1,4 +1,5 @@
 #include "paging.h"
+#include "pagetable.h"
 #include "screen.h"
 #include "system.h"
 
@@ -75,14 +76,20 @@ void mapPage(const uint32_t* pageDir, uint32_t virtualAddr, uint32_t physicalAdd
  */
 uint32_t* getPageTablePointer(uint32_t* pageDir, uint16_t index)
 {
-    if (pageDir == getKernelPageDirStart())
+    if (index == KERNEL_PAGEDIR_START_IDX)
     {
         uint32_t physicalPTAddress = (pageDir[index] & PAGE_DIR_ADDRESS);
         return reinterpret_cast<uint32_t*>(physicalPTAddress + KERNEL_VIRTUAL_BASE);
     }
+    else if (index == KERNEL_PAGEDIR_START_IDX+1)
+    {
+        return mem::PageTable::getPTPageTable()->getPointer();
+    }
     else
     {
-        // use PTPT
+        uint16_t ptptIndex = (index - (KERNEL_PAGEDIR_START_IDX+1));
+        uint32_t ptAddr = mem::PageTable::getPTPageTable()->virtAddressOfPage(ptptIndex);
+        return (uint32_t*)(ptAddr);
     }
 }
 

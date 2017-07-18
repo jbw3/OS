@@ -126,6 +126,18 @@ private:
      */
     PageTable(uint32_t* ptPageTable, uint32_t* pageDir, uint16_t pageDirIdx);
 
+    /**
+     * @brief Returns the index into the page table pointer array
+     * for this page table.
+     */
+    int ptArrayIndex();
+
+    /**
+     * @brief Sets the page table pointer for this table from the
+     * page table pointer array, based on the pageDirIdx
+     */
+    void setPageTablePointer();
+
     uint32_t* _pageDir;
     uint16_t _pageDirIdx;
     uint32_t* _pageTable;
