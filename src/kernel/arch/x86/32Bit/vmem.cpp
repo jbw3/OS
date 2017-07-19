@@ -14,9 +14,7 @@ uint32_t toVirtualKernelAddr(uint32_t physAddr)
 
     if (!isMappedByKernel(physAddr, virtAddr))
     {
-        screen << physAddr << " not mapped by kernel\n";
         virtAddr = autoMapKernelPageForAddress(physAddr);
-        screen << "done automapping " << physAddr << " to " << virtAddr << "\n";
     }
     return virtAddr;
 }
@@ -28,14 +26,11 @@ bool isMappedByKernel(uint32_t physAddr, uint32_t& virtAddr)
     {
         if (_kPageDir[i] & PAGE_DIR_PRESENT)
         {
-            screen << "page dir " << i << " present\n";
             PageTable pt(i);
             if (pt.isMapped(physAddr, virtAddr))
             {
-                screen << "mapped\n";
                 return true;    // physAddr is mapped, virtAddr has been set
             }
-            screen << "not mapped\n";
         }
     }
     return false;   // did not find a mapping
@@ -45,17 +40,14 @@ bool isMappedByKernel(uint32_t physAddr, uint32_t& virtAddr)
  {
     // get last kernel PDE in use
     uint16_t lastPDEIdx = mem::lastUsedKernelPDEIndex();
-    screen << "PDE Idx: 0x" << lastPDEIdx << "\n";
     mem::PageTable pageTable(lastPDEIdx);
     if (!pageTable.isFull())
     {
-        screen << "is not full\n";
         return pageTable.mapNextAvailablePageToAddress(physAddr);
     }
     else
     {
         auto nextPDEIndex = mem::nextAvailableKernelPDEIndex();
-        screen << "is full. Next available PDE index for a page table is: 0x" << nextPDEIndex << "\n";
 
         // todo: move to PageDirectory class...
 
@@ -71,26 +63,9 @@ bool isMappedByKernel(uint32_t physAddr, uint32_t& virtAddr)
         //                     (PAGE_DIR_PRESENT);
         _kPageDir[nextPDEIndex] = pde;
 
-        screen << "alloc page frame & set PDE\n";
-
+        // set up new page table
         mem::PageTable nextPageTable(nextPDEIndex);
-        screen << "next PT\n";
-        nextPageTable.init();
-        screen << "init page table\n";
-
-        if (pageFramePhys == 0x114000)
-        {
-            screen << "\n";
-            screen << "set newPDE to 0x" << (uint32_t)((nextPDEIndex) << 22) << "\n";
-            screen << "\n";
-
-            // the problem is, I need a way to get TO the page table (@ phys addr 0x114000)
-            // through virtual memory...
-
-            screen << "allocated 0x114000\n";
-            //uint32_t* entries = (uint32_t*)(pageFramePhys);
-            //screen << "114000 page table entries: 0x" <<
-        }
+        nextPageTable.init();   // clear contents and map in the PTPT
 
         return nextPageTable.mapNextAvailablePageToAddress(physAddr);
     }

@@ -155,7 +155,7 @@ private:
      * @brief Returns the index into the page table pointer array
      * for this page table.
      */
-    int ptArrayIndex();
+    int ptPtrArrayIndex();
 
     /**
      * @brief Sets the page table pointer for this table from the

@@ -147,6 +147,8 @@ uint16_t nextAvailableKernelPDEIndex()
             return i;   // unused PDE index, not including the PTPT
         }
     }
+
+    return PAGE_DIR_NUM_ENTRIES-1;  // all in use
 }
 
 // page table pointer array

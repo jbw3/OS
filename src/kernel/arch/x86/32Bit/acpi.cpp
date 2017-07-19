@@ -74,7 +74,7 @@ struct DESCRIPTION_HEADER
      * @brief Returns true if the given 4-character signature
      * matches the signature in the header
      */
-    bool matchesSignature(char* signature)
+    bool matchesSignature(const char* signature)
     {
         for (int i = 0; i < 4; i++)
         {
@@ -254,7 +254,7 @@ Acpi::Acpi()
             // c0114000
             // 11.0100.0000  01.0001.0100
             // 340  114
-            PANIC("here");
+            //PANIC("here");
             for (int bus = 0; bus < 256; bus++)
             {
                 for (uint8_t device = 0; device < 32; device++)

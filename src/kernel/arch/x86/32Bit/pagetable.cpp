@@ -6,7 +6,6 @@
 
 namespace mem {
 
-static bool myFlag = false;
 static PageTable __ptPageTable;
 
 PageTable::PageTable()
@@ -52,7 +51,7 @@ void PageTable::initPTPageTable(uint32_t* ptPageTable, uint16_t pageDirIdx)
     __ptPageTable.clearPageTable();      // clear all present bits
 
     // set up PTPT in page table pointer array
-    auto idx = __ptPageTable.ptArrayIndex();
+    auto idx = __ptPageTable.ptPtrArrayIndex();
     __pageTablePtrs[idx].kPageDirIdx = pageDirIdx;
     __pageTablePtrs[idx].pageTable = ptPageTable;
 }
@@ -119,29 +118,24 @@ void PageTable::clearPageTable()
 
 void PageTable::init()
 {
-    screen << "PT init: _pageTable=0x" << _pageTable << "\n";
     // get page frame address
     uint32_t pageFrameAddr = _pageDir[_pageDirIdx] & PAGE_DIR_ADDRESS;
     // map this pageTable in the PTPT
     uint32_t pageTableVirtAddr = __ptPageTable.mapNextAvailablePageToAddress(pageFrameAddr);
     // set _pageTable*
     _pageTable = (uint32_t*)pageTableVirtAddr;
-    screen << "PT init: _pageTable=0x" << _pageTable << "\n";
 
     // save page table info in page table pointer array
-    auto idx = ptArrayIndex();
+    auto idx = ptPtrArrayIndex();
     __pageTablePtrs[idx].kPageDirIdx = _pageDirIdx;
     __pageTablePtrs[idx].pageTable = _pageTable;
 
     // now that the page table itself is mapped, let's clear it out...
     clearPageTable();
-    screen << "completed init!\n";
 }
 
 uint16_t PageTable::nextAvailablePage()
 {
-    screen << "_pageTable " << (uint32_t)_pageTable << "\n";
-    screen << "_pageTable[0]" << _pageTable[0] << "\n";
     for (uint16_t i = 0; i < PAGE_TABLE_NUM_ENTRIES; i++)
     {
         if (!(_pageTable[i] & PAGE_TABLE_PRESENT))
@@ -176,7 +170,6 @@ uint32_t PageTable::mapNextAvailablePageToAddress(uint32_t physAddr)
     auto virtPointer = mapPage(nextAvailablePage(), physAddr);
     if (virtPointer != nullptr)
     {
-        screen << "mapped page!\n";
         PageFrameMgr::get()->reservePageFrame(physAddr);    // mark as reserved for page frame manager
         return (uint32_t) virtPointer;  // TODO: return uint32_t* here...
     }
@@ -202,8 +195,6 @@ bool PageTable::isMapped(uint32_t physAddr, uint32_t& virtAddr)
 {
     for (uint16_t i = 0; i < PAGE_TABLE_NUM_ENTRIES; i++)
     {
-        //screen << "_pageTable value: 0x" << (uint32_t)_pageTable << "\n";
-        //screen << "accessed pageTable[i]\n";
         if (_pageTable[i] & PAGE_TABLE_PRESENT)
         {
             // get physical bounds of page frame
@@ -225,14 +216,14 @@ bool PageTable::isMapped(uint32_t physAddr, uint32_t& virtAddr)
     return false;   // no mappings found
 }
 
-int PageTable::ptArrayIndex()
+int PageTable::ptPtrArrayIndex()
 {
     return _pageDirIdx - KERNEL_PAGEDIR_START_IDX;
 }
 
 void PageTable::setPageTablePointer()
 {
-    _pageTable = __pageTablePtrs[ptArrayIndex()].pageTable;
+    _pageTable = __pageTablePtrs[ptPtrArrayIndex()].pageTable;
 }
 
 }
