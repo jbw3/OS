@@ -249,6 +249,11 @@ private:
     ProcessInfo* getNextScheduledProcess();
 
     /**
+     * @brief Execute an action.
+     */
+    void executeAction(EAction action, ProcessInfo* process);
+
+    /**
      * @brief Switch to the kernel from the current process.
      */
     void switchToKernelFromProcess();

@@ -237,11 +237,7 @@ void ProcessMgr::createProcess(const multiboot_mod_list* module)
 
 pid_t ProcessMgr::forkCurrentProcess()
 {
-    procAction = EAction::eFork;
-    actionProc = getCurrentProcessInfo();
-
-    // switch to kernel
-    switchToKernelFromProcess();
+    executeAction(EAction::eFork, getCurrentProcessInfo());
 
     // we resume here after the fork is complete
     return getCurrentProcessInfo()->actionResult.pid;
@@ -249,11 +245,7 @@ pid_t ProcessMgr::forkCurrentProcess()
 
 void ProcessMgr::yieldCurrentProcess()
 {
-    procAction = EAction::eYield;
-    actionProc = getCurrentProcessInfo();
-
-    // switch to kernel
-    switchToKernelFromProcess();
+    executeAction(EAction::eYield, getCurrentProcessInfo());
 }
 
 void ProcessMgr::exitCurrentProcess(int exitCode)
@@ -261,11 +253,7 @@ void ProcessMgr::exitCurrentProcess(int exitCode)
     ProcessInfo* currentProc = getCurrentProcessInfo();
     currentProc->exitCode = exitCode;
 
-    procAction = EAction::eExit;
-    actionProc = currentProc;
-
-    // switch to kernel
-    switchToKernelFromProcess();
+    executeAction(EAction::eExit, currentProc);
 }
 
 void ProcessMgr::cleanUpCurrentProcessChild(ProcessInfo* childProc)
@@ -280,10 +268,8 @@ void ProcessMgr::processTimerInterrupt(const registers* regs)
 {
     static unsigned int count = 0;
 
-    if (count >= 10)
+    if (count >= 1)
     {
-        screen << '!';
-
         sendPicEoi(regs);
 
         yieldCurrentProcess();
@@ -687,6 +673,15 @@ ProcessMgr::ProcessInfo* ProcessMgr::getNextScheduledProcess()
     {
         return nullptr;
     }
+}
+
+void ProcessMgr::executeAction(EAction action, ProcessInfo* process)
+{
+    procAction = action;
+    actionProc = process;
+
+    // switch to kernel
+    switchToKernelFromProcess();
 }
 
 void ProcessMgr::switchToKernelFromProcess()
