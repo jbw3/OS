@@ -200,7 +200,6 @@ Acpi::Acpi()
     screen << "RSDT Length: " << os::Screen::dec << RSDT->Header.Length << "\n";
     screen << "Num entries: " << RSDT->count() << "\n\n";
 
-    PANIC("TEST");
     screen << os::Screen::hex;
 
     for (uint32_t i = 0; i < RSDT->count(); i++)
@@ -230,7 +229,8 @@ Acpi::Acpi()
             // map entire ECAM memory area
             // 256 buses * 32 devices * 8 functions * 4KB config space = 256MB config space total
             // 256MB/4KB pages = 65536 pages
-            int NUM_PCI_CONFIG_SPACE_PAGES = 65536;
+            int NUM_PCI_CONFIG_SPACE_PAGES = 10;
+            //int NUM_PCI_CONFIG_SPACE_PAGES = 65536;
             for (int i = 1; i < NUM_PCI_CONFIG_SPACE_PAGES; i++)    // skip first page...we already mapped it
             {
                 // these should all be mapped in order, so we don't really care to save the
@@ -254,7 +254,7 @@ Acpi::Acpi()
             // c0114000
             // 11.0100.0000  01.0001.0100
             // 340  114
-
+            PANIC("here");
             for (int bus = 0; bus < 256; bus++)
             {
                 for (uint8_t device = 0; device < 32; device++)
@@ -269,8 +269,9 @@ Acpi::Acpi()
                         //screen << "bus " << bus << ", device " << device << ": 0x" << deviceConfig;
                         //screen << " vendorID: 0x" << *vendorId << "\n";
                     }
+                    break;
                 }
-                //break;  //tmp
+                break;  //tmp
             }
         }
     }

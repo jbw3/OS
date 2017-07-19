@@ -70,7 +70,7 @@ void kernelMain(const uint32_t MULTIBOOT_MAGIC_NUM, const multiboot_info* mbootI
     //    can be fully mapped in virtual address space (pageDir[PDE]->PTPT[PTE]->newPageTable)
     // TODO
     auto kPageDir = getKernelPageDirStart();
-    kPageDir[ptptIndex] = (PAGE_DIR_ADDRESS & (uint32_t)(pageTablePT)) |
+    kPageDir[ptptIndex] = (PAGE_DIR_ADDRESS & (uint32_t)(pageTablePTPhysAddr)) |
                           (PAGE_DIR_READ_WRITE) |
                           (PAGE_DIR_PRESENT);
 

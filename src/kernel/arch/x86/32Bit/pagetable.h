@@ -81,10 +81,19 @@ public:
     bool isFull();
 
     /**
-     * @brief Initializes the entire page table by marking each page
+     * @brief Clears the entire page table by marking each page
      * table entry as available
      */
-    void initPageTable();
+    void clearPageTable();
+
+    /**
+     * @brief Initializes this page table as a new page table
+     * by clearing it and mapping its page frame to an accessible
+     * virtual address in the PTPT. This function should not be
+     * called until the PDE that points to this page table's page
+     * frame has been set up.
+     */
+    void init();
 
     /**
      * @brief Returns the index of the next available page in the

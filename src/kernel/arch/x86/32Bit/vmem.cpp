@@ -62,13 +62,21 @@ bool isMappedByKernel(uint32_t physAddr, uint32_t& virtAddr)
         // where do we put new page tables? need to inform PFM?
         auto pageFramePhys = PageFrameMgr::get()->allocPageFrame();
         //screen << "pageFramePhys 0x" << pageFramePhys << "\n";
-        uint32_t newPDE =   (PAGE_DIR_ADDRESS & pageFramePhys) |
-                            (PAGE_DIR_READ_WRITE) |
-                            (PAGE_DIR_PRESENT);
-        _kPageDir[nextPDEIndex] = newPDE;
+        uint32_t pde = _kPageDir[nextPDEIndex];
+        pde &= ~PAGE_DIR_ADDRESS;   // clear previous addresss
+        pde |= (PAGE_DIR_ADDRESS & pageFramePhys);
+        pde |= PAGE_DIR_READ_WRITE | PAGE_DIR_PRESENT;
+        // uint32_t newPDE =   (PAGE_DIR_ADDRESS & pageFramePhys) |
+        //                     (PAGE_DIR_READ_WRITE) |
+        //                     (PAGE_DIR_PRESENT);
+        _kPageDir[nextPDEIndex] = pde;
+
+        screen << "alloc page frame & set PDE\n";
 
         mem::PageTable nextPageTable(nextPDEIndex);
-        nextPageTable.initPageTable();
+        screen << "next PT\n";
+        nextPageTable.init();
+        screen << "init page table\n";
 
         if (pageFramePhys == 0x114000)
         {

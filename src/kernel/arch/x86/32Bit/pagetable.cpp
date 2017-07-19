@@ -1,8 +1,8 @@
-#include <pageframemgr.h>
-#include <pagetable.h>
-#include <paging.h>
-#include <screen.h>
-#include <system.h>
+#include "pageframemgr.h"
+#include "pagetable.h"
+#include "paging.h"
+#include "screen.h"
+#include "system.h"
 
 namespace mem {
 
@@ -25,26 +25,6 @@ PageTable::PageTable(uint16_t pageDirIdx, uint32_t* pageDir/*=nullptr*/)
         _pageDir = getKernelPageDirStart();
     }
     setPageTablePointer();
-    screen << "here\n";
-
-    if (pageDirIdx == 0x301 && !myFlag)
-    {
-        screen << "test";
-        myFlag = true;
-        screen << "0x301 page table pointer (phys): 0x" << (uint32_t)(_pageDir[pageDirIdx] & PAGE_DIR_ADDRESS) << "\n";
-        screen << "0x301 page table pointer (virt): 0x" << _pageTable << "\n";
-        uint32_t ptPtrVal = (uint32_t)_pageTable;
-        uint32_t idx = (ptPtrVal & 0xFFC0'0000);
-        idx >>= 22;
-        uint32_t ptAddr = (uint32_t)_pageDir[idx];
-        uint32_t ptVirtAddr = ptAddr + KERNEL_VIRTUAL_BASE;
-        uint32_t* ptPtr = (uint32_t*)ptVirtAddr;
-        uint32_t idx2 = (ptPtrVal & 0x003F'F000);
-        idx2 >>= 12;
-        //screen << "pt's page table addr (phys): 0x" << ptAddr << "\n";
-        //screen << "pt's page table addr (virt): 0x" << ptVirtAddr << "\n";
-        //screen << "pt's page frame addr (phys): 0x" << ptPtr[idx2] << "\n";
-    }
 }
 
 // private PTPageTable constructor
@@ -69,7 +49,12 @@ void PageTable::initKernelPageTablePointer()
 void PageTable::initPTPageTable(uint32_t* ptPageTable, uint16_t pageDirIdx)
 {
     __ptPageTable = PageTable(ptPageTable, pageDirIdx);
-    __ptPageTable.initPageTable();      // this sets up PTPT in pt pointer array
+    __ptPageTable.clearPageTable();      // clear all present bits
+
+    // set up PTPT in page table pointer array
+    auto idx = __ptPageTable.ptArrayIndex();
+    __pageTablePtrs[idx].kPageDirIdx = pageDirIdx;
+    __pageTablePtrs[idx].pageTable = ptPageTable;
 }
 
 PageTable* PageTable::getPTPageTable()
@@ -119,17 +104,38 @@ bool PageTable::isEmpty()
     return true;    // each entry was inactive
 }
 
-void PageTable::initPageTable()
+void PageTable::clearPageTable()
 {
+    screen << "entered init\n";
+    screen << "_pageTable: " << _pageTable << "\n";
+    screen << "kpd: " << (uint32_t)getKernelPageDirStart() << "\n";
+    screen << "_pageTable[0]: " << _pageTable[0] << "\n";
+
     for (int i = 0; i < PAGE_TABLE_NUM_ENTRIES; i++)
     {
         _pageTable[i] &= ~PAGE_TABLE_PRESENT;
     }
+}
 
-    // init page table pointer
+void PageTable::init()
+{
+    screen << "PT init: _pageTable=0x" << _pageTable << "\n";
+    // get page frame address
+    uint32_t pageFrameAddr = _pageDir[_pageDirIdx] & PAGE_DIR_ADDRESS;
+    // map this pageTable in the PTPT
+    uint32_t pageTableVirtAddr = __ptPageTable.mapNextAvailablePageToAddress(pageFrameAddr);
+    // set _pageTable*
+    _pageTable = (uint32_t*)pageTableVirtAddr;
+    screen << "PT init: _pageTable=0x" << _pageTable << "\n";
+
+    // save page table info in page table pointer array
     auto idx = ptArrayIndex();
     __pageTablePtrs[idx].kPageDirIdx = _pageDirIdx;
     __pageTablePtrs[idx].pageTable = _pageTable;
+
+    // now that the page table itself is mapped, let's clear it out...
+    clearPageTable();
+    screen << "completed init!\n";
 }
 
 uint16_t PageTable::nextAvailablePage()
@@ -138,11 +144,6 @@ uint16_t PageTable::nextAvailablePage()
     screen << "_pageTable[0]" << _pageTable[0] << "\n";
     for (uint16_t i = 0; i < PAGE_TABLE_NUM_ENTRIES; i++)
     {
-        if (i > 0x2F0 && i < 0x301)
-        {
-            screen << "pt[" << i << "]: 0x" << _pageTable[i] << "\n";
-        }
-        //screen << "[" << i << "] PRESENT: " << (_pageTable[i] & PAGE_TABLE_PRESENT) << "\n";
         if (!(_pageTable[i] & PAGE_TABLE_PRESENT))
         {
             return i;   // this entry is available
