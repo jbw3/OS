@@ -132,7 +132,7 @@ void PageFrameMgr::initDataStruct(const MemBlock* memBlocks, unsigned int numMem
         blocksEnd += sizeof(PageFrameBlock);
         if (blocksEnd >= pageEnd)
         {
-            mapPage(getKernelPageDirStart(), pageEnd + KERNEL_VIRTUAL_BASE, pageEnd);
+            mapPageEarly(getKernelPageDirStart(), pageEnd + KERNEL_VIRTUAL_BASE, pageEnd);
             pageEnd += PAGE_SIZE;
         }
 
@@ -170,7 +170,7 @@ void PageFrameMgr::initDataStruct(const MemBlock* memBlocks, unsigned int numMem
     // map pages containing the isAlloc arrays
     for (unsigned int i = 0; i < pagesNeeded; ++i)
     {
-        mapPage(getKernelPageDirStart(), pageEnd + KERNEL_VIRTUAL_BASE, pageEnd);
+        mapPageEarly(getKernelPageDirStart(), pageEnd + KERNEL_VIRTUAL_BASE, pageEnd);
         pageEnd += PAGE_SIZE;
     }
 

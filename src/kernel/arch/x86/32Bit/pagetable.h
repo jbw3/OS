@@ -25,12 +25,18 @@ public:
      * @brief Constructs a new PageTable instance that refers
      * to the page table at the given virtual address.
      *
-     * @param pageDir points to the page directory that refers
-     * to this page table
      * @param pageDirIdx is the index in pageDir of the PDE that
      * points to this page table
+     * @param pageDir points to the page directory that refers
+     * to this page table. Defaults to the kernel page directory
      */
-    PageTable(uint32_t* pageDir, uint16_t pageDirIdx);
+    PageTable(uint16_t pageDirIdx, uint32_t* pageDir=nullptr);
+
+    /**
+     * @brief Initializes the kernel PageTablePointer struct. This must
+     * be done before any PageTable instances are used.
+     */
+    static void initKernelPageTablePointer();
 
     /**
      * @brief initPTPageTable creates the "page table" PageTable instance.
@@ -39,7 +45,7 @@ public:
      * there is a bit of a problem trying to create a new page table when you
      * have already run out of space in the current one.
      */
-    static void initPTPageTable(uint32_t* ptPageTable, uint32_t* pageDir, uint16_t pageDirIdx);
+    static void initPTPageTable(uint32_t* ptPageTable, uint16_t pageDirIdx);
 
     /**
      * @brief Gets the page table PageTable singleton
@@ -95,6 +101,16 @@ public:
     uint32_t mapNextAvailablePageToAddress(uint32_t physAddr);
 
     /**
+     * @brief Maps the page at the given physical address to
+     * the virtual address corresponding to the given page
+     * index. The page index is the index into this page table
+     * for the desired PTE.
+     * @returns a virtual pointer to the given physical address,
+     * or nullptr if unable to map the page.
+     */
+    uint32_t* mapPage(uint16_t pageIdx, uint32_t physAddr);
+
+    /**
      * @brief Returns the virtual address that corresponds to
      * the base of the page at the given page index.
      */
@@ -124,7 +140,7 @@ private:
      * @param ptPageTable - the virtual address of the PTPageTable (whose physical page is
      * mapped by some existing page table...)
      */
-    PageTable(uint32_t* ptPageTable, uint32_t* pageDir, uint16_t pageDirIdx);
+    PageTable(uint32_t* ptPageTable, uint16_t pageDirIdx);
 
     /**
      * @brief Returns the index into the page table pointer array

@@ -37,7 +37,7 @@ void configPaging()
     registerIsrHandler(ISR_PAGE_FAULT, pageFault);
 }
 
-void mapPage(const uint32_t* pageDir, uint32_t virtualAddr, uint32_t physicalAddr)
+void mapPageEarly(const uint32_t* pageDir, uint32_t virtualAddr, uint32_t physicalAddr)
 {
     // calculate the page directory and page table indexes
     int pageDirIdx = virtualAddr >> 22;
@@ -45,7 +45,6 @@ void mapPage(const uint32_t* pageDir, uint32_t virtualAddr, uint32_t physicalAdd
 
     // get the entry in the page directory
     uint32_t pageDirEntry = pageDir[pageDirIdx];
-    screen << os::Screen::hex;
 
     // make sure the entry contains a page table
     if ( (pageDirEntry & PAGE_DIR_PRESENT) == 0 )
@@ -128,5 +127,8 @@ uint16_t lastUsedKernelPDEIndex()
 
     return PAGE_DIR_NUM_ENTRIES-1;  // all in use
 }
+
+// page table pointer array
+PageTablePointer __pageTablePtrs[NUM_PAGE_TABLES];
 
 }

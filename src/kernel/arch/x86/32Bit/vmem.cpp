@@ -16,6 +16,7 @@ uint32_t toVirtualKernelAddr(uint32_t physAddr)
     {
         screen << physAddr << " not mapped by kernel\n";
         virtAddr = autoMapKernelPageForAddress(physAddr);
+        screen << "done automapping " << physAddr << " to " << virtAddr << "\n";
     }
     return virtAddr;
 }
@@ -28,7 +29,7 @@ bool isMappedByKernel(uint32_t physAddr, uint32_t& virtAddr)
         if (_kPageDir[i] & PAGE_DIR_PRESENT)
         {
             screen << "page dir " << i << " present\n";
-            PageTable pt(_kPageDir, i);
+            PageTable pt(i);
             if (pt.isMapped(physAddr, virtAddr))
             {
                 screen << "mapped\n";
@@ -44,13 +45,16 @@ bool isMappedByKernel(uint32_t physAddr, uint32_t& virtAddr)
  {
     // get last kernel PDE in use
     uint16_t lastPDEIdx = mem::lastUsedKernelPDEIndex();
-    mem::PageTable pageTable(_kPageDir, lastPDEIdx);
+    mem::PageTable pageTable(lastPDEIdx);
+    screen << "hereaaa\n";
     if (!pageTable.isFull())
     {
+        screen << "is full\n";
         return pageTable.mapNextAvailablePageToAddress(physAddr);
     }
     else
     {
+        screen << "is not full\n";
         // todo: move to PageDirectory class...
 
         // where do we put new page tables? need to inform PFM?
@@ -61,7 +65,7 @@ bool isMappedByKernel(uint32_t physAddr, uint32_t& virtAddr)
                             (PAGE_DIR_PRESENT);
         _kPageDir[lastPDEIdx+1] = newPDE;
 
-        mem::PageTable nextPageTable(_kPageDir, lastPDEIdx+1);
+        mem::PageTable nextPageTable(lastPDEIdx+1);
         nextPageTable.initPageTable();
 
         if (pageFramePhys == 0x114000)

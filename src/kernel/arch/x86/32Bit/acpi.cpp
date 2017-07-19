@@ -187,7 +187,6 @@ Acpi::Acpi()
     screen << "Revision: " << RSDP->Revision << "\n";
     screen << "RSDT Address: " << os::Screen::hex << RSDP->RsdtAddress << "\n";
 
-    uint32_t* pageDir = getKernelPageDirStart();
     screen << os::Screen::hex;
 
     uint32_t virtRsdtAddr = mem::toVirtualKernelAddr(RSDP->RsdtAddress);
@@ -201,6 +200,7 @@ Acpi::Acpi()
     screen << "RSDT Length: " << os::Screen::dec << RSDT->Header.Length << "\n";
     screen << "Num entries: " << RSDT->count() << "\n\n";
 
+    PANIC("TEST");
     screen << os::Screen::hex;
 
     for (uint32_t i = 0; i < RSDT->count(); i++)

@@ -71,9 +71,12 @@ void pageFault(const registers* regs);
 void configPaging();
 
 /**
- * @brief Map a page in the page table
+ * @brief Map a page in the page table. This is only to be used very
+ * early in the boot process, before the page table pointers have been
+ * set up. Specifically, the page frame manager is the intended client
+ * of this function.
  */
-void mapPage(const uint32_t* pageDir, uint32_t virtualAddr, uint32_t physicalAddr);
+void mapPageEarly(const uint32_t* pageDir, uint32_t virtualAddr, uint32_t physicalAddr);
 
 /**
  * @brief Returns a pointer that can be used to access the page table
@@ -108,6 +111,32 @@ uint32_t numAvailablPDEs(uint32_t* pageDir, uint16_t startIdx=0);
  * assuming the PDEs are allocated in order and that the first entry exists.
  */
 uint16_t lastUsedKernelPDEIndex();
+
+/**
+ * @brief Holds information to access page tables with virtual
+ * addresses
+ */
+struct PageTablePointer
+{
+    /**
+     * @brief The index into the kernel page directory
+     * that corresponds to this page table
+     */
+    uint16_t kPageDirIdx;
+
+    /**
+     * @brief A pointer to the page table
+     */
+    uint32_t* pageTable;
+};
+
+// 1K pages/pt * 4K/page = 4M/pt
+const int NUM_PAGE_TABLES = 256;    // 256 PTs map high 1GB of memory
+
+// array of page table pointers. Page tables are mapped
+// into the array based on pageDirIndex, offset from
+// the kernel's starting page dir index (768)
+extern PageTablePointer __pageTablePtrs[NUM_PAGE_TABLES];
 
 }
 

@@ -49,27 +49,27 @@ void kernelMain(const uint32_t MULTIBOOT_MAGIC_NUM, const multiboot_info* mbootI
     }
 
     PageFrameMgr::init(mbootInfo);
-
-    screen << "HELLO WORLD\n";
+    mem::PageTable::initKernelPageTablePointer();
 
     // set up page table page table
     // 1. allocate new page frame which will be the ptpagetable
     uint32_t pageTablePTPhysAddr = PageFrameMgr::get()->allocPageFrame();
     // 2. map this page frame into the next available slot in the current page table
     //    so we can access the entries inside the ptpagetable
-    auto kPageDir = getKernelPageDirStart();
     auto pdeIndex = mem::lastUsedKernelPDEIndex();
-    mem::PageTable currentPT(kPageDir, pdeIndex);
+    mem::PageTable currentPT(pdeIndex);
+    screen << "PTR: " << os::Screen::hex << (uint32_t)currentPT.getPointer() << "\n";
+
     auto pageTablePTAddr = currentPT.mapNextAvailablePageToAddress(pageTablePTPhysAddr);
+
     uint32_t* pageTablePT = (uint32_t*)(pageTablePTAddr);
     uint16_t ptptIndex = pdeIndex + 1;
 
-    screen << "HELLO WORLD\n";
-
-    mem::PageTable::initPTPageTable(pageTablePT, kPageDir, ptptIndex);
+    mem::PageTable::initPTPageTable(pageTablePT, ptptIndex);
     // 3. map a PDE to the ptpagetable so that future page tables
     //    can be fully mapped in virtual address space (pageDir[PDE]->PTPT[PTE]->newPageTable)
     // TODO
+    auto kPageDir = getKernelPageDirStart();
     kPageDir[ptptIndex] = (PAGE_DIR_ADDRESS & (uint32_t)(pageTablePT)) |
                           (PAGE_DIR_READ_WRITE) |
                           (PAGE_DIR_PRESENT);
