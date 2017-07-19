@@ -107,10 +107,16 @@ uint32_t kNumAvailablePDEs();
 uint32_t numAvailablPDEs(uint32_t* pageDir, uint16_t startIdx=0);
 
 /**
- * @brief Returns last kernel PDE in the list of those currently in use,
- * assuming the PDEs are allocated in order and that the first entry exists.
+ * @brief Returns the index of the last kernel PDE in the list of those
+ * currently in use, assuming the PDEs are allocated in order and that
+ * the first entry exists.
  */
 uint16_t lastUsedKernelPDEIndex();
+
+/**
+ * @brief Returns the next available kernel PDE index
+ */
+uint16_t nextAvailableKernelPDEIndex();
 
 /**
  * @brief Holds information to access page tables with virtual

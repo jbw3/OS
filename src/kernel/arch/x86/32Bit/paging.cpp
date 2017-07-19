@@ -120,12 +120,33 @@ uint16_t lastUsedKernelPDEIndex()
     {
         if (!(_kPageDir[i] & PAGE_DIR_PRESENT))
         {
-            // PDE not present - the last index was the last one in use
-            return i-1;
+            // PDE not present - the last index was the last one in use, as long
+            auto lastUsedIndex = i-1;
+
+            if (lastUsedIndex == PageTable::getPTPageTable()->getPageDirIndex())
+            {
+                return lastUsedIndex-1;     // we don't want to return the index to the PTPT
+            }
+
+            return lastUsedIndex;
         }
     }
 
     return PAGE_DIR_NUM_ENTRIES-1;  // all in use
+}
+
+uint16_t nextAvailableKernelPDEIndex()
+{
+    for (uint16_t i = KERNEL_PAGEDIR_START_IDX; i < PAGE_DIR_NUM_ENTRIES; i++)
+    {
+        auto ptptIndex = PageTable::getPTPageTable()->getPageDirIndex();
+        bool pdePresent = _kPageDir[i] & PAGE_DIR_PRESENT;
+
+        if (!pdePresent && i != ptptIndex)
+        {
+            return i;   // unused PDE index, not including the PTPT
+        }
+    }
 }
 
 // page table pointer array

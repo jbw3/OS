@@ -1,8 +1,8 @@
-#include <pageframemgr.h>
-#include <pagetable.h>
-#include <paging.h>
-#include <screen.h>
-#include <vmem.h>
+#include "pageframemgr.h"
+#include "pagetable.h"
+#include "paging.h"
+#include "screen.h"
+#include "vmem.h"
 
 namespace mem {
 
@@ -45,16 +45,18 @@ bool isMappedByKernel(uint32_t physAddr, uint32_t& virtAddr)
  {
     // get last kernel PDE in use
     uint16_t lastPDEIdx = mem::lastUsedKernelPDEIndex();
+    screen << "PDE Idx: 0x" << lastPDEIdx << "\n";
     mem::PageTable pageTable(lastPDEIdx);
-    screen << "hereaaa\n";
     if (!pageTable.isFull())
     {
-        screen << "is full\n";
+        screen << "is not full\n";
         return pageTable.mapNextAvailablePageToAddress(physAddr);
     }
     else
     {
-        screen << "is not full\n";
+        auto nextPDEIndex = mem::nextAvailableKernelPDEIndex();
+        screen << "is full. Next available PDE index for a page table is: 0x" << nextPDEIndex << "\n";
+
         // todo: move to PageDirectory class...
 
         // where do we put new page tables? need to inform PFM?
@@ -63,15 +65,15 @@ bool isMappedByKernel(uint32_t physAddr, uint32_t& virtAddr)
         uint32_t newPDE =   (PAGE_DIR_ADDRESS & pageFramePhys) |
                             (PAGE_DIR_READ_WRITE) |
                             (PAGE_DIR_PRESENT);
-        _kPageDir[lastPDEIdx+1] = newPDE;
+        _kPageDir[nextPDEIndex] = newPDE;
 
-        mem::PageTable nextPageTable(lastPDEIdx+1);
+        mem::PageTable nextPageTable(nextPDEIndex);
         nextPageTable.initPageTable();
 
         if (pageFramePhys == 0x114000)
         {
             screen << "\n";
-            screen << "set newPDE to 0x" << (uint32_t)((lastPDEIdx+1) << 22) << "\n";
+            screen << "set newPDE to 0x" << (uint32_t)((nextPDEIndex) << 22) << "\n";
             screen << "\n";
 
             // the problem is, I need a way to get TO the page table (@ phys addr 0x114000)
