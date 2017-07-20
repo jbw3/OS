@@ -86,6 +86,7 @@ ProcessMgr::ProcessInfo::EStatus ProcessMgr::ProcessInfo::getStatus() const
 
 ProcessMgr::ProcessMgr() :
     currentProcIdx(0),
+    intSwitchEnabled(false),
     pageFrameMgr(nullptr),
     mbootInfo(nullptr)
 {
@@ -266,19 +267,11 @@ void ProcessMgr::cleanUpCurrentProcessChild(ProcessInfo* childProc)
 
 void ProcessMgr::processTimerInterrupt(const registers* regs)
 {
-    static unsigned int count = 0;
-
-    if (count >= 1)
+    if (intSwitchEnabled)
     {
         sendPicEoi(regs);
 
         yieldCurrentProcess();
-
-        count = 0;
-    }
-    else
-    {
-        ++count;
     }
 }
 
@@ -686,8 +679,14 @@ void ProcessMgr::executeAction(EAction action, ProcessInfo* process)
 
 void ProcessMgr::switchToKernelFromProcess()
 {
+    // don't try to switch processes while we're in the kernel
+    intSwitchEnabled = false;
+
     // switch to kernel
     switchToProcessStack(kernelStack, &getCurrentProcessInfo()->stack);
+
+    // we're back from the kernel, enable process switching again
+    intSwitchEnabled = true;
 }
 
 void ProcessMgr::switchToProcessFromKernel(ProcessInfo* procInfo)

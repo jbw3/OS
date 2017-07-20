@@ -153,6 +153,9 @@ private:
 
     size_t currentProcIdx;
 
+    /// whether interrupt process switching is enabled
+    bool intSwitchEnabled;
+
     enum class EAction
     {
         /// perform no action
