@@ -89,17 +89,28 @@ void printCharYield(int num)
 
 void preemptTest()
 {
-    for (int i = 0; i < 2; ++i)
+    while (true)
     {
-        pid_t pid = fork();
-        if (pid < 0)
+        int numChildren = getNumber("Number of processes: ");
+
+        for (int i = 0; i < numChildren; ++i)
         {
-            printf("Fork failed\n");
+            pid_t pid = fork();
+            if (pid < 0)
+            {
+                printf("Fork failed\n");
+            }
+            else if (pid == 0)
+            {
+                printCharLoop(i);
+                exit(0);
+            }
         }
-        else if (pid == 0)
+
+        // wait for children to finish
+        for (int i = 0; i < numChildren; ++i)
         {
-            if (i == 0) printCharLoop(i); else echoChar();
-            exit(0);
+            wait(nullptr);
         }
     }
 }
@@ -108,12 +119,12 @@ void printCharLoop(int num)
 {
     char ch = 'A' + num;
 
-    while (true)
+    for (int i = 0; i < 160; ++i)
     {
         putchar(ch);
 
         // spin wait
-        for (unsigned int i = 0; i < 50'000'000u; ++i);
+        for (unsigned int i = 0; i < 1'000'000u; ++i);
     }
 }
 
