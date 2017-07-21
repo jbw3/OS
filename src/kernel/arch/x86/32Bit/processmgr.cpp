@@ -220,6 +220,11 @@ void ProcessMgr::createProcess(const multiboot_mod_list* module)
         // set the kernel stack for the process
         setKernelStack(ProcessInfo::KERNEL_STACK_START);
 
+        // allow process switching once interrupts are enabled again
+        // in the process
+        clearInt();
+        intSwitchEnabled = true;
+
         // switch to user mode and run process
         switchToUserMode(ProcessInfo::USER_STACK_PAGE + PAGE_SIZE - 4, &kernelStack);
     }

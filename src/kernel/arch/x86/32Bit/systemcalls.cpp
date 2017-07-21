@@ -92,7 +92,6 @@ pid_t waitpid(pid_t pid, int* stat_loc, int options)
             }
         }
 
-        /// @todo remove once we have preemptive multitasking
         if (child == nullptr && hang)
         {
             processMgr.yieldCurrentProcess();

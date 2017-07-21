@@ -12,6 +12,8 @@ USER_DATA_SEGMENT_SELECTOR equ 0x20
 KERNEL_PL equ 0
 USER_PL equ 3
 
+INTERRUPT_FLAG equ 0x200
+
 extern kernelStackStart
 extern kernelStackEnd
 
@@ -61,6 +63,9 @@ getRegCR2:
 ; param2: pointer to save current stack address
 global switchToUserMode
 switchToUserMode:
+	; disable interrupts
+	cli
+
 	; save registers
 	pusha
 
@@ -72,13 +77,9 @@ switchToUserMode:
 	push USER_DATA_SEGMENT_SELECTOR | USER_PL	; user mode stack segment selector
 	push dword [esp + 40]						; user mode stack pointer (function argument)
 	pushf										; user mode control flags
+	or dword [esp], INTERRUPT_FLAG
 	push USER_CODE_SEGMENT_SELECTOR | USER_PL	; user mode code segment selector
 	push 0										; instruction pointer to user mode code
-
-	; disable interrupts before setting up segments
-	; (do this after pushf so interrupts will be
-	; enabled after iret)
-	cli
 
 	; set up segments
 	mov eax, USER_DATA_SEGMENT_SELECTOR | USER_PL
