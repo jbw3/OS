@@ -31,7 +31,15 @@ void Shell::getCommand()
     char ch = getchar();
     while (ch != '\n')
     {
-        if (cmdSize < MAX_CMD_SIZE - 1)
+        if (ch == '\b')
+        {
+            if (cmdSize > 0)
+            {
+                --cmdSize;
+                printf("\b \b");
+            }
+        }
+        else if (cmdSize < MAX_CMD_SIZE - 1)
         {
             cmd[cmdSize++] = ch;
             putchar(ch);
@@ -60,7 +68,6 @@ void Shell::runCommand()
             char* argv[] = { name, nullptr };
             execv(name, argv);
 
-            // we shouldn't get here
             printf("Could not find command '%s'.\n", name);
             exit(-1);
         }
