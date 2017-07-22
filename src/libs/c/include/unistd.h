@@ -18,6 +18,8 @@ pid_t getpid();
 
 pid_t getppid();
 
+int execl(const char* path, const char* arg0, ...);
+
 int execv(const char* path, char* const argv[]);
 
 pid_t fork();
