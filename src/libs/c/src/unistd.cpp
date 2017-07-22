@@ -14,6 +14,13 @@ pid_t getppid()
     return systemCall(SYSTEM_CALL_GETPPID);
 }
 
+int execv(const char* path, char* const argv[])
+{
+    return systemCall(SYSTEM_CALL_EXECV,
+                      path,
+                      argv);
+}
+
 pid_t fork()
 {
     return systemCall(SYSTEM_CALL_FORK);

@@ -249,6 +249,57 @@ pid_t ProcessMgr::forkCurrentProcess()
     return getCurrentProcessInfo()->actionResult.pid;
 }
 
+bool ProcessMgr::switchCurrentProcessExecutable(const char* path)
+{
+    bool ok = true;
+
+    ProcessInfo* procInfo = getCurrentProcessInfo();
+    uintptr_t* lowerPageTable = reinterpret_cast<uintptr_t*>(procInfo->lowerPageTable.virtualAddr);
+
+    // find module
+    const multiboot_mod_list* module = nullptr;
+    ok = findModule(path, module);
+
+    if (ok)
+    {
+        // get size of new executable
+        size_t exeSize = module->mod_end - module->mod_start;
+
+        // get size of current allocated memory
+        int numPages = procInfo->getNumPages();
+        size_t allocMem = procInfo->getNumPages() * PAGE_SIZE;
+
+        // if we don't have enough memory, allocate more
+        uintptr_t virAddr = procInfo->getPage(numPages - 1).virtualAddr + PAGE_SIZE;
+        while (allocMem < exeSize)
+        {
+            uintptr_t phyAddr = pageFrameMgr->allocPageFrame();
+            if (phyAddr == 0)
+            {
+                logError("Could not allocate page frame");
+                return false;
+            }
+
+            procInfo->addPage({virAddr, phyAddr});
+            mapPage(lowerPageTable, virAddr, phyAddr, true);
+
+            virAddr += PAGE_SIZE;
+            allocMem += PAGE_SIZE;
+        }
+
+        /// @todo if we have more memory than we need, dealloc pages
+
+        // copy new executable
+        memcpy(reinterpret_cast<void*>(ProcessInfo::CODE_VIRTUAL_START),
+               reinterpret_cast<const void*>(module->mod_start + KERNEL_VIRTUAL_BASE),
+               exeSize);
+
+        // switch to user mode
+        uintptr_t temp;
+        switchToUserMode(ProcessInfo::USER_STACK_PAGE + PAGE_SIZE - 4, &temp);
+    }
+}
+
 void ProcessMgr::yieldCurrentProcess()
 {
     executeAction(EAction::eYield, getCurrentProcessInfo());

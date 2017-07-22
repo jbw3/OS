@@ -132,6 +132,11 @@ public:
 
     pid_t forkCurrentProcess();
 
+    /**
+     * @brief Switch the executable a process is running.
+     */
+    bool switchCurrentProcessExecutable(const char* path);
+
     void yieldCurrentProcess();
 
     void exitCurrentProcess(int exitCode);

@@ -9,6 +9,15 @@
 namespace systemcall
 {
 
+int execv(const char* path, char* const /*argv[]*/)
+{
+    /// @todo pass in argv
+    processMgr.switchCurrentProcessExecutable(path);
+
+    // we should only get here if an error occurred
+    return -1;
+}
+
 void exit(int status)
 {
     processMgr.exitCurrentProcess(status);
@@ -149,7 +158,7 @@ const void* SYSTEM_CALLS[SYSTEM_CALLS_SIZE] = {
     reinterpret_cast<const void*>(systemcall::sched_yield),
     reinterpret_cast<const void*>(systemcall::getppid),
     reinterpret_cast<const void*>(systemcall::waitpid),
-    nullptr,
+    reinterpret_cast<const void*>(systemcall::execv),
     nullptr,
     nullptr,
     nullptr,
