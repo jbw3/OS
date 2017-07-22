@@ -28,29 +28,27 @@ int main()
 
 void forkTest()
 {
-    while (true)
+
+    int numChildren = getNumber("Number of processes: ");
+
+    for (int i = 0; i < numChildren; ++i)
     {
-        int numChildren = getNumber("Number of processes: ");
-
-        for (int i = 0; i < numChildren; ++i)
+        pid_t pid = fork();
+        if (pid < 0)
         {
-            pid_t pid = fork();
-            if (pid < 0)
-            {
-                printf("Fork failed\n");
-            }
-            else if (pid == 0)
-            {
-                printCharYield(i);
-                exit(0);
-            }
+            printf("Fork failed\n");
         }
-
-        // wait for children to finish
-        for (int i = 0; i < numChildren; ++i)
+        else if (pid == 0)
         {
-            wait(nullptr);
+            printCharYield(i);
+            exit(0);
         }
+    }
+
+    // wait for children to finish
+    for (int i = 0; i < numChildren; ++i)
+    {
+        wait(nullptr);
     }
 }
 
@@ -67,29 +65,26 @@ void printCharYield(int num)
 
 void preemptTest()
 {
-    while (true)
+    int numChildren = getNumber("Number of processes: ");
+
+    for (int i = 0; i < numChildren; ++i)
     {
-        int numChildren = getNumber("Number of processes: ");
-
-        for (int i = 0; i < numChildren; ++i)
+        pid_t pid = fork();
+        if (pid < 0)
         {
-            pid_t pid = fork();
-            if (pid < 0)
-            {
-                printf("Fork failed\n");
-            }
-            else if (pid == 0)
-            {
-                printCharLoop(i);
-                exit(0);
-            }
+            printf("Fork failed\n");
         }
-
-        // wait for children to finish
-        for (int i = 0; i < numChildren; ++i)
+        else if (pid == 0)
         {
-            wait(nullptr);
+            printCharLoop(i);
+            exit(0);
         }
+    }
+
+    // wait for children to finish
+    for (int i = 0; i < numChildren; ++i)
+    {
+        wait(nullptr);
     }
 }
 
