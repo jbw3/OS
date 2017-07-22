@@ -1,4 +1,4 @@
 NAME = test
-SRC = test.c
+SRC = test.cpp
 
 include ../makefile.inc
