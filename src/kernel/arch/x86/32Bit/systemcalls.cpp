@@ -103,6 +103,8 @@ pid_t waitpid(pid_t pid, int* stat_loc, int options)
 
         if (child == nullptr && hang)
         {
+            // if no child process was found, yield so we don't waste the CPU
+            // (a CPU is a terrible thing to waste)
             processMgr.yieldCurrentProcess();
         }
     } while (child == nullptr && hang);

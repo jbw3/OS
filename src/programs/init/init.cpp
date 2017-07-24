@@ -27,12 +27,7 @@ int main()
     // clean up child processes
     while (true)
     {
-        do
-        {
-            pid = waitpid(-1, nullptr, WNOHANG);
-        } while (pid > 0);
-
-        sched_yield();
+        wait(nullptr);
     }
 
     return 0;
