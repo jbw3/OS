@@ -64,8 +64,26 @@ void Shell::runCommand()
         }
         else if (pid == 0)
         {
+            // copy args
+            const int MAX_ARGS = 64;
+            char* argv[MAX_ARGS];
+            argv[0] = name;
 
-            char* argv[] = { name, nullptr };
+            int idx = 1;
+            char* arg = nullptr;
+            do
+            {
+                arg = strtok(nullptr, " ");
+                argv[idx++] = arg;
+
+                if (idx >= MAX_ARGS - 1)
+                {
+                    argv[MAX_ARGS - 1] = nullptr;
+                    break;
+                }
+            } while (arg != nullptr);
+
+            // execute command
             execv(name, argv);
 
             printf("Could not find command '%s'.\n", name);

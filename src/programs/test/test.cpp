@@ -28,7 +28,6 @@ int main()
 
 void forkTest()
 {
-
     int numChildren = getNumber("Number of processes: ");
 
     for (int i = 0; i < numChildren; ++i)
