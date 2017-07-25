@@ -6,6 +6,7 @@
 #include "screen.h"
 #include "string.h"
 #include "system.h"
+#include "utils.h"
 
 const uintptr_t ProcessMgr::ProcessInfo::KERNEL_STACK_PAGE = KERNEL_VIRTUAL_BASE - PAGE_SIZE;
 const uintptr_t ProcessMgr::ProcessInfo::USER_STACK_PAGE = ProcessMgr::ProcessInfo::KERNEL_STACK_PAGE - PAGE_SIZE;
@@ -249,7 +250,7 @@ pid_t ProcessMgr::forkCurrentProcess()
     return getCurrentProcessInfo()->actionResult.pid;
 }
 
-bool ProcessMgr::switchCurrentProcessExecutable(const char* path)
+bool ProcessMgr::switchCurrentProcessExecutable(const char* path, const char* const argv[])
 {
     bool ok = true;
 
@@ -289,6 +290,9 @@ bool ProcessMgr::switchCurrentProcessExecutable(const char* path)
 
         /// @todo if we have more memory than we need, dealloc pages
 
+        // copy args
+        uintptr_t stackStart = copyArgs(argv, ProcessInfo::USER_STACK_PAGE + PAGE_SIZE - 4);
+
         // copy new executable
         memcpy(reinterpret_cast<void*>(ProcessInfo::CODE_VIRTUAL_START),
                reinterpret_cast<const void*>(module->mod_start + KERNEL_VIRTUAL_BASE),
@@ -296,7 +300,7 @@ bool ProcessMgr::switchCurrentProcessExecutable(const char* path)
 
         // switch to user mode
         uintptr_t temp;
-        switchToUserMode(ProcessInfo::USER_STACK_PAGE + PAGE_SIZE - 4, &temp);
+        switchToUserMode(stackStart, &temp);
     }
 }
 
@@ -432,6 +436,48 @@ ProcessMgr::ProcessInfo* ProcessMgr::forkProcess(ProcessInfo* procInfo)
     setPageDirectory(kernelPageDirPhyAddr);
 
     return ok ? newProcInfo : nullptr;
+}
+
+uintptr_t ProcessMgr::copyArgs(const char* const argv[], uintptr_t stackEnd)
+{
+    int numArgs = 0;
+    size_t strSize = 0;
+    for (size_t i = 0; argv[i] != nullptr; ++i)
+    {
+        strSize += strlen(argv[i]) + 1; // add 1 for null char
+        ++numArgs;
+    }
+
+    // calculate addresses of arg strings and pointers to the strings
+    uintptr_t strStart = align(stackEnd - strSize, sizeof(void*), false);
+    uintptr_t ptrStart = strStart - sizeof(void*) * (numArgs + 1); // add 1 for null pointer at end
+
+    char* strPtr = reinterpret_cast<char*>(strStart);
+    char** ptrPtr = reinterpret_cast<char**>(ptrStart);
+
+    // copy strings and pointers
+    for (int i = 0; i < numArgs; ++i)
+    {
+        *ptrPtr = strPtr;
+        /// @todo the strings we are copying might be on the stack we are copying to;
+        /// we need to make temporary copies here
+        strcpy(strPtr, argv[i]);
+
+        ++ptrPtr;
+        strPtr += strlen(argv[i]) + 1; // add 1 for null char
+    }
+
+    // add null pointer at end
+    *ptrPtr = nullptr;
+
+    // add argc and argv on the stack
+    uintptr_t* argvPtr = reinterpret_cast<uintptr_t*>(ptrStart - sizeof(void*));
+    int* argcPtr = reinterpret_cast<int*>(ptrStart - 2 * sizeof(void*));
+
+    *argvPtr = ptrStart;
+    *argcPtr = numArgs;
+
+    return ptrStart - 2 * sizeof(void*);
 }
 
 bool ProcessMgr::getNewProcInfo(ProcessInfo*& procInfo)

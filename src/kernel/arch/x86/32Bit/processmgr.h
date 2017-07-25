@@ -135,7 +135,7 @@ public:
     /**
      * @brief Switch the executable a process is running.
      */
-    bool switchCurrentProcessExecutable(const char* path);
+    bool switchCurrentProcessExecutable(const char* path, const char* const argv[]);
 
     void yieldCurrentProcess();
 
@@ -200,6 +200,11 @@ private:
      * @brief Fork the given process.
      */
     ProcessInfo* forkProcess(ProcessInfo* procInfo);
+
+    /**
+     * @brief Set up args on stack.
+     */
+    uintptr_t copyArgs(const char* const argv[], uintptr_t stackEnd);
 
     /**
      * @brief Gets an empty entry in the process info table.

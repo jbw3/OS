@@ -9,10 +9,9 @@
 namespace systemcall
 {
 
-int execv(const char* path, char* const /*argv[]*/)
+int execv(const char* path, char* const argv[])
 {
-    /// @todo pass in argv
-    processMgr.switchCurrentProcessExecutable(path);
+    processMgr.switchCurrentProcessExecutable(path, argv);
 
     // we should only get here if an error occurred
     return -1;
