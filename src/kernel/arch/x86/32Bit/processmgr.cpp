@@ -440,11 +440,24 @@ ProcessMgr::ProcessInfo* ProcessMgr::forkProcess(ProcessInfo* procInfo)
 
 uintptr_t ProcessMgr::copyArgs(const char* const argv[], uintptr_t stackEnd)
 {
+    /// @todo dynamically allocate these temp arrays
+    char tempArgStrings[256];
+    char* tempArgPtrs[64];
+
+    char* tempArgPtr = tempArgStrings;
     int numArgs = 0;
     size_t strSize = 0;
     for (size_t i = 0; argv[i] != nullptr; ++i)
     {
-        strSize += strlen(argv[i]) + 1; // add 1 for null char
+        size_t argLen = strlen(argv[i]) + 1; // add 1 for null char
+
+        // the strings we are copying might be on the stack we are copying to,
+        // so we make temporary copies here
+        strcpy(tempArgPtr, argv[i]);
+        tempArgPtrs[numArgs] = tempArgPtr;
+        tempArgPtr += argLen;
+
+        strSize += argLen;
         ++numArgs;
     }
 
@@ -459,12 +472,11 @@ uintptr_t ProcessMgr::copyArgs(const char* const argv[], uintptr_t stackEnd)
     for (int i = 0; i < numArgs; ++i)
     {
         *ptrPtr = strPtr;
-        /// @todo the strings we are copying might be on the stack we are copying to;
-        /// we need to make temporary copies here
-        strcpy(strPtr, argv[i]);
+
+        strcpy(strPtr, tempArgPtrs[i]);
 
         ++ptrPtr;
-        strPtr += strlen(argv[i]) + 1; // add 1 for null char
+        strPtr += strlen(tempArgPtrs[i]) + 1; // add 1 for null char
     }
 
     // add null pointer at end
