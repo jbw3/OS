@@ -54,16 +54,62 @@ void Shell::getCommand()
 
 void Shell::parseCommand()
 {
-    char* argStrPtr = argStrings;
     int numArgs = 0;
-    char* arg = strtok(cmd, " ");
-    while (arg != nullptr && numArgs < MAX_ARGS_SIZE - 1)
-    {
-        strcpy(argStrPtr, arg);
-        args[numArgs++] = argStrPtr;
+    bool inQuotes = false;
+    char quoteChar = '\0';
+    size_t cmdIdx = 0;
+    size_t argStrIdx = 0;
+    char ch = '\0';
+    args[numArgs] = argStrings;
 
-        argStrPtr += strlen(arg) + 1;
-        arg = strtok(nullptr, " ");
+    bool done = false;
+    while (!done && numArgs < MAX_ARGS_SIZE - 1)
+    {
+        ch = cmd[cmdIdx];
+
+        if (inQuotes)
+        {
+            if (ch == quoteChar)
+            {
+                argStrings[argStrIdx++] = '\0';
+                args[++numArgs] = &argStrings[argStrIdx];
+                inQuotes = false;
+            }
+            else if (ch == '\0')
+            {
+                argStrings[argStrIdx++] = '\0';
+                args[++numArgs] = &argStrings[argStrIdx];
+            }
+            else
+            {
+                argStrings[argStrIdx++] = ch;
+            }
+        }
+        else
+        {
+            if (ch == '\'' || ch == '"')
+            {
+                inQuotes = true;
+                quoteChar = ch;
+            }
+            else if (ch == ' ' || ch == '\t' || ch == '\0')
+            {
+                // don't add arg if the whitespace charactor was at the start
+                // of the string or after another whitespace character
+                if (cmdIdx != 0 && cmd[cmdIdx - 1] != ' ' && cmd[cmdIdx - 1] != '\t')
+                {
+                    argStrings[argStrIdx++] = '\0';
+                    args[++numArgs] = &argStrings[argStrIdx];
+                }
+            }
+            else
+            {
+                argStrings[argStrIdx++] = ch;
+            }
+        }
+
+        done = (ch == '\0');
+        ++cmdIdx;
     }
 
     args[numArgs] = nullptr;
