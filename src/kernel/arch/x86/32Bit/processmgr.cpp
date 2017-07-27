@@ -302,6 +302,8 @@ bool ProcessMgr::switchCurrentProcessExecutable(const char* path, const char* co
         uintptr_t temp;
         switchToUserMode(stackStart, &temp);
     }
+
+    return ok;
 }
 
 void ProcessMgr::yieldCurrentProcess()
