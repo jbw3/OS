@@ -13,12 +13,42 @@ Shell::Shell()
     cmd[0] = '\0';
 }
 
-void Shell::mainloop()
+int Shell::execute(int argc, const char* argv[])
+{
+    if (argc > 1)
+    {
+        if (strcmp(argv[1], "-c") == 0)
+        {
+            if (argc == 2)
+            {
+                printf("-c requires a command string as an argument\n");
+                return 1;
+            }
+            else
+            {
+                strcpy(cmd, argv[2]);
+                runCommand();
+            }
+        }
+        else
+        {
+            printf("Unknown argument '%s'\n", argv[1]);
+            return 1;
+        }
+    }
+    else
+    {
+        interactiveLoop();
+    }
+
+    return 0;
+}
+
+void Shell::interactiveLoop()
 {
     while (true)
     {
         getCommand();
-
         runCommand();
     }
 }

@@ -1,9 +1,7 @@
 #include "shell.h"
 
-int main()
+int main(int argc, const char* argv[])
 {
     Shell shell;
-    shell.mainloop();
-
-    return 0;
+    return shell.execute(argc, argv);
 }

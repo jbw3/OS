@@ -6,7 +6,7 @@ class Shell
 public:
     Shell();
 
-    void mainloop();
+    int execute(int argc, const char* argv[]);
 
 private:
     static constexpr int MAX_CMD_SIZE = 128;
@@ -16,6 +16,8 @@ private:
     char cmd[MAX_CMD_SIZE];
     char* args[MAX_ARGS_SIZE];
     char argStrings[MAX_TOTAL_ARGS_SIZE];
+
+    void interactiveLoop();
 
     void getCommand();
 
