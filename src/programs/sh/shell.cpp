@@ -52,9 +52,29 @@ void Shell::getCommand()
     cmd[cmdSize] = '\0';
 }
 
+void Shell::parseCommand()
+{
+    char* argStrPtr = argStrings;
+    int numArgs = 0;
+    char* arg = strtok(cmd, " ");
+    while (arg != nullptr && numArgs < MAX_ARGS_SIZE - 1)
+    {
+        strcpy(argStrPtr, arg);
+        args[numArgs++] = argStrPtr;
+
+        argStrPtr += strlen(arg) + 1;
+        arg = strtok(nullptr, " ");
+    }
+
+    args[numArgs] = nullptr;
+}
+
 void Shell::runCommand()
 {
-    char* name = strtok(cmd, " ");
+    parseCommand();
+
+    const char* name = args[0];
+
     if (name != nullptr)
     {
         pid_t pid = fork();
@@ -64,27 +84,8 @@ void Shell::runCommand()
         }
         else if (pid == 0)
         {
-            // copy args
-            const int MAX_ARGS = 64;
-            char* argv[MAX_ARGS];
-            argv[0] = name;
-
-            int idx = 1;
-            char* arg = nullptr;
-            do
-            {
-                arg = strtok(nullptr, " ");
-                argv[idx++] = arg;
-
-                if (idx >= MAX_ARGS - 1)
-                {
-                    argv[MAX_ARGS - 1] = nullptr;
-                    break;
-                }
-            } while (arg != nullptr);
-
             // execute command
-            execv(name, argv);
+            execv(name, args);
 
             printf("Could not find command '%s'.\n", name);
             exit(-1);
