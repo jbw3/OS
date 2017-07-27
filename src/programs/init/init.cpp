@@ -17,8 +17,7 @@ int main()
     }
     else if (pid == 0)
     {
-        char* argv[1] = { nullptr };
-        execv("sh", argv);
+        execl("sh", "sh", nullptr);
 
         // we shouldn't get here
         exit(-1);
