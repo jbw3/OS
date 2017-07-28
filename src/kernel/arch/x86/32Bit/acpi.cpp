@@ -1,158 +1,47 @@
-#include <acpi.h>
-#include <debug.h>
-#include <pageframemgr.h>
-#include <paging.h>
-#include <screen.h>
-#include <string.h>
-#include <system.h>
-#include <vmem.h>
+#include "acpi.h"
+#include "debug.h"
+#include "pageframemgr.h"
+#include "paging.h"
+#include "string.h"
+#include "system.h"
+#include "vmem.h"
 
 using namespace std;
 
-namespace os {
-    namespace acpi {
+namespace acpi {
 
-/**
- * ACPI RSDP Structure
- */
-struct RootSystemDescriptionPointer
+void DESCRIPTION_HEADER::printSignature()
 {
-    char Signature [8];
-    uint8_t Checksum;
-    char OEMID [6];
-    uint8_t Revision;   // current revision is 2
-    uint32_t RsdtAddress;
-    uint32_t Length;
-    uint64_t XsdtAddress;
-    uint8_t ExtendedChecksum;
-    char Reserved [3];
-
-    void printSignature()
+    for (int i = 0; i < 4; i++)
     {
-        for (int i = 0; i < 8; i++)
-        {
-            screen << this->Signature[i];
-        }
-        screen << "\n";
+        screen << this->Signature[i];
     }
+    screen << "\n";
+}
 
-    void printOEMId()
-    {
-        for (int i = 0; i < 6; i++)
-        {
-            screen << this->OEMID[i];
-        }
-        screen << "\n";
-    }
-} __attribute__((packed));
-
-/**
- * ACPI System Description Table Header
- */
-struct DESCRIPTION_HEADER
+bool DESCRIPTION_HEADER::matchesSignature(const char* signature)
 {
-    char Signature [4];
-    uint32_t Length;
-    uint8_t Revision;
-    uint8_t Checksum;
-    char OEMID [6];
-    char OEMTableId [8];
-    uint32_t OEMRevision;
-    char CreatorId [4];
-    uint32_t CreatorRevision;
-
-    void printSignature()
+    for (int i = 0; i < 4; i++)
     {
-        for (int i = 0; i < 4; i++)
+        if (this->Signature[i] != signature[i])
         {
-            screen << this->Signature[i];
+            return false;
         }
-        screen << "\n";
     }
+    return true;    // first 4 chars matched
+}
 
-    /**
-     * @brief Returns true if the given 4-character signature
-     * matches the signature in the header
-     */
-    bool matchesSignature(const char* signature)
-    {
-        for (int i = 0; i < 4; i++)
-        {
-            if (this->Signature[i] != signature[i])
-            {
-                return false;
-            }
-        }
-        return true;    // first 4 chars matched
-    }
-} __attribute__((packed));
-
-/**
- * @brief Length of ACPI System Description Table Header
- */
-const uint32_t DESCR_HEADER_LENGTH = 36;
-
-/**
- * ACPI RSDT Structure
- */
-struct RootSystemDescriptionTable
+uint32_t RootSystemDescriptionTable::count()
 {
-    DESCRIPTION_HEADER Header;
-    DESCRIPTION_HEADER* Entry;     // first pointer in array of header pointers
+    return (this->Header.Length - DESCR_HEADER_LENGTH) / 4;
+}
 
-    DESCRIPTION_HEADER** getEntries()
-    {
-        return &Entry;
-    }
-
-    /**
-     * @brief Returns the number of entries in the table
-     */
-    uint32_t count()
-    {
-        return (this->Header.Length - DESCR_HEADER_LENGTH) / 4;
-    }
-} __attribute__((packed));
-
-/**
- * @brief ACPI MCFG config space base address struct
- * Taken from: http://wiki.osdev.org/PCI_Express
- */
-struct BaseAddrAlloc    // cls: better name?
+uint32_t MCFGTable::count()
 {
-    uint64_t EnhancedConfigBaseAddress;     // Base address of enhanced configuration mechanism
-    uint16_t PciSegmentGroupNumber;         // PCI Segment Group Number (allows access to > 256 bus segments)
-    uint8_t StartPciBusNumber;              // Start PCI bus number decoded by this host bridge
-    uint8_t EndPciBusNumber;                // End PCI bus number decoded by this host bridge
-    uint32_t Reserved;
-} __attribute__((packed));
+    return (this->Header.Length - DESCR_HEADER_LENGTH) / 16;
+}
 
-/**
- * @brief ACPI MCFG Structure
- * Taken from: http://wiki.osdev.org/PCI_Express
- */
- struct MCFGTable
- {
-     DESCRIPTION_HEADER Header;
-     char Reserved[8];
-     BaseAddrAlloc ConfigSpace;    // first entry in array of pointers
-
-     BaseAddrAlloc* getConfigSpaceArray()
-     {
-         return &ConfigSpace;
-     }
-
-     /**
-      * @brief Returns the number of ConfigSpace entries
-      */
-     uint32_t count()
-     {
-         return (this->Header.Length - DESCR_HEADER_LENGTH) / 16;
-     }
-
- } __attribute__((packed));
-
-    }   /// acpi
+}
 
 uint32_t getPciConfigSpace(uint32_t ecamBase, uint8_t bus, uint8_t device, uint8_t function=0)
 {
@@ -162,6 +51,7 @@ uint32_t getPciConfigSpace(uint32_t ecamBase, uint8_t bus, uint8_t device, uint8
 }
 
 Acpi::Acpi()
+    : _mcfgTable(nullptr)
 {
     screen.write("ACPI Initializing...\n");
 
@@ -212,10 +102,10 @@ Acpi::Acpi()
         entryHeader->printSignature();
         if (entryHeader->matchesSignature("MCFG"))
         {
-            acpi::MCFGTable* mcfg = (acpi::MCFGTable*)(entryHeader);
-            screen << "MCFG count: 0x" << mcfg->count() << "\n";
+            _mcfgTable = (acpi::MCFGTable*)(entryHeader);
+            screen << "MCFG count: 0x" << _mcfgTable->count() << "\n";
 
-            acpi::BaseAddrAlloc* configSpaceArray = mcfg->getConfigSpaceArray();
+            acpi::BaseAddrAlloc* configSpaceArray = _mcfgTable->getConfigSpaceArray();
             screen << "configSpaceArray: 0x" << configSpaceArray << "\n";
             screen << "configSpace[0] enhanced config base address: 0x" << configSpaceArray[0].EnhancedConfigBaseAddress << "\n";
             screen << "configSpace[0] segment group #: 0x" << configSpaceArray[0].PciSegmentGroupNumber << "\n";
@@ -277,4 +167,13 @@ Acpi::Acpi()
     }
 }
 
+Acpi* Acpi::get()
+{
+    static Acpi _instance;
+    return &_instance;
+}
+
+bool Acpi::mcfgTableExists()
+{
+    return _mcfgTable != nullptr;
 }
