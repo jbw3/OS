@@ -117,7 +117,7 @@ struct BaseAddrAlloc    // cls: better name?
      /**
       * @brief Returns the number of ConfigSpace entries
       */
-     uint32_t count();
+     int count();
 
  } __attribute__((packed));
 

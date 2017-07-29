@@ -10,6 +10,7 @@
 #include "pageframemgr.h"
 #include "pagetable.h"
 #include "paging.h"
+#include "pci.h"
 #include "screen.h"
 #include "shell.h"
 #include "system.h"
@@ -88,6 +89,7 @@ void kernelMain(const uint32_t MULTIBOOT_MAGIC_NUM, const multiboot_info* mbootI
     screen.write("\n");
 
     Acpi::get();    // force ACPI initialization here
+    Pci::get();     // force PCI initialization here
 
     Shell sh(mbootInfo);
 
