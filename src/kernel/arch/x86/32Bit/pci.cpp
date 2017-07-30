@@ -2,10 +2,6 @@
 #include "pci.h"
 #include "vmem.h"
 
-// mask for HeaderType field to determine if a device
-// is multifunction
-#define PCI_DEV_MULTIFUNCTION 0x80
-
 /**
  * @brief Returns the physical address of the PCI config space corresponding to
  * the given PCI function.
@@ -18,6 +14,7 @@ uint32_t getPciConfigSpace(uint32_t ecamBase, uint8_t bus, uint8_t device, uint8
 }
 
 Pci::Pci()
+    : _numDevices(0)
 {
     if (!Acpi::get()->mcfgTableExists())
     {
@@ -54,7 +51,8 @@ Pci::Pci()
 
                     if (dev.exists())
                     {
-                        dev.printDeviceInfo();
+                        _devices[_numDevices++] = dev;
+                        //dev.printDeviceInfo();
                     }
                     else if (func == 0)
                     {
@@ -71,6 +69,16 @@ Pci* Pci::get()
 {
     static Pci _instance;
     return &_instance;
+}
+
+int Pci::numDevices()
+{
+    return _numDevices;
+}
+
+PciDevice* Pci::devices()
+{
+    return _devices;
 }
 
 PciDevice::PciDevice()
@@ -113,27 +121,62 @@ void PciDevice::printDeviceInfo()
 {
     screen << _bus << "." << _device << "." << _function;
     screen << ": " << name() << "\n";
-    screen << "id = " << header()->vendorId << ":" << header()->deviceId << " ";
+    screen << " id = " << header()->vendorId << ":" << header()->deviceId << " ";
     screen << "headerType = " << headerType() << "\n";
-    screen << "multifunction = " << multifunction() << " ";
-    screen << "class = " << header()->classCode << " ";
-    screen << "subclass = " << header()->subclass << "\n";
+    screen << " MF = " << multifunction() << " ";
+    screen << "class = " << header()->classCode << ":";
+    screen << header()->subclass << " ";
+    screen << "progIF = " << header()->progIF << "\n";
 }
 
 const char* PciDevice::name()
 {
     switch (header()->classCode)
     {
-        case 0x03:
+        case PCI_CLASS_MASS_STRG:
+            if (header()->subclass == 0x06)
+            {
+                if (header()->progIF == 0x00)
+                {
+                    return "SATA (vendor-specific)";
+                }
+                else if (header()->progIF == 0x01)
+                {
+                    return "SATA (AHCI)";
+                }
+            }
+            break;
+        case PCI_CLASS_NETWORK:
+            if (header()->subclass == 0x00)
+            {
+                return "Ethernet Controller";
+            }
+            break;
+        case PCI_CLASS_DISPLAY:
             if (header()->subclass == 0x00)
             {
                 return "VGA";
             }
-            else
+            break;
+        case PCI_CLASS_BRIDGE:
+            if (header()->subclass == 0x00)
             {
-                return "UNKNOWN";
+                return "Host Bridge";
             }
+            else if (header()->subclass == 0x01)
+            {
+                return "ISA Bridge";
+            }
+            break;
+        case PCI_CLASS_SERIAL_BUS:
+            if (header()->subclass == 0x05)
+            {
+                return "SMBus";
+            }
+            break;
         default:
             return "UNKNOWN";
     }
+
+    return "UNKNOWN";
 }
