@@ -51,8 +51,11 @@ Pci::Pci()
 
                     if (dev.exists())
                     {
-                        _devices[_numDevices++] = dev;
-                        //dev.printDeviceInfo();
+                        _devices[_numDevices++] = dev;  // save the device
+                        if (!dev.multifunction())
+                        {
+                            break;  // skip the remaining functions
+                        }
                     }
                     else if (func == 0)
                     {
@@ -107,6 +110,11 @@ PciDeviceHeader* PciDevice::header()
     return _configSpaceHeader;
 }
 
+PciHeader0* PciDevice::headerType0()
+{
+    return (PciHeader0*)_configSpaceHeader;
+}
+
 bool PciDevice::multifunction()
 {
     return header()->headerType & PCI_DEV_MULTIFUNCTION;
@@ -117,7 +125,7 @@ uint8_t PciDevice::headerType()
     return header()->headerType & (~PCI_DEV_MULTIFUNCTION);
 }
 
-void PciDevice::printDeviceInfo()
+void PciDevice::printDeviceInfo(bool brief)
 {
     screen << _bus << "." << _device << "." << _function;
     screen << ": " << name() << "\n";
@@ -127,6 +135,19 @@ void PciDevice::printDeviceInfo()
     screen << "class = " << header()->classCode << ":";
     screen << header()->subclass << " ";
     screen << "progIF = " << header()->progIF << "\n";
+
+    if (!brief)
+    {
+        if (headerType() == 0)
+        {
+            screen << " BAR0: 0x" << headerType0()->BAR0 << "\n";
+            screen << " BAR1: 0x" << headerType0()->BAR1 << "\n";
+            screen << " BAR2: 0x" << headerType0()->BAR2 << "\n";
+            screen << " BAR3: 0x" << headerType0()->BAR3 << "\n";
+            screen << " BAR4: 0x" << headerType0()->BAR4 << "\n";
+            screen << " BAR5: 0x" << headerType0()->BAR5 << "\n";
+        }
+    }
 }
 
 const char* PciDevice::name()

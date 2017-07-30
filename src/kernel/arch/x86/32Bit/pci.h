@@ -29,6 +29,9 @@
 // since we simply have an array of these
 const int MAX_PCI_DEVICES = 64;
 
+/**
+ * @brief General PCI device header
+ */
 struct PciDeviceHeader
 {
     uint16_t vendorId;
@@ -43,6 +46,42 @@ struct PciDeviceHeader
     uint8_t latencyTimer;
     uint8_t headerType;
     uint8_t BIST;
+} __attribute__((packed));
+
+/**
+ * @brief PCI header for devices with header type 0 (general
+ * PCI devices).
+ */
+struct PciHeader0
+{
+    uint16_t vendorId;
+    uint16_t deviceId;
+    uint16_t command;
+    uint16_t status;
+    uint8_t revisionId;
+    uint8_t progIF;
+    uint8_t subclass;
+    uint8_t classCode;
+    uint8_t cacheLineSize;
+    uint8_t latencyTimer;
+    uint8_t headerType;
+    uint8_t BIST;
+    uint32_t BAR0;
+    uint32_t BAR1;
+    uint32_t BAR2;
+    uint32_t BAR3;
+    uint32_t BAR4;
+    uint32_t BAR5;
+    uint32_t cardbusCISPointer;
+    uint16_t subsystemVendorId;
+    uint16_t subsystemId;
+    uint32_t expansionROMBaseAddress;
+    uint8_t capabilitiesPointer;
+    char reserved[7];
+    uint8_t interruptLine;
+    uint8_t interruptPin;
+    uint8_t minGrant;
+    uint8_t maxLatency;
 } __attribute__((packed));
 
 /**
@@ -84,7 +123,14 @@ struct PciDevice
      */
     PciDeviceHeader* header();
 
-    void printDeviceInfo();
+    /**
+     * @brief Returns a pointer to the header type 0
+     * config space for this device. This is only
+     * valid if headerType() is 0.
+     */
+    PciHeader0* headerType0();
+
+    void printDeviceInfo(bool brief=true);
 
     /**
      * @brief Returns a human-readable name for the device

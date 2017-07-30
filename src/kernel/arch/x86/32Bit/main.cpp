@@ -94,11 +94,16 @@ void kernelMain(const uint32_t MULTIBOOT_MAGIC_NUM, const multiboot_info* mbootI
     for (int i = 0; i < pci->numDevices(); i++)
     {
         PciDevice* dev = &pci->devices()[i];
+
         if (dev->header()->classCode == PCI_CLASS_MASS_STRG &&
             dev->header()->subclass == 0x06 &&
             dev->header()->progIF == 0x01)
         {
-            screen << "found AHCI device\n";
+            //screen << "found AHCI device\n";
+            dev->printDeviceInfo(false);
+        }
+        else
+        {
             dev->printDeviceInfo();
         }
     }
