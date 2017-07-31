@@ -1,5 +1,7 @@
 #pragma once
 
+#include <stdint.h>
+
 // mask for HeaderType field to determine if a device
 // is multifunction
 #define PCI_DEV_MULTIFUNCTION 0x80
@@ -116,6 +118,13 @@ struct PciDevice
      * bit.
      */
     uint8_t headerType();
+
+    /**
+     * @brief Returns true if the device's header type is 0. This
+     * was made a standalone function b/c it is easy to forget to
+     * mask out the multifunction bit of the raw headerType field.
+     */
+    bool isHeaderType0();
 
     /**
      * @brief Returns a pointer to the config space

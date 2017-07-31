@@ -3,6 +3,7 @@
 #include "multiboot.h"
 
 #include "acpi.h"
+#include "ahcidriver.h"
 #include "gdt.h"
 #include "idt.h"
 #include "irq.h"
@@ -89,24 +90,11 @@ void kernelMain(const uint32_t MULTIBOOT_MAGIC_NUM, const multiboot_info* mbootI
     screen.write("\n");
 
     Acpi::get();    // force ACPI initialization here
-    auto pci = Pci::get();     // force PCI initialization here
+    Pci::get();     // force PCI initialization here
 
-    for (int i = 0; i < pci->numDevices(); i++)
-    {
-        PciDevice* dev = &pci->devices()[i];
-
-        if (dev->header()->classCode == PCI_CLASS_MASS_STRG &&
-            dev->header()->subclass == 0x06 &&
-            dev->header()->progIF == 0x01)
-        {
-            //screen << "found AHCI device\n";
-            dev->printDeviceInfo(false);
-        }
-        else
-        {
-            dev->printDeviceInfo();
-        }
-    }
+    // cls todo: this should be accessible through system calls, but
+    // for now we will manually use the disk driver from here
+    AhciDriver driver;
 
     Shell sh(mbootInfo);
 

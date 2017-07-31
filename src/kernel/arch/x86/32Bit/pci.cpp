@@ -125,6 +125,11 @@ uint8_t PciDevice::headerType()
     return header()->headerType & (~PCI_DEV_MULTIFUNCTION);
 }
 
+bool PciDevice::isHeaderType0()
+{
+    return headerType() == 0;
+}
+
 void PciDevice::printDeviceInfo(bool brief)
 {
     screen << _bus << "." << _device << "." << _function;
