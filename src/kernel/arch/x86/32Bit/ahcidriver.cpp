@@ -18,6 +18,19 @@ AhciDriver::AhciDriver()
 
             AhciDeviceRegs* ahciDev = mapAhciDevice(dev);
             screen << "AHCI version: 0x" << ahciDev->genericHostControl.VS << "\n";
+            screen << "SAM: " << (int)ahciDev->genericHostControl.CAP.SAM() << "\n";
+            auto maskedVal = (ahciDev->genericHostControl.CAP.value &
+            (uint32_t)(0x40000));
+            screen << "SAM check: " << maskedVal << "\n";
+
+            uint32_t val = ahciDev->genericHostControl.CAP.value;
+            for (int i = 31; i >= 0; i--)
+            {
+                //if (i == 18)
+                {
+                    screen << ((val >> i) & 0x1);
+                }
+            }
         }
     }
 }
