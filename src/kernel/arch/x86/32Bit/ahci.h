@@ -26,7 +26,13 @@ struct CAPRegister
     inline bool CCCS()  { return (value >> 7) & 0x1; } // command completion coalescing support
     inline bool EMS()   { return (value >> 6) & 0x1; } // enclosure management support
     inline bool SXS()   { return (value >> 5) & 0x1; } // supports external SATA
-    inline int NP()     { return (value >> 0) & 0x1F; } // number of ports
+    inline int NP()     { return (value >> 0) & 0x1F; } // number of ports, zero-based
+
+    /**
+     * @brief Returns the maximum number of ports available.
+     * Check the PortsImplemented register for actual # ports
+     */
+    int NumPorts() { return NP() + 1; }
 
 } __attribute__((packed));
 
@@ -51,11 +57,35 @@ struct GenericHostControlRegs
     uint32_t BOHC;      // BIOS/OS handoff control and status
 } __attribute__((packed));
 
+struct AhciPortRegs
+{
+    uint32_t PxCLB;     // command list base address
+    uint32_t PxCLBU;    // command list base address (upper)
+    uint32_t PxFB;      // FIS base address
+    uint32_t PxFBU;     // FIS base address (upper)
+    uint32_t PxIS;      // interrupt status
+    uint32_t PxIE;      // interrupt enable
+    uint32_t PxCMD;     // command and status
+    uint32_t Reserved1C;    // reserved
+    uint32_t PxTFD;     // task file data
+    uint32_t PxSIG;     // signature
+    uint32_t PxSSTS;    // SATA status
+    uint32_t PxSCTL;    // SATA control
+    uint32_t PxSERR;    // SATA error
+    uint32_t PxSACT;    // SATA active
+    uint32_t PxCI;      // command issue
+    uint32_t PxSNTF;    // SATA notification
+    uint32_t PxFBS;     // FIS-based switch controlling
+    uint32_t PxDEVSLP;  // device sleep
+    char Reserved48 [40];
+    char PxVS [16];     // vendor specific
+} __attribute__((packed));
+
 struct AhciDeviceRegs
 {
     GenericHostControlRegs genericHostControl;
     char reserved[52];
     char reservedForNVMHCI[64];
     char vendorSpecific[96];
-    uint32_t* portRegs;     // todo: create array of PortRegs type
+    AhciPortRegs portRegs[32];
 } __attribute__((packed));

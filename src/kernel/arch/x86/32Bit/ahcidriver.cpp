@@ -19,18 +19,22 @@ AhciDriver::AhciDriver()
             AhciDeviceRegs* ahciDev = mapAhciDevice(dev);
             screen << "AHCI version: 0x" << ahciDev->genericHostControl.VS << "\n";
             screen << "SAM: " << (int)ahciDev->genericHostControl.CAP.SAM() << "\n";
-            auto maskedVal = (ahciDev->genericHostControl.CAP.value &
-            (uint32_t)(0x40000));
-            screen << "SAM check: " << maskedVal << "\n";
-
-            uint32_t val = ahciDev->genericHostControl.CAP.value;
-            for (int i = 31; i >= 0; i--)
+            //screen << "NumPorts field: " << ahciDev->genericHostControl.CAP.NP() << "\n";
+            screen << "Ports Implemented: 0x" << ahciDev->genericHostControl.PI << "\n";
+            auto pi = ahciDev->genericHostControl.PI;
+            int numPorts = 0;
+            for (int i = 0; i < sizeof(pi)*8; i++)
             {
-                //if (i == 18)
-                {
-                    screen << ((val >> i) & 0x1);
-                }
+                numPorts += (int)((pi >> i) & 0x1);
             }
+            screen << "# ports: " << numPorts << "\n";
+
+            // TODO: MAP PORTS!!
+            //mem::autoMapKernelPageForAddress()
+
+            screen << "&portRegs: 0x" << (uint32_t)(&ahciDev->portRegs[0]) << "\n";
+            screen << "sig: 0x";
+            screen << ahciDev->portRegs[0].PxSIG << "\n";
         }
     }
 }
@@ -52,6 +56,7 @@ AhciDeviceRegs* AhciDriver::mapAhciDevice(PciDevice* dev)
 
     uint32_t ahciRegsPhysAddr = dev->headerType0()->BAR5;
     auto ahciRegsAddr = mem::autoMapKernelPageForAddress(ahciRegsPhysAddr);
+    //screen << "map1: 0x" << ahciRegsAddr << " map2: 0x" << mem::autoMapKernelPageForAddress(ahciRegsPhysAddr + 0x100) << "\n";
 
     return (AhciDeviceRegs*)ahciRegsAddr;
 }
