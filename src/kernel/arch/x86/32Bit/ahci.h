@@ -2,6 +2,8 @@
 
 #include <stdint.h>
 
+namespace ahci {
+
 struct CAPRegister
 {
     uint32_t value;     // get entire register value
@@ -22,6 +24,9 @@ struct CAPRegister
     inline bool PMD()   { return (value >> 15) & 0x1; } // PIO multiple IRQ block
     inline bool SSC()   { return (value >> 14) & 0x1; } // slumber state capable
     inline bool PSC()   { return (value >> 13) & 0x1; } // partial state capable
+    /**
+     * @brief test
+     */
     inline int NCS()    { return (value >> 8) & 0x1F; } // number of command slots, 0 => 1 slot, 1 => 2 slots, etc.
     inline bool CCCS()  { return (value >> 7) & 0x1; } // command completion coalescing support
     inline bool EMS()   { return (value >> 6) & 0x1; } // enclosure management support
@@ -33,6 +38,11 @@ struct CAPRegister
      * Check the PortsImplemented register for actual # ports
      */
     int NumPorts() { return NP() + 1; }
+
+    /**
+     * @brief Returns the number of command slots.
+     */
+    int NumCommandSlots() { return NCS() + 1; }
 
 } __attribute__((packed));
 
@@ -89,3 +99,22 @@ struct AhciDeviceRegs
     char vendorSpecific[96];
     AhciPortRegs portRegs[32];
 } __attribute__((packed));
+
+/**
+ * @brief AHCI Command Header
+ */
+struct CommandHeader
+{
+    uint32_t DW0;
+    uint32_t DW1;
+    uint32_t DW2;
+    uint32_t DW3;
+    uint32_t DW4;
+    uint32_t DW5;
+    uint32_t DW6;
+    uint32_t DW7;
+
+    // todo: methods to extract fields
+} __attribute__((packed));
+
+}   // ahci

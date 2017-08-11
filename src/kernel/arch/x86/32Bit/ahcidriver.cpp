@@ -1,7 +1,13 @@
 #include "ahcidriver.h"
+#include "pageframemgr.h"
+#include "pagetable.h"
+#include "paging.h"
 #include "pci.h"
 #include "screen.h"
+#include "system.h"
 #include "vmem.h"
+
+using namespace ahci;
 
 AhciDriver::AhciDriver()
 {
@@ -32,9 +38,21 @@ AhciDriver::AhciDriver()
             // TODO: MAP PORTS!!
             //mem::autoMapKernelPageForAddress()
 
-            screen << "&portRegs: 0x" << (uint32_t)(&ahciDev->portRegs[0]) << "\n";
             screen << "sig: 0x";
             screen << ahciDev->portRegs[0].PxSIG << "\n";
+            screen << os::Screen::dec;
+            screen << "# command slots: " << ahciDev->genericHostControl.CAP.NumCommandSlots() << "\n";
+
+            // allocate a page for the port command list and receive FIS
+            uintptr_t pagePtrPhys = PageFrameMgr::get()->allocPageFrame();
+            uint32_t pageAddrPhys = (uint32_t)pagePtrPhys;      // TODO: NEED TO KEEP PHYS ADDR FOR POINTING TO CMD LIST AND RECEIVE FIS
+            mem::PageTable currentPT(mem::lastUsedKernelPDEIndex());
+            if (currentPT.isFull())
+            {
+                PANIC("Page table full - not handling this properly in AHCI driver!");
+            }
+            uint32_t pageAddr = currentPT.mapNextAvailablePageToAddress(pageAddrPhys);
+            uint32_t* pagePtr = (uint32_t*)pageAddr;
         }
     }
 }

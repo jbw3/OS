@@ -24,5 +24,5 @@ private:
      * @returns a pointer to the AhciDeviceRegs instance if
      * successful. Returns nullptr if unsuccessful.
      */
-    static AhciDeviceRegs* mapAhciDevice(PciDevice* dev);
+    static ahci::AhciDeviceRegs* mapAhciDevice(PciDevice* dev);
 };
