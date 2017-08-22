@@ -38,9 +38,10 @@ AhciDriver::AhciDriver()
             // TODO: MAP PORTS!!
             //mem::autoMapKernelPageForAddress()
 
-            screen << "sig: 0x";
-            screen << ahciDev->portRegs[0].PxSIG << "\n";
+            screen << "Port type: " << ahciDev->portRegs[0].getSigString() << "\n";
             screen << os::Screen::dec;
+
+            // max command slots I can allocate for each port
             screen << "# command slots: " << ahciDev->genericHostControl.CAP.NumCommandSlots() << "\n";
 
             // allocate a page for the port command list and receive FIS
@@ -53,6 +54,11 @@ AhciDriver::AhciDriver()
             }
             uint32_t pageAddr = currentPT.mapNextAvailablePageToAddress(pageAddrPhys);
             uint32_t* pagePtr = (uint32_t*)pageAddr;
+
+            // todo: set up command list
+            // todo: set up receive FIS
+            // todo: point PxCLB to command list (physical)
+            // todo: point PxFB to receive FIS (physical)
         }
     }
 }

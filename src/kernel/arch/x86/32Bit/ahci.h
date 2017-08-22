@@ -89,6 +89,27 @@ struct AhciPortRegs
     uint32_t PxDEVSLP;  // device sleep
     char Reserved48 [40];
     char PxVS [16];     // vendor specific
+
+    const char* getSigString()
+    {
+        switch (this->PxSIG)
+        {
+            case 0x0:
+                return "Nothing attached";
+            case 0x0101:
+                return "SATA Device";
+            case 0xEB140101:
+                return "SATAPI Device";
+            case 0xC33C0101:
+                return "Enclosure Management Bridge";
+            case 0x96690101:
+                return "Port Multiplier";
+            case 0xFFFFFFFF:
+                return "Default register value";
+            default:
+                return "Unknown";
+        }
+    }
 } __attribute__((packed));
 
 struct AhciDeviceRegs
@@ -105,6 +126,7 @@ struct AhciDeviceRegs
  */
 struct CommandHeader
 {
+    // raw dwords
     uint32_t DW0;
     uint32_t DW1;
     uint32_t DW2;
@@ -114,7 +136,29 @@ struct CommandHeader
     uint32_t DW6;
     uint32_t DW7;
 
-    // todo: methods to extract fields
+    int PRDTL() { return (DW0 >> 16) & 0xFFFF; }    // count of PRD table entries in command table
+    void PRDTL(int value)
+    {
+        DW0 = ((value << 16) & 0xFFFF0000) | (DW0 & 0x0000FFFF);
+    }
+
+    int PMP()   { return (DW0 >> 12) & 0x000F; }
+    int C()     { return (DW0 >> 10) & 0x0001; }
+    int B()     { return (DW0 >>  9) & 0x0001; }
+    int R()     { return (DW0 >>  8) & 0x0001; }
+    int P()     { return (DW0 >>  7) & 0x0001; }
+    int W()     { return (DW0 >>  6) & 0x0001; }
+    int A()     { return (DW0 >>  5) & 0x0001; }
+    int CFL()   { return (DW0 >>  0) & 0x001F; }
+
+    uint32_t PRDBC()    { return DW1; }     // byte count
+
+    uint32_t CTBA()     { return DW2; }     // table base address (low)
+    void CTBA(uint32_t value) { DW2 = value; }
+
+    uint32_t CTBAU()    { return DW3; }     // table base address (high)
+    void CTBAU(uint32_t value) { DW3 = value; }
+
 } __attribute__((packed));
 
 }   // ahci
