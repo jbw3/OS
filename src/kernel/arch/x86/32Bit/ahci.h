@@ -161,4 +161,24 @@ struct CommandHeader
 
 } __attribute__((packed));
 
+/**
+ * @brief Contains port command list and receive FIS
+ */
+struct PortDataBuffers
+{
+    CommandHeader CommandList[32];
+    // todo: ReceiveFIS
+} __attribute__((packed));
+
+/**
+ * @brief Holds information about an AHCI device
+ */
+class AhciDevice
+{
+private:
+    AhciDeviceRegs* _devRegs;
+    PortDataBuffers* _portBuffers[32];   // reduce?
+    uint32_t _portBuffersPhysAddr[32];   // maintain physical addresses
+};
+
 }   // ahci
