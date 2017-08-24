@@ -181,4 +181,53 @@ private:
     uint32_t _portBuffersPhysAddr[32];   // maintain physical addresses
 };
 
+/**
+ * @brief Host2Device FIS
+ */
+struct H2DFIS
+{
+    uint8_t FISType;
+    uint8_t Flags;      // bit 7 - command bit (new command), bit 3:0 - port multiplier
+    uint8_t Command;
+    uint8_t Features;
+    uint8_t LBA0_SectorNum;
+    uint8_t LBA1_CylLow;
+    uint8_t LBA2_CylHigh;
+    uint8_t DevHead;
+    uint8_t LBA3_SectorNumExp;
+    uint8_t LBA4_CylLowExp;
+    uint8_t LBA5_CylHighExp;
+    uint8_t FeaturesExp;
+    uint8_t SectorCountLow;
+    uint8_t SectorCountHigh;
+    uint8_t Reserved;
+    uint8_t Control;
+    uint32_t Reserved2;
+} __attribute__((packed));
+
+/**
+ * @brief Physical Region Descriptor
+ */
+struct PRD
+{
+    uint32_t DBA;       // data base address (low)
+    uint32_t DBAU;      // data base address (upper)
+    uint32_t Reserved;
+    uint32_t Flags;     // 31 - interrupt on completion, 30:22 - reserved, 21:0 - data byte count
+} __attribute__((packed));
+
+struct CommandTable
+{
+    // TODO
+    // command FIS
+    // command packet
+    // reserved
+
+    // cls: the table cannot point elsewhere...it needs
+    // to be an array here (in memory). I think it may
+    // be variable size, so should we go with a fixed
+    // max size, or leave it like this?
+    PRD* PRDTable;    // todo: size?
+} __attribute__((packed));
+
 }   // ahci
