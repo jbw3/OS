@@ -8,6 +8,13 @@
 
 int main()
 {
+    // don't do anything if this process gets kicked
+    // off more than once
+    if (getpid() != 1)
+    {
+        exit(1);
+    }
+
     pid_t pid = 0;
 
     pid = fork();
