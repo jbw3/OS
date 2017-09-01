@@ -164,10 +164,10 @@ struct CommandHeader
 /**
  * @brief Contains port command list and receive FIS
  */
-struct PortDataBuffers
+struct PortSystemMemory
 {
     CommandHeader CommandList[32];
-    // todo: ReceiveFIS
+    uint8_t ReceiveFIS[256];    // Receive FIS is 256B (todo: make struct)
 } __attribute__((packed));
 
 /**
@@ -177,8 +177,9 @@ class AhciDevice
 {
 private:
     AhciDeviceRegs* _devRegs;
-    PortDataBuffers* _portBuffers[32];   // reduce?
-    uint32_t _portBuffersPhysAddr[32];   // maintain physical addresses
+    // indexed by port #
+    PortSystemMemory* _portMemory[32];      // reduce?
+    uint32_t _portMemoryPhysAddr[32];       // maintain physical addresses
 };
 
 /**
@@ -214,20 +215,27 @@ struct PRD
     uint32_t DBAU;      // data base address (upper)
     uint32_t Reserved;
     uint32_t Flags;     // 31 - interrupt on completion, 30:22 - reserved, 21:0 - data byte count
+
+    bool IOC()  { return (Flags >> 31) & 0x1; }
+    int DBC()   { return (Flags >>  0) & 0x3FFFFF; }
+
 } __attribute__((packed));
 
 struct CommandTable
 {
-    // TODO
-    // command FIS
-    // command packet
-    // reserved
+    uint8_t _CommandFIS[0x40];      // space req'd for cmd FIS
+    uint8_t _CommandPacket[0x10];   // space req'd for cmd packet...
+    uint8_t _Reserved[0x30];
+    PRD PRDTable;    // first entry in array of PRDs
 
-    // cls: the table cannot point elsewhere...it needs
-    // to be an array here (in memory). I think it may
-    // be variable size, so should we go with a fixed
-    // max size, or leave it like this?
-    PRD* PRDTable;    // todo: size?
+    H2DFIS* CommandFIS() { return (H2DFIS*)(&_CommandFIS); }
+
+    /**
+     * @brief Returns a pointer to this Command Table's
+     * PRD table (first entry)
+     */
+    PRD* getPRDTableArray() { return &PRDTable; }
+
 } __attribute__((packed));
 
 }   // ahci

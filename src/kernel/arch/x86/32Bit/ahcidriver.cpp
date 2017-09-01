@@ -29,7 +29,7 @@ AhciDriver::AhciDriver()
             screen << "Ports Implemented: 0x" << ahciDev->genericHostControl.PI << "\n";
             auto pi = ahciDev->genericHostControl.PI;
             int numPorts = 0;
-            for (int i = 0; i < sizeof(pi)*8; i++)
+            for (int i = 0; i < (int)sizeof(pi)*8; i++)
             {
                 numPorts += (int)((pi >> i) & 0x1);
             }
@@ -55,6 +55,8 @@ AhciDriver::AhciDriver()
             uint32_t pageAddr = currentPT.mapNextAvailablePageToAddress(pageAddrPhys);
             uint32_t* pagePtr = (uint32_t*)pageAddr;
 
+            screen << os::Screen::hex;
+            screen << "sizeof(H2D): " << sizeof(H2DFIS) << "\n";
             // todo: set up command list
             // todo: set up receive FIS
             // todo: point PxCLB to command list (physical)
