@@ -56,7 +56,15 @@ AhciDriver::AhciDriver()
             uint32_t* pagePtr = (uint32_t*)pageAddr;
 
             screen << os::Screen::hex;
-            screen << "sizeof(H2D): " << sizeof(H2DFIS) << "\n";
+            screen << "sizeof(H2D): 0x" << sizeof(H2DFIS) << "\n";
+            screen << "sizeof(CommandHeader): 0x" << sizeof(CommandHeader) << "\n";
+            screen << "sizeof(PortSystemMemory): 0x" << sizeof(PortSystemMemory) << "\n";
+
+            // note: I can currently fit 2 PortSystemMemory structures in a single page,
+            // or do 1 per page with some extra room to store other info at the bottom?
+
+            // todo: static assert that PortSystemMemory is < 0x1000 in size?
+
             // todo: set up command list
             // todo: set up receive FIS
             // todo: point PxCLB to command list (physical)

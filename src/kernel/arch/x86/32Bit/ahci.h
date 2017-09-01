@@ -153,6 +153,8 @@ struct CommandHeader
 
     uint32_t PRDBC()    { return DW1; }     // byte count
 
+    // Command Table Physical Address ------
+
     uint32_t CTBA()     { return DW2; }     // table base address (low)
     void CTBA(uint32_t value) { DW2 = value; }
 
