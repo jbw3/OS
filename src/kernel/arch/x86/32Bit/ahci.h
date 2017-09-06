@@ -177,7 +177,8 @@ struct PortSystemMemory
  */
 class AhciDevice
 {
-private:
+public:
+// todo: make this private:
     AhciDeviceRegs* _devRegs;
     // indexed by port #
     PortSystemMemory* _portMemory[32];      // reduce?

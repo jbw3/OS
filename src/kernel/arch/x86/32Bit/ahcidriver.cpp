@@ -22,12 +22,12 @@ AhciDriver::AhciDriver()
             screen << "found AHCI device\n";
             dev->printDeviceInfo(false);
 
-            AhciDeviceRegs* ahciDev = mapAhciDevice(dev);
-            screen << "AHCI version: 0x" << ahciDev->genericHostControl.VS << "\n";
-            screen << "SAM: " << (int)ahciDev->genericHostControl.CAP.SAM() << "\n";
-            //screen << "NumPorts field: " << ahciDev->genericHostControl.CAP.NP() << "\n";
-            screen << "Ports Implemented: 0x" << ahciDev->genericHostControl.PI << "\n";
-            auto pi = ahciDev->genericHostControl.PI;
+            AhciDeviceRegs* ahciRegs = mapAhciDevice(dev);
+            screen << "AHCI version: 0x" << ahciRegs->genericHostControl.VS << "\n";
+            screen << "SAM: " << (int)ahciRegs->genericHostControl.CAP.SAM() << "\n";
+            //screen << "NumPorts field: " << ahciRegs->genericHostControl.CAP.NP() << "\n";
+            screen << "Ports Implemented: 0x" << ahciRegs->genericHostControl.PI << "\n";
+            auto pi = ahciRegs->genericHostControl.PI;
             int numPorts = 0;
             for (int i = 0; i < (int)sizeof(pi)*8; i++)
             {
@@ -38,11 +38,11 @@ AhciDriver::AhciDriver()
             // TODO: MAP PORTS!!
             //mem::autoMapKernelPageForAddress()
 
-            screen << "Port type: " << ahciDev->portRegs[0].getSigString() << "\n";
+            screen << "Port type: " << ahciRegs->portRegs[0].getSigString() << "\n";
             screen << os::Screen::dec;
 
             // max command slots I can allocate for each port
-            screen << "# command slots: " << ahciDev->genericHostControl.CAP.NumCommandSlots() << "\n";
+            screen << "# command slots: " << ahciRegs->genericHostControl.CAP.NumCommandSlots() << "\n";
 
             // allocate a page for the port command list and receive FIS
             uintptr_t pagePtrPhys = PageFrameMgr::get()->allocPageFrame();
@@ -59,16 +59,27 @@ AhciDriver::AhciDriver()
             screen << "sizeof(H2D): 0x" << sizeof(H2DFIS) << "\n";
             screen << "sizeof(CommandHeader): 0x" << sizeof(CommandHeader) << "\n";
             screen << "sizeof(PortSystemMemory): 0x" << sizeof(PortSystemMemory) << "\n";
-
+            static_assert(sizeof(PortSystemMemory) <= 0x1000);
             // note: I can currently fit 2 PortSystemMemory structures in a single page,
             // or do 1 per page with some extra room to store other info at the bottom?
 
-            // todo: static assert that PortSystemMemory is < 0x1000 in size?
-
             // todo: set up command list
+            ahciRegs->portRegs[0].PxCLB = pageAddrPhys;     // point to command list
+            ahciRegs->portRegs[0].PxFB = pageAddrPhys + (sizeof(CommandHeader)*32);
+
+            screen << "offsetof(): 0x" << sizeof(CommandHeader)*32 << "\n";
+
             // todo: set up receive FIS
             // todo: point PxCLB to command list (physical)
             // todo: point PxFB to receive FIS (physical)
+
+            // set up AhciDevice instance for access later on...
+            AhciDevice ahciDev;
+            ahciDev._devRegs = ahciRegs;
+            ahciDev._portMemoryPhysAddr[0] = pageAddrPhys;
+            ahciDev._portMemory[0] = (PortSystemMemory*)pageAddr;
+
+            // todo: place AhciDevice in array...?
         }
     }
 }
