@@ -1,10 +1,11 @@
-#include "sched.h"
 #include "stddef.h"
 #include "stdio.h"
 #include "stdlib.h"
 #include "string.h"
 #include "sys/wait.h"
 #include "unistd.h"
+
+pid_t startShell();
 
 int main()
 {
@@ -15,9 +16,26 @@ int main()
         exit(1);
     }
 
-    pid_t pid = 0;
+    pid_t shellPid = startShell();
 
-    pid = fork();
+    // clean up child processes
+    while (true)
+    {
+        pid_t pid = wait(nullptr);
+
+        // if the shell exited, start another one
+        if (pid == shellPid)
+        {
+            shellPid = startShell();
+        }
+    }
+
+    return 0;
+}
+
+pid_t startShell()
+{
+    pid_t pid = fork();
     if (pid < 0)
     {
         printf("Fork failed\n");
@@ -30,11 +48,5 @@ int main()
         exit(-1);
     }
 
-    // clean up child processes
-    while (true)
-    {
-        wait(nullptr);
-    }
-
-    return 0;
+    return pid;
 }
