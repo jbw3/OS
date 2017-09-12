@@ -11,6 +11,7 @@ const char* Shell::PROMPT = "> ";
 Shell::Shell()
 {
     cmd[0] = '\0';
+    done = false;
 }
 
 int Shell::execute(int argc, const char* argv[])
@@ -46,7 +47,7 @@ int Shell::execute(int argc, const char* argv[])
 
 void Shell::interactiveLoop()
 {
-    while (true)
+    while (!done)
     {
         getCommand();
         runCommand();
@@ -145,29 +146,45 @@ void Shell::parseCommand()
     args[numArgs] = nullptr;
 }
 
+bool Shell::runBuiltInCommand()
+{
+    bool found = false;
+
+    if (strcmp(args[0], "exit") == 0)
+    {
+        done = true;
+        found = true;
+    }
+
+    return found;
+}
+
 void Shell::runCommand()
 {
     parseCommand();
 
-    const char* name = args[0];
-
-    if (name != nullptr)
+    if (!runBuiltInCommand())
     {
-        pid_t pid = fork();
-        if (pid < 0)
-        {
-            printf("Error: Could not run command.\n");
-        }
-        else if (pid == 0)
-        {
-            // execute command
-            execv(name, args);
+        const char* name = args[0];
 
-            printf("Could not find command '%s'.\n", name);
-            exit(-1);
-        }
+        if (name != nullptr)
+        {
+            pid_t pid = fork();
+            if (pid < 0)
+            {
+                printf("Error: Could not run command.\n");
+            }
+            else if (pid == 0)
+            {
+                // execute command
+                execv(name, args);
 
-        // wait for child process to finish
-        wait(nullptr);
+                printf("Could not find command '%s'.\n", name);
+                exit(-1);
+            }
+
+            // wait for child process to finish
+            wait(nullptr);
+        }
     }
 }

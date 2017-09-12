@@ -16,12 +16,15 @@ private:
     char cmd[MAX_CMD_SIZE];
     char* args[MAX_ARGS_SIZE];
     char argStrings[MAX_TOTAL_ARGS_SIZE];
+    bool done;
 
     void interactiveLoop();
 
     void getCommand();
 
     void parseCommand();
+
+    bool runBuiltInCommand();
 
     void runCommand();
 };
