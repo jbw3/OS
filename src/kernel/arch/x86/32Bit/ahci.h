@@ -67,6 +67,16 @@ struct GenericHostControlRegs
     uint32_t BOHC;      // BIOS/OS handoff control and status
 } __attribute__((packed));
 
+struct PxCMDRegister
+{
+    uint32_t value;     // get entire register value
+
+    // todo: fill in remaining bits...
+
+    inline int ST()     { return (value >> 0) & 0x1; }  // start
+
+} __attribute__((packed));
+
 struct AhciPortRegs
 {
     uint32_t PxCLB;     // command list base address
@@ -75,7 +85,7 @@ struct AhciPortRegs
     uint32_t PxFBU;     // FIS base address (upper)
     uint32_t PxIS;      // interrupt status
     uint32_t PxIE;      // interrupt enable
-    uint32_t PxCMD;     // command and status
+    PxCMDRegister PxCMD;     // command and status
     uint32_t Reserved1C;    // reserved
     uint32_t PxTFD;     // task file data
     uint32_t PxSIG;     // signature

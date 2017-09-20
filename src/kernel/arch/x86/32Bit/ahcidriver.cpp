@@ -63,15 +63,10 @@ AhciDriver::AhciDriver()
             // note: I can currently fit 2 PortSystemMemory structures in a single page,
             // or do 1 per page with some extra room to store other info at the bottom?
 
-            // todo: set up command list
             ahciRegs->portRegs[0].PxCLB = pageAddrPhys;     // point to command list
-            ahciRegs->portRegs[0].PxFB = pageAddrPhys + (sizeof(CommandHeader)*32);
+            ahciRegs->portRegs[0].PxFB = pageAddrPhys + (sizeof(CommandHeader)*32);     // point to receive FIS
 
-            screen << "offsetof(): 0x" << sizeof(CommandHeader)*32 << "\n";
-
-            // todo: set up receive FIS
-            // todo: point PxCLB to command list (physical)
-            // todo: point PxFB to receive FIS (physical)
+            screen << "sizeof(): 0x" << sizeof(CommandHeader)*32 << "\n";
 
             // set up AhciDevice instance for access later on...
             AhciDevice ahciDev;
@@ -79,6 +74,30 @@ AhciDriver::AhciDriver()
             ahciDev._portMemoryPhysAddr[0] = pageAddrPhys;
             ahciDev._portMemory[0] = (PortSystemMemory*)pageAddr;
 
+            // test command
+            CommandHeader* header = &ahciDev._portMemory[0]->CommandList[0];
+            AhciPortRegs* regs = &ahciDev._devRegs->portRegs[0];
+            screen << "Port 0 PxCI: 0x" << ahciDev._devRegs->portRegs[0].PxCI << "\n";
+            screen << "PxCMD.ST: " << regs->PxCMD.ST() << "\n";
+            //header->
+
+            // TODO: as you go, make sure all bits in regs/command headers/etc. are initialized to good defaults (0?)
+
+            // TODO: set up Receive FIS area (PxFB and PxFBU?)
+            // TODO: verify that PxCMD.CR is 0
+
+            // FROM SPEC:
+            // Additionally, software shall not set PxCMD.ST to ‘1’ until a functional device is present on the port (as
+            // determined by PxTFD.STS.BSY = ‘0’, PxTFD.STS.DRQ = ‘0’, and (PxSSTS.DET = 3h, or PxSSTS.IPM =
+            // 2h or 6h or 8h))
+
+            // TODO: set PxCMD.FRE to 1
+            // TODO: set PxCMD.ST to 1
+
+            // ------------------------------------
+            // pick a command header and go...
+            //ahciDev._portMemory[0]->CommandList[0].PRDTL(5);
+            // JUST PICK A SPOT AND HARDCODE A DEVICE THERE TO GET STARTED...
             // todo: place AhciDevice in array...?
         }
     }
