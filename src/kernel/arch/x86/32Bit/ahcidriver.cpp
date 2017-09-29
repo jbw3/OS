@@ -63,10 +63,11 @@ AhciDriver::AhciDriver()
             // note: I can currently fit 2 PortSystemMemory structures in a single page,
             // or do 1 per page with some extra room to store other info at the bottom?
 
+
             ahciRegs->portRegs[0].PxCLB = pageAddrPhys;     // point to command list
             ahciRegs->portRegs[0].PxFB = pageAddrPhys + (sizeof(CommandHeader)*32);     // point to receive FIS
 
-            screen << "sizeof(): 0x" << sizeof(CommandHeader)*32 << "\n";
+            screen << "sizeof(CommandHeader)*32: 0x" << sizeof(CommandHeader)*32 << "\n";
 
             // set up AhciDevice instance for access later on...
             AhciDevice ahciDev;
@@ -79,11 +80,15 @@ AhciDriver::AhciDriver()
             AhciPortRegs* regs = &ahciDev._devRegs->portRegs[0];
             screen << "Port 0 PxCI: 0x" << ahciDev._devRegs->portRegs[0].PxCI << "\n";
             screen << "PxCMD.ST: " << regs->PxCMD.ST() << "\n";
+            screen << "PxCMD.CR: " << regs->PxCMD.CR() << "\n";
+            screen << "PxCMD.FRE: " << regs->PxCMD.FRE() << "\n";
+            screen << "BIOS owned semaphore: " << (ahciRegs->genericHostControl.BOHC & 0x1) << "\n";
             //header->
 
+            //////////// TODO: Do all this the right way...
+            // -------------------------------------------------------------
             // TODO: as you go, make sure all bits in regs/command headers/etc. are initialized to good defaults (0?)
 
-            // TODO: set up Receive FIS area (PxFB and PxFBU?)
             // TODO: verify that PxCMD.CR is 0
 
             // FROM SPEC:
@@ -93,8 +98,62 @@ AhciDriver::AhciDriver()
 
             // TODO: set PxCMD.FRE to 1
             // TODO: set PxCMD.ST to 1
+            // -------------------------------------------------------------
 
-            // ------------------------------------
+            // #################################
+            // try identify device command
+            // #################################
+
+            // allocate command table page
+            uint32_t commandTablePhys = (uint32_t)PageFrameMgr::get()->allocPageFrame();
+            //mem::PageTable currentPT(mem::lastUsedKernelPDEIndex());
+            if (currentPT.isFull())
+            {
+                PANIC("Page table full - not handling this properly in AHCI driver!");
+            }
+
+            // set up command table
+            CommandTable* cmdTable = (CommandTable*)currentPT.mapNextAvailablePageToAddress(pageAddrPhys);
+            for (int i = 0; i < 16; i++)
+            {
+                cmdTable->_CommandPacket[i] = 0;
+            }
+
+            uint8_t dataBuffer[512];
+            uint32_t dataBufferPhysAddr = 0;    // TODO: getPhysAddr(dataBuffer)
+
+            cmdTable->getPRDTableArray()[0].DBA = dataBufferPhysAddr;    // phys address of buffer for identify data
+            //cmdTable->getPRDTableArray()[0].Flags
+
+
+            // --------------------------------
+            // PICK UP HERE ^^^
+            // --------------------------------
+
+
+
+            // create command FIS
+            cmdTable->CommandFIS()->FISType = 0x27;     // identify device?
+            // TODO: finish...
+
+            // update command header
+            header->PRDTL(1);   // one physical region descriptor table (PRDT length=1)
+            header->PMP(0);     // no port multiplier
+
+            // flags = 0
+            header->C(0);
+            header->B(0);
+            header->R(0);
+            header->P(0);
+            header->W(0);
+            header->A(0);
+
+            // PRDBC initialized to 0 by software (me) here, but updated by hardware
+            // as the transfer occurrs
+            header->PRDBC(0);   // PRD byte count
+            header->CFL(5);     // command FIS length of 5 DWORDS
+            header->CTBA(commandTablePhys);     // set command table base address
+
             // pick a command header and go...
             //ahciDev._portMemory[0]->CommandList[0].PRDTL(5);
             // JUST PICK A SPOT AND HARDCODE A DEVICE THERE TO GET STARTED...

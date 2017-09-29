@@ -73,6 +73,8 @@ struct PxCMDRegister
 
     // todo: fill in remaining bits...
 
+    inline int CR()     { return (value >> 15) & 0x1; } // command list running
+    inline int FRE()    { return (value >> 4) & 0x1; }  // FIS receive enable
     inline int ST()     { return (value >> 0) & 0x1; }  // start
 
 } __attribute__((packed));
@@ -147,11 +149,6 @@ struct CommandHeader
     uint32_t DW7;
 
     int PRDTL() { return (DW0 >> 16) & 0xFFFF; }    // count of PRD table entries in command table
-    void PRDTL(int value)
-    {
-        DW0 = ((value << 16) & 0xFFFF0000) | (DW0 & 0x0000FFFF);
-    }
-
     int PMP()   { return (DW0 >> 12) & 0x000F; }
     int C()     { return (DW0 >> 10) & 0x0001; }
     int B()     { return (DW0 >>  9) & 0x0001; }
@@ -161,7 +158,18 @@ struct CommandHeader
     int A()     { return (DW0 >>  5) & 0x0001; }
     int CFL()   { return (DW0 >>  0) & 0x001F; }
 
+    void PRDTL(int value)   { DW0 = ((value & 0xFFFF)   << 16) | (DW0 & 0x0000'FFFF); }
+    void PMP(int value)     { DW0 = ((value & 0xF)      << 12) | (DW0 & 0xFFFF'0FFF); }
+    void C(int value)       { DW0 = ((value & 0x1)      << 10) | (DW0 & 0xFFFF'FBFF); }
+    void B(int value)       { DW0 = ((value & 0x1)      << 9)  | (DW0 & 0xFFFF'FDFF); }
+    void R(int value)       { DW0 = ((value & 0x1)      << 8)  | (DW0 & 0xFFFF'FEFF); }
+    void P(int value)       { DW0 = ((value & 0x1)      << 7)  | (DW0 & 0xFFFF'FF7F); }
+    void W(int value)       { DW0 = ((value & 0x1)      << 6)  | (DW0 & 0xFFFF'FFBF); }
+    void A(int value)       { DW0 = ((value & 0x1)      << 5)  | (DW0 & 0xFFFF'FFDF); }
+    void CFL(int value)     { DW0 = ((value << 0) & 0x1F) | (DW0 & 0xFFFF'FFE0); }
+
     uint32_t PRDBC()    { return DW1; }     // byte count
+    void PRDBC(uint32_t value) { DW1 = value; }
 
     // Command Table Physical Address ------
 
