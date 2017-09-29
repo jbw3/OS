@@ -240,6 +240,9 @@ struct PRD
     bool IOC()  { return (Flags >> 31) & 0x1; }
     int DBC()   { return (Flags >>  0) & 0x3FFFFF; }
 
+    void IOC(bool value) { Flags = ((value & 0x1) << 31) | (Flags & 0x7FFF'FFFF); }
+    void DBC(int value)  { Flags = ((value & 0x3F'FFFF) << 0) | (Flags & 0xFFC0'0000); }
+
 } __attribute__((packed));
 
 struct CommandTable

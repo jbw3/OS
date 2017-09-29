@@ -67,6 +67,8 @@ AhciDriver::AhciDriver()
             ahciRegs->portRegs[0].PxCLB = pageAddrPhys;     // point to command list
             ahciRegs->portRegs[0].PxFB = pageAddrPhys + (sizeof(CommandHeader)*32);     // point to receive FIS
 
+            screen << "Receive FIS Phys: 0x" << ahciRegs->portRegs[0].PxFB << "\n";
+
             screen << "sizeof(CommandHeader)*32: 0x" << sizeof(CommandHeader)*32 << "\n";
 
             // set up AhciDevice instance for access later on...
@@ -119,22 +121,40 @@ AhciDriver::AhciDriver()
                 cmdTable->_CommandPacket[i] = 0;
             }
 
-            uint8_t dataBuffer[512];
-            uint32_t dataBufferPhysAddr = 0;    // TODO: getPhysAddr(dataBuffer)
+            // allocate data buffer
+            uint32_t dataBufferPhysAddr = PageFrameMgr::get()->allocPageFrame();
+            if (currentPT.isFull())
+            {
+                PANIC("Page table full - not handling this properly in AHCI driver!");
+            }
+
+            char* dataBuffer = (char*)currentPT.mapNextAvailablePageToAddress(dataBufferPhysAddr);
+            screen << "DataBuffer phys: " << dataBufferPhysAddr << "\n";
+            screen << "DataBuffer @0x" << (uint32_t)dataBuffer << "\n";
 
             cmdTable->getPRDTableArray()[0].DBA = dataBufferPhysAddr;    // phys address of buffer for identify data
-            //cmdTable->getPRDTableArray()[0].Flags
-
-
-            // --------------------------------
-            // PICK UP HERE ^^^
-            // --------------------------------
-
-
+            cmdTable->getPRDTableArray()[0].IOC(false);
+            cmdTable->getPRDTableArray()[0].DBC(512-1);
 
             // create command FIS
+            // todo: create zeroOut() function, then just set members that I'm actually using
             cmdTable->CommandFIS()->FISType = 0x27;     // identify device?
-            // TODO: finish...
+            cmdTable->CommandFIS()->Flags = 0xC;
+            cmdTable->CommandFIS()->Command = 0xEC;
+            cmdTable->CommandFIS()->Features = 0;
+            cmdTable->CommandFIS()->LBA0_SectorNum = 0;
+            cmdTable->CommandFIS()->LBA1_CylLow = 0;
+            cmdTable->CommandFIS()->LBA2_CylHigh = 0;
+            cmdTable->CommandFIS()->DevHead = 0xA0;
+            cmdTable->CommandFIS()->LBA3_SectorNumExp = 0;
+            cmdTable->CommandFIS()->LBA4_CylLowExp = 0;
+            cmdTable->CommandFIS()->LBA5_CylHighExp = 0;
+            cmdTable->CommandFIS()->FeaturesExp = 0;
+            cmdTable->CommandFIS()->SectorCountLow = 0;
+            cmdTable->CommandFIS()->SectorCountHigh = 0;
+            cmdTable->CommandFIS()->Reserved = 0;
+            cmdTable->CommandFIS()->Control = 0x08;
+            cmdTable->CommandFIS()->Reserved2 = 0;
 
             // update command header
             header->PRDTL(1);   // one physical region descriptor table (PRDT length=1)
@@ -153,6 +173,19 @@ AhciDriver::AhciDriver()
             header->PRDBC(0);   // PRD byte count
             header->CFL(5);     // command FIS length of 5 DWORDS
             header->CTBA(commandTablePhys);     // set command table base address
+
+            // check BSY and DRQ
+            screen << "Port regs: " << (uint32_t)regs << "\n";
+            screen << "BSY: " << (regs->PxTFD & (0x1 << 7)) << "\n";
+            screen << "DRQ: " << (regs->PxTFD & (0x1 << 3)) << "\n";
+            screen << "PxCI: " << regs->PxCI << "\n";
+            screen << "TFES: " << (regs->PxIS & (0x1 << 30)) << "\n";
+            regs->PxCI |= 0x1;
+            screen << "PxCI: " << regs->PxCI << "\n";
+            screen << "PxCI: " << regs->PxCI << "\n";
+            screen << "PxCI: " << regs->PxCI << "\n";
+            screen << "PxCI: " << regs->PxCI << "\n";
+            screen << "TFES: " << (regs->PxIS & (0x1 << 30)) << "\n";
 
             // pick a command header and go...
             //ahciDev._portMemory[0]->CommandList[0].PRDTL(5);
