@@ -25,6 +25,15 @@ AhciDriver::AhciDriver()
             dev->printDeviceInfo(false);
 
             AhciDeviceRegs* ahciRegs = mapAhciDevice(dev);
+
+            // -------------------------------------------------------------
+            // TODO:
+            // Create an initHBA() function, move applicable code over, and
+            // clean up everything. When cleaning up:
+            // 1. Follow System SW Initialization Steps exactly to init HBA
+            // 2. If that doesn't work, try an HBA reset
+            // -------------------------------------------------------------
+
             ahciRegs->genericHostControl.GHC |= 1 << 31;    // set GHC.AE
             screen << "AHCI version: 0x" << ahciRegs->genericHostControl.VS << "\n";
             screen << "SAM: " << (int)ahciRegs->genericHostControl.CAP.SAM() << "\n";
@@ -66,9 +75,14 @@ AhciDriver::AhciDriver()
             // note: I can currently fit 2 PortSystemMemory structures in a single page,
             // or do 1 per page with some extra room to store other info at the bottom?
 
+            screen << "PxCLB: " << ahciRegs->portRegs[PORT].PxCLB << "\n";
+            screen << "PxFB: " << ahciRegs->portRegs[PORT].PxFB << "\n";
 
             ahciRegs->portRegs[PORT].PxCLB = pageAddrPhys;     // point to command list
             ahciRegs->portRegs[PORT].PxFB = pageAddrPhys + (sizeof(CommandHeader)*32);     // point to receive FIS
+
+            screen << "PxCLB: " << ahciRegs->portRegs[PORT].PxCLB << "\n";
+            screen << "PxFB: " << ahciRegs->portRegs[PORT].PxFB << "\n";
 
             screen << "Receive FIS Phys: 0x" << ahciRegs->portRegs[PORT].PxFB << "\n";
 
@@ -118,7 +132,7 @@ AhciDriver::AhciDriver()
             }
 
             // set up command table
-            CommandTable* cmdTable = (CommandTable*)currentPT.mapNextAvailablePageToAddress(pageAddrPhys);
+            CommandTable* cmdTable = (CommandTable*)currentPT.mapNextAvailablePageToAddress(commandTablePhys);  // was pageAddrPhys...why???
             for (int i = 0; i < 16; i++)
             {
                 cmdTable->_CommandPacket[i] = 0;
