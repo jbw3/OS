@@ -7,6 +7,8 @@
 #include "system.h"
 #include "vmem.h"
 
+#define PORT 0
+
 using namespace ahci;
 
 AhciDriver::AhciDriver()
@@ -23,6 +25,7 @@ AhciDriver::AhciDriver()
             dev->printDeviceInfo(false);
 
             AhciDeviceRegs* ahciRegs = mapAhciDevice(dev);
+            ahciRegs->genericHostControl.GHC |= 1 << 31;    // set GHC.AE
             screen << "AHCI version: 0x" << ahciRegs->genericHostControl.VS << "\n";
             screen << "SAM: " << (int)ahciRegs->genericHostControl.CAP.SAM() << "\n";
             //screen << "NumPorts field: " << ahciRegs->genericHostControl.CAP.NP() << "\n";
@@ -38,7 +41,7 @@ AhciDriver::AhciDriver()
             // TODO: MAP PORTS!!
             //mem::autoMapKernelPageForAddress()
 
-            screen << "Port type: " << ahciRegs->portRegs[0].getSigString() << "\n";
+            screen << "Port type: " << ahciRegs->portRegs[PORT].getSigString() << "\n";
             screen << os::Screen::dec;
 
             // max command slots I can allocate for each port
@@ -64,23 +67,23 @@ AhciDriver::AhciDriver()
             // or do 1 per page with some extra room to store other info at the bottom?
 
 
-            ahciRegs->portRegs[0].PxCLB = pageAddrPhys;     // point to command list
-            ahciRegs->portRegs[0].PxFB = pageAddrPhys + (sizeof(CommandHeader)*32);     // point to receive FIS
+            ahciRegs->portRegs[PORT].PxCLB = pageAddrPhys;     // point to command list
+            ahciRegs->portRegs[PORT].PxFB = pageAddrPhys + (sizeof(CommandHeader)*32);     // point to receive FIS
 
-            screen << "Receive FIS Phys: 0x" << ahciRegs->portRegs[0].PxFB << "\n";
+            screen << "Receive FIS Phys: 0x" << ahciRegs->portRegs[PORT].PxFB << "\n";
 
             screen << "sizeof(CommandHeader)*32: 0x" << sizeof(CommandHeader)*32 << "\n";
 
             // set up AhciDevice instance for access later on...
             AhciDevice ahciDev;
             ahciDev._devRegs = ahciRegs;
-            ahciDev._portMemoryPhysAddr[0] = pageAddrPhys;
-            ahciDev._portMemory[0] = (PortSystemMemory*)pageAddr;
+            ahciDev._portMemoryPhysAddr[PORT] = pageAddrPhys;
+            ahciDev._portMemory[PORT] = (PortSystemMemory*)pageAddr;
 
             // test command
-            CommandHeader* header = &ahciDev._portMemory[0]->CommandList[0];
-            AhciPortRegs* regs = &ahciDev._devRegs->portRegs[0];
-            screen << "Port 0 PxCI: 0x" << ahciDev._devRegs->portRegs[0].PxCI << "\n";
+            CommandHeader* header = &ahciDev._portMemory[PORT]->CommandList[0];
+            AhciPortRegs* regs = &ahciDev._devRegs->portRegs[PORT];
+            screen << "Port 0 PxCI: 0x" << ahciDev._devRegs->portRegs[PORT].PxCI << "\n";
             screen << "PxCMD.ST: " << regs->PxCMD.ST() << "\n";
             screen << "PxCMD.CR: " << regs->PxCMD.CR() << "\n";
             screen << "PxCMD.FRE: " << regs->PxCMD.FRE() << "\n";
@@ -129,8 +132,14 @@ AhciDriver::AhciDriver()
             }
 
             char* dataBuffer = (char*)currentPT.mapNextAvailablePageToAddress(dataBufferPhysAddr);
-            screen << "DataBuffer phys: " << dataBufferPhysAddr << "\n";
+            //screen << "DataBuffer phys: " << dataBufferPhysAddr << "\n";
             screen << "DataBuffer @0x" << (uint32_t)dataBuffer << "\n";
+
+            dataBuffer[0] = 'c';
+            dataBuffer[1] = 'a';
+            dataBuffer[2] = 'l';
+            dataBuffer[3] = 'e';
+            dataBuffer[4] = 'b';
 
             cmdTable->getPRDTableArray()[0].DBA = dataBufferPhysAddr;    // phys address of buffer for identify data
             cmdTable->getPRDTableArray()[0].IOC(false);
@@ -175,17 +184,23 @@ AhciDriver::AhciDriver()
             header->CTBA(commandTablePhys);     // set command table base address
 
             // check BSY and DRQ
+            screen << "Ports Implemented: 0x" << ahciRegs->genericHostControl.PI << "\n";
+
             screen << "Port regs: " << (uint32_t)regs << "\n";
             screen << "BSY: " << (regs->PxTFD & (0x1 << 7)) << "\n";
             screen << "DRQ: " << (regs->PxTFD & (0x1 << 3)) << "\n";
-            screen << "PxCI: " << regs->PxCI << "\n";
+            //screen << "PxCI: " << regs->PxCI << "\n";
             screen << "TFES: " << (regs->PxIS & (0x1 << 30)) << "\n";
             regs->PxCI |= 0x1;
             screen << "PxCI: " << regs->PxCI << "\n";
             screen << "PxCI: " << regs->PxCI << "\n";
             screen << "PxCI: " << regs->PxCI << "\n";
-            screen << "PxCI: " << regs->PxCI << "\n";
             screen << "TFES: " << (regs->PxIS & (0x1 << 30)) << "\n";
+
+            // ##############################
+            // TODO: check BIOS ownership, try device reset, check everything...
+            // ##############################
+
 
             // pick a command header and go...
             //ahciDev._portMemory[0]->CommandList[0].PRDTL(5);

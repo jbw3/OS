@@ -104,6 +104,7 @@ public:
     /**
      * @brief Maps the next available virtual page to the page
      * frame containing the given physical address.
+     * @param physAddr the physical address to map
      * @returns the virtual address now mapped to the given
      * physical address
      */
