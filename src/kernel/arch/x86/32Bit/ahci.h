@@ -124,7 +124,7 @@ struct AhciPortRegs
     }
 } __attribute__((packed));
 
-struct AhciDeviceRegs
+struct HBAMemoryRegs
 {
     GenericHostControlRegs genericHostControl;
     char reserved[52];
@@ -197,7 +197,7 @@ class AhciDevice
 {
 public:
 // todo: make this private:
-    AhciDeviceRegs* _devRegs;
+    HBAMemoryRegs* _devRegs;
     // indexed by port #
     PortSystemMemory* _portMemory[32];      // reduce?
     uint32_t _portMemoryPhysAddr[32];       // maintain physical addresses

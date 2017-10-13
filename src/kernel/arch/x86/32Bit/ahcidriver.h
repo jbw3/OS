@@ -19,10 +19,19 @@ private:
     /**
      * @brief Maps the given PCI device's AHCI register set
      * into virtual memory and returns a pointer to the
-     * AhciDeviceRegs instance. The supplied PCI device must
+     * HBAMemoryRegs instance. The supplied PCI device must
      * be an AHCI device.
-     * @returns a pointer to the AhciDeviceRegs instance if
+     * @returns a pointer to the HBAMemoryRegs instance if
      * successful. Returns nullptr if unsuccessful.
      */
-    static ahci::AhciDeviceRegs* mapAhciDevice(PciDevice* dev);
+    static ahci::HBAMemoryRegs* mapAhciDevice(PciDevice* dev);
+
+    /**
+     * @brief
+     *
+     * Initializes the HBA.
+     *
+     * @param hba
+     */
+    void initHBA(ahci::HBAMemoryRegs* hba);
 };
