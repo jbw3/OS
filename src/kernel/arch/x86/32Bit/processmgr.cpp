@@ -30,10 +30,10 @@ void ProcessMgr::ProcessInfo::reset()
     parentProcess = nullptr;
     childProcesses.clear();
     exitCode = -1;
-    pageDir = {0, 0};
-    kernelPageTable = {0, 0};
-    lowerPageTable = {0, 0};
-    upperPageTable = {0, 0};
+    pageDir = {0, 0, PageFrameInfo::eOther};
+    kernelPageTable = {0, 0, PageFrameInfo::eOther};
+    lowerPageTable = {0, 0, PageFrameInfo::eOther};
+    upperPageTable = {0, 0, PageFrameInfo::eOther};
     numPages = 0;
     status = eTerminated;
 }
@@ -73,6 +73,19 @@ ProcessMgr::ProcessInfo::PageFrameInfo ProcessMgr::ProcessInfo::getPage(int i) c
 int ProcessMgr::ProcessInfo::getNumPages() const
 {
     return numPages;
+}
+
+int ProcessMgr::ProcessInfo::getNumPagesOfType(PageFrameInfo::eType type) const
+{
+    int count = 0;
+    for (int i = 0; i < numPages; ++i)
+    {
+        if (pages[i].type == type)
+        {
+            ++count;
+        }
+    }
+    return count;
 }
 
 pid_t ProcessMgr::ProcessInfo::getId() const
@@ -266,12 +279,23 @@ bool ProcessMgr::switchCurrentProcessExecutable(const char* path, const char* co
         // get size of new executable
         size_t exeSize = module->mod_end - module->mod_start;
 
-        // get size of current allocated memory
-        int numPages = procInfo->getNumPages();
-        size_t allocMem = procInfo->getNumPages() * PAGE_SIZE;
+        // get current allocated memory size for code
+        int numCodePages = procInfo->getNumPagesOfType(ProcessInfo::PageFrameInfo::eCode);
+        size_t allocMem = numCodePages * PAGE_SIZE;
 
-        // if we don't have enough memory, allocate more
-        uintptr_t virAddr = procInfo->getPage(numPages - 1).virtualAddr + PAGE_SIZE;
+        // find last code page
+        uintptr_t lastCodePageVirAddr = 0;
+        for (int i = 0; i < procInfo->getNumPages(); ++i)
+        {
+            const ProcessInfo::PageFrameInfo& info = procInfo->getPage(i);
+            if (info.type == ProcessInfo::PageFrameInfo::eCode && info.virtualAddr > lastCodePageVirAddr)
+            {
+                lastCodePageVirAddr = info.virtualAddr;
+            }
+        }
+        uintptr_t virAddr = lastCodePageVirAddr + PAGE_SIZE;
+
+        // if we don't have enough memory for code, allocate more
         while (allocMem < exeSize)
         {
             uintptr_t phyAddr = pageFrameMgr->allocPageFrame();
@@ -281,7 +305,7 @@ bool ProcessMgr::switchCurrentProcessExecutable(const char* path, const char* co
                 return false;
             }
 
-            procInfo->addPage({virAddr, phyAddr});
+            procInfo->addPage({virAddr, phyAddr, ProcessInfo::PageFrameInfo::eCode});
             mapPage(lowerPageTable, virAddr, phyAddr, true);
 
             virAddr += PAGE_SIZE;
@@ -544,16 +568,16 @@ bool ProcessMgr::initPaging(ProcessInfo* procInfo, uintptr_t* pageTable)
         switch (i)
         {
         case 0:
-            procInfo->pageDir = {virAddr, phyAddr};
+            procInfo->pageDir = {virAddr, phyAddr, ProcessInfo::PageFrameInfo::eOther};
             break;
         case 1:
-            procInfo->kernelPageTable = {virAddr, phyAddr};
+            procInfo->kernelPageTable = {virAddr, phyAddr, ProcessInfo::PageFrameInfo::eOther};
             break;
         case 2:
-            procInfo->lowerPageTable = {virAddr, phyAddr};
+            procInfo->lowerPageTable = {virAddr, phyAddr, ProcessInfo::PageFrameInfo::eOther};
             break;
         case 3:
-            procInfo->upperPageTable = {virAddr, phyAddr};
+            procInfo->upperPageTable = {virAddr, phyAddr, ProcessInfo::PageFrameInfo::eOther};
             break;
         default:
             PANIC("We shouldn't get here.");
@@ -641,7 +665,7 @@ bool ProcessMgr::setUpProgram(const multiboot_mod_list* module, ProcessInfo* new
             return false;
         }
 
-        newProcInfo->addPage({virAddr, phyAddr});
+        newProcInfo->addPage({virAddr, phyAddr, ProcessInfo::PageFrameInfo::eCode});
         mapPage(lowerPageTable, virAddr, phyAddr, true);
 
         virAddr += PAGE_SIZE;
@@ -660,7 +684,7 @@ bool ProcessMgr::setUpProgram(const multiboot_mod_list* module, ProcessInfo* new
         logError("Could not allocate a page frame for the kernel stack.");
         return false;
     }
-    newProcInfo->addPage({ProcessInfo::KERNEL_STACK_PAGE, kernelStackPhyAddr});
+    newProcInfo->addPage({ProcessInfo::KERNEL_STACK_PAGE, kernelStackPhyAddr, ProcessInfo::PageFrameInfo::eStack});
     mapPage(upperPageTable, ProcessInfo::KERNEL_STACK_PAGE, kernelStackPhyAddr);
 
     // allocate and map a page for the user stack
@@ -670,7 +694,7 @@ bool ProcessMgr::setUpProgram(const multiboot_mod_list* module, ProcessInfo* new
         logError("Could not allocate a page frame for the user stack.");
         return false;
     }
-    newProcInfo->addPage({ProcessInfo::USER_STACK_PAGE, userStackPhyAddr});
+    newProcInfo->addPage({ProcessInfo::USER_STACK_PAGE, userStackPhyAddr, ProcessInfo::PageFrameInfo::eStack});
     mapPage(upperPageTable, ProcessInfo::USER_STACK_PAGE, userStackPhyAddr, true);
 
     return true;
@@ -690,7 +714,7 @@ bool ProcessMgr::copyProcessPages(ProcessInfo* dstProc, ProcessInfo* srcProc)
             return false;
         }
         uintptr_t virAddr = srcPageInfo.virtualAddr;
-        dstProc->addPage({virAddr, dstPhyAddr});
+        dstProc->addPage({virAddr, dstPhyAddr, srcPageInfo.type});
 
         // find page table to map page into
         uintptr_t* dstPageTable = nullptr;

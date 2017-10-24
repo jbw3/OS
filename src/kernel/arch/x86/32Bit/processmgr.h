@@ -57,6 +57,14 @@ public:
         {
             uintptr_t virtualAddr;
             uintptr_t physicalAddr;
+
+            enum eType
+            {
+                eOther,
+                eCode,
+                eData,
+                eStack,
+            } type;
         };
 
         /// Process's parent process.
@@ -81,6 +89,8 @@ public:
         PageFrameInfo getPage(int i) const;
 
         int getNumPages() const;
+
+        int getNumPagesOfType(PageFrameInfo::eType type) const;
 
         pid_t getId() const;
 
