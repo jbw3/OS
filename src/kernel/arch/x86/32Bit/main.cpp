@@ -8,6 +8,7 @@
 #include "keyboard.h"
 #include "pageframemgr.h"
 #include "paging.h"
+#include "processmgr.h"
 #include "screen.h"
 #include "shell.h"
 #include "system.h"
@@ -44,19 +45,25 @@ void kernelMain(const uint32_t MULTIBOOT_MAGIC_NUM, const multiboot_info* mbootI
         return;
     }
 
+    // map multiboot module pages
+    mapModules(mbootInfo);
+
     PageFrameMgr pageFrameMgr(mbootInfo);
 
-    screen.write("Sandbox OS\n");
+    processMgr.setPageFrameMgr(&pageFrameMgr);
+    processMgr.setMultibootInfo(mbootInfo);
 
-    Shell sh(mbootInfo);
+    processMgr.mainloop();
 
-    while (true)
-    {
-        os::Keyboard::processQueue();
+    // Shell sh(mbootInfo);
 
-        sh.update();
+    // while (true)
+    // {
+    //     os::Keyboard::processQueue();
 
-        // halt CPU until an interrupt occurs
-        asm volatile ("hlt");
-    }
+    //     sh.update();
+
+    //     // halt CPU until an interrupt occurs
+    //     asm volatile ("hlt");
+    // }
 }

@@ -7,6 +7,7 @@
 #include "paging.h"
 #include "string.h"
 #include "system.h"
+#include "utils.h"
 
 typedef unsigned int uint;
 
@@ -24,7 +25,7 @@ PageFrameMgr::PageFrameMgr(const multiboot_info* mbootInfo)
     getMultibootMMapInfo(mbootInfo, numPageFrames);
 
     // allocate and initialize all needed page frame blocks at the end of the kernel
-    initDataStruct(memBlocks, numMemBlocks);
+    initDataStruct(mbootInfo, memBlocks, numMemBlocks);
 
     // mark page frame blocks used by kernel
     markKernel();
@@ -91,18 +92,33 @@ void PageFrameMgr::initMemBlocks(const multiboot_info* mbootInfo, MemBlock* memB
 /// @todo This function currently makes the simplifying
 /// assumption that the data struct will fit in memory
 /// right after the kernel
-void PageFrameMgr::initDataStruct(const MemBlock* memBlocks, unsigned int numMemBlocks)
+void PageFrameMgr::initDataStruct(const multiboot_info* mbootInfo, const MemBlock* memBlocks, unsigned int numMemBlocks)
 {
     // get kernel physical end aligned on a 4-byte boundary
-    uint32_t alignedEnd = KERNEL_PHYSICAL_END;
-    if ( (alignedEnd & 0x3) != 0)
-    {
-        alignedEnd = (alignedEnd & ~0x3) + 4;
-    }
+    uint32_t alignedKernelEnd = align(KERNEL_PHYSICAL_END, 4);
 
+    // find end of modules (GRUB puts them in memory after the kernel)
+    uint32_t modulesEnd = 0;
+    uint32_t modAddr = mbootInfo->mods_addr + KERNEL_VIRTUAL_BASE;
+    for (uint32_t i = 0; i < mbootInfo->mods_count; ++i)
+    {
+        const multiboot_mod_list* module = reinterpret_cast<const multiboot_mod_list*>(modAddr);
+
+        if (module->mod_end > modulesEnd)
+        {
+            modulesEnd = module->mod_end;
+        }
+
+        modAddr += sizeof(multiboot_mod_list);
+    }
+    uint32_t alignedModulesEnd = align(modulesEnd, 4);
+
+    uint32_t alignedEnd = (alignedModulesEnd > alignedKernelEnd) ? alignedModulesEnd : alignedKernelEnd;
+
+    // use the space after the kernel for the page frame block array
     blocks = reinterpret_cast<PageFrameBlock*>(alignedEnd + KERNEL_VIRTUAL_BASE);
 
-    // find the last kernel page
+    // find the last mapped page
     uint32_t pageEnd = alignedEnd;
     if ( (pageEnd & ~PAGE_BOUNDARY_MASK) != 0 )
     {
@@ -118,7 +134,7 @@ void PageFrameMgr::initDataStruct(const MemBlock* memBlocks, unsigned int numMem
         blocksEnd += sizeof(PageFrameBlock);
         if (blocksEnd >= pageEnd)
         {
-            mapPage(getKernelPageDirStart(), pageEnd + KERNEL_VIRTUAL_BASE, pageEnd);
+            mapPage(getKernelPageTableStart(), pageEnd + KERNEL_VIRTUAL_BASE, pageEnd);
             pageEnd += PAGE_SIZE;
         }
 
@@ -156,7 +172,7 @@ void PageFrameMgr::initDataStruct(const MemBlock* memBlocks, unsigned int numMem
     // map pages containing the isAlloc arrays
     for (unsigned int i = 0; i < pagesNeeded; ++i)
     {
-        mapPage(getKernelPageDirStart(), pageEnd + KERNEL_VIRTUAL_BASE, pageEnd);
+        mapPage(getKernelPageTableStart(), pageEnd + KERNEL_VIRTUAL_BASE, pageEnd);
         pageEnd += PAGE_SIZE;
     }
 

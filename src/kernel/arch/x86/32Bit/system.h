@@ -51,6 +51,16 @@ uint32_t getStackOffset();
 uint32_t getRegCR2();
 
 /**
+ * @brief Switch to user mode (privilege level 3).
+ */
+void switchToUserMode(uintptr_t userStackAddr, uintptr_t* currentStackAddr);
+
+/**
+ * @brief Switch to the given process's stack.
+ */
+void switchToProcessStack(uintptr_t newStackAddr, uintptr_t* currentStackAddr);
+
+/**
  * @todo move this to libstdc++
  */
 void __cxa_pure_virtual();

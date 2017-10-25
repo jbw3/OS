@@ -12,6 +12,9 @@ BINDIR = ../../../lib
 # -MF:  the name of the dependency file
 C_DEPFLAGS = -MT $@ -MMD -MP -MF $(DEPDIR)/$(notdir $<).Td
 
+# assembler flags for generating dependency makefiles
+A_DEPFLAGS = -MT $@ -MD $(DEPDIR)/$(notdir $<).Td -MP
+
 # directory to search for dependencies
 VPATH = $(SRCDIR) include
 
@@ -22,6 +25,9 @@ CFLAGS = $(INCLUDES) -std=c11 -ffreestanding -Wall -Wextra $(C_DEPFLAGS)
 
 CXX = i686-elf-g++
 CXXFLAGS = $(INCLUDES) -std=c++1z -ffreestanding -Wall -Wextra -fno-exceptions -fno-rtti $(C_DEPFLAGS)
+
+AS = nasm
+ASFLAGS = -f elf32 -I$(SRCDIR)/ $(A_DEPFLAGS)
 
 # After compiling, rename the temporary dependency file to its actual name.
 # This is so compilation failures will not result in a corrupted dependency file.
@@ -62,6 +68,10 @@ $(OBJDIR)/%.c.o: %.c $(DEPDIR)/%.c.d
 
 $(OBJDIR)/%.cpp.o: %.cpp $(DEPDIR)/%.cpp.d
 	$(CXX) -c $< $(CXXFLAGS) -o $@
+	$(POSTCOMPILE)
+
+$(OBJDIR)/%.s.o: %.s $(DEPDIR)/%.s.d
+	$(AS) $< $(ASFLAGS) -o $@
 	$(POSTCOMPILE)
 
 # rule for dependency files (this is here to keep make happy)

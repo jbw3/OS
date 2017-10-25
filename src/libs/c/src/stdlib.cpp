@@ -1,5 +1,9 @@
 #include <ctype.h>
 #include <stdlib.h>
+#include "systemcall.h"
+
+extern "C"
+{
 
 int abs(int n)
 {
@@ -59,6 +63,11 @@ static char charToDigit(char ch)
     return ch;
 }
 
+void exit(int status)
+{
+    systemCall(SYSTEM_CALL_EXIT, status);
+}
+
 /**
  * @todo Check for num beyond max/min
  */
@@ -73,10 +82,7 @@ long strtol(const char* str, char** strEnd, int base)
     {
         if (strEnd != NULL)
         {
-#pragma GCC diagnostic push
-#pragma GCC diagnostic ignored "-Wdiscarded-qualifiers"
-            *strEnd = str;
-#pragma GCC diagnostic pop
+            *strEnd = const_cast<char*>(str);
         }
         return 0;
     }
@@ -129,10 +135,7 @@ long strtol(const char* str, char** strEnd, int base)
     {
         if (strEnd != NULL)
         {
-#pragma GCC diagnostic push
-#pragma GCC diagnostic ignored "-Wdiscarded-qualifiers"
-            *strEnd = str;
-#pragma GCC diagnostic pop
+            *strEnd = const_cast<char*>(str);
         }
         return 0;
     }
@@ -154,11 +157,10 @@ long strtol(const char* str, char** strEnd, int base)
 
     if (strEnd != NULL)
     {
-#pragma GCC diagnostic push
-#pragma GCC diagnostic ignored "-Wdiscarded-qualifiers"
-        *strEnd = str + idx;
-#pragma GCC diagnostic pop
+        *strEnd = const_cast<char*>(str + idx);
     }
 
     return num;
 }
+
+} // extern "C"

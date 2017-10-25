@@ -34,6 +34,10 @@
 #define PAGE_TABLE_READ_WRITE    0x00000002
 #define PAGE_TABLE_PRESENT       0x00000001
 
+#define PAGE_ERROR_PRESENT (0x1)
+#define PAGE_ERROR_WRITE   (0x2)
+#define PAGE_ERROR_USER    (0x4)
+
 struct multiboot_info;
 
 extern "C"
@@ -91,12 +95,17 @@ void mapPageTable(uint32_t* pageDir, uint32_t pageTable, int pageDirIdx, bool us
 /**
  * @brief Map a page in a page table.
  */
-void mapPage(const uint32_t* pageDir, uint32_t virtualAddr, uint32_t physicalAddr, bool user = false);
+void mapPage(uint32_t* pageTable, uint32_t virtualAddr, uint32_t physicalAddr, bool user = false);
+
+/**
+ * @brief Map a page in the first available page table entry and return the virtual address.
+ */
+bool mapPage(int pageDirIdx, uint32_t* pageTable, uint32_t& virtualAddr, uint32_t physicalAddr, bool user = false);
 
 /**
  * @brief Unmap a page from a page table.
  */
-void unmapPage(const uint32_t* pageDir, uint32_t virtualAddr);
+void unmapPage(uint32_t* pageTable, uint32_t virtualAddr);
 
 /**
  * @brief Map Multiboot modules

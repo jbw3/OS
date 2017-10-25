@@ -10,8 +10,8 @@
 %macro ISR_NOERRCODE 1	; define a macro taking one parameter
 global isr%1
 isr%1:
-	push byte 0			; push a dummy 0 value in place of an error code
-	push byte %1		; push the interrupt number
+	push 0				; push a dummy 0 value in place of an error code
+	push %1				; push the interrupt number
 	jmp isrCommonStub
 %endmacro
 
@@ -21,7 +21,7 @@ isr%1:
 %macro ISR_ERRCODE 1	; define a macro taking one parameter
 global isr%1
 isr%1:
-	push byte %1		; push the interrupt number
+	push %1				; push the interrupt number
 	jmp isrCommonStub
 %endmacro
 
@@ -30,8 +30,8 @@ isr%1:
 %macro IRQ 2
 global irq%1
 irq%1:
-	push byte 0			; push a dummy 0 value in place of an error code
-	push byte %2		; push the interrupt number
+	push 0				; push a dummy 0 value in place of an error code
+	push %2				; push the interrupt number
 	jmp irqCommonStub
 %endmacro
 
@@ -107,39 +107,77 @@ irqCommonStub:
 	iret				; pops 5 things at once: CS, EIP, EFLAGS, SS, and ESP
 						; (these are pushed automatically by the processor)
 
+; system call interrupt handler
+extern systemCallHandler
+global isr128
+isr128:
+	mov ecx, [esp + 12]	; get the user process stack pointer
+
+	mov dx, ds			; mov ds to lower 16-bits of edx
+	push edx			; save the data segment descriptor
+
+	mov dx, 16			; load the kernel data segment descriptor
+	mov ds, dx
+	mov es, dx
+	mov fs, dx
+	mov gs, dx
+
+	; push function arguments
+	mov edx, ecx
+	add edx, 12
+	push dword edx			; push argPtr
+	push dword [ecx + 8]	; push numArgs
+	push dword [ecx + 4]	; push sysCallNum
+
+	call systemCallHandler	; call the system call handler
+	; DO NOT USE eax AFTER THE FUNCTION CALL!!! IT CONTAINS
+	; THE RETURN CODE.
+
+	; clean up pushed function arguments
+	add esp, 12
+
+	pop edx				; reload the original data segment descriptor
+	mov ds, dx
+	mov es, dx
+	mov fs, dx
+	mov gs, dx
+
+	iret				; pops 5 things at once: CS, EIP, EFLAGS, SS, and ESP
+						; (these are pushed automatically by the processor)
+
 ; define 32 basic ISRs
-ISR_NOERRCODE  0
-ISR_NOERRCODE  1
-ISR_NOERRCODE  2
-ISR_NOERRCODE  3
-ISR_NOERRCODE  4
-ISR_NOERRCODE  5
-ISR_NOERRCODE  6
-ISR_NOERRCODE  7
-ISR_ERRCODE    8
-ISR_NOERRCODE  9
-ISR_ERRCODE   10
-ISR_ERRCODE   11
-ISR_ERRCODE   12
-ISR_ERRCODE   13
-ISR_ERRCODE   14
-ISR_NOERRCODE 15
-ISR_NOERRCODE 16
-ISR_ERRCODE   17
-ISR_NOERRCODE 18
-ISR_NOERRCODE 19
-ISR_NOERRCODE 20
-ISR_NOERRCODE 21
-ISR_NOERRCODE 22
-ISR_NOERRCODE 23
-ISR_NOERRCODE 24
-ISR_NOERRCODE 25
-ISR_NOERRCODE 26
-ISR_NOERRCODE 27
-ISR_NOERRCODE 28
-ISR_NOERRCODE 29
-ISR_ERRCODE   30
-ISR_NOERRCODE 31
+ISR_NOERRCODE   0
+ISR_NOERRCODE   1
+ISR_NOERRCODE   2
+ISR_NOERRCODE   3
+ISR_NOERRCODE   4
+ISR_NOERRCODE   5
+ISR_NOERRCODE   6
+ISR_NOERRCODE   7
+ISR_ERRCODE     8
+ISR_NOERRCODE   9
+ISR_ERRCODE    10
+ISR_ERRCODE    11
+ISR_ERRCODE    12
+ISR_ERRCODE    13
+ISR_ERRCODE    14
+ISR_NOERRCODE  15
+ISR_NOERRCODE  16
+ISR_ERRCODE    17
+ISR_NOERRCODE  18
+ISR_NOERRCODE  19
+ISR_NOERRCODE  20
+ISR_NOERRCODE  21
+ISR_NOERRCODE  22
+ISR_NOERRCODE  23
+ISR_NOERRCODE  24
+ISR_NOERRCODE  25
+ISR_NOERRCODE  26
+ISR_NOERRCODE  27
+ISR_NOERRCODE  28
+ISR_NOERRCODE  29
+ISR_ERRCODE    30
+ISR_NOERRCODE  31
 
 ; define IRQs
 IRQ  0, 32

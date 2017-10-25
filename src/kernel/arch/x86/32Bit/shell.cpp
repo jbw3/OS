@@ -1,9 +1,11 @@
 #include "debug.h"
 #include "paging.h"
+#include "processmgr.h"
 #include "screen.h"
 #include "shell.h"
 #include "stdlib.h"
 #include "string.h"
+#include "system.h"
 #include "timer.h"
 
 class Command
@@ -300,7 +302,7 @@ show ticks
                 }
                 else
                 {
-                    printPageDir(startIdx, endIdx);
+                    printPageDir(getKernelPageDirStart(), startIdx, endIdx);
                 }
             }
         }
@@ -334,7 +336,7 @@ show ticks
                 }
                 else
                 {
-                    printPageTable(pageDirIdx, startIdx, endIdx);
+                    printPageTable(getKernelPageDirStart(), pageDirIdx, startIdx, endIdx);
                 }
             }
         }
@@ -519,11 +521,11 @@ void Shell::processCmd()
         // look for program
         if (!found)
         {
-            uint32_t progAddr = 0;
-            found = findProgram(token, progAddr);
+            const multiboot_mod_list* module = nullptr;
+            found = findProgram(token, module);
             if (found)
             {
-                runProgram(progAddr);
+                runProgram(module);
             }
         }
 
@@ -537,22 +539,22 @@ void Shell::processCmd()
     prompt();
 }
 
-bool Shell::findProgram(const char* name, uint32_t& progAddr)
+bool Shell::findProgram(const char* name, const multiboot_mod_list*& module)
 {
     bool found = false;
-    uint32_t addr = mbootInfo->mods_addr;
+    uint32_t addr = mbootInfo->mods_addr + KERNEL_VIRTUAL_BASE;
     uint32_t count = mbootInfo->mods_count;
 
     for (uint32_t i = 0; i < count; ++i)
     {
         // get module info struct
-        const multiboot_mod_list* module = reinterpret_cast<const multiboot_mod_list*>(addr);
+        const multiboot_mod_list* modulePtr = reinterpret_cast<const multiboot_mod_list*>(addr);
 
         // check if name matches
-        const char* modName = reinterpret_cast<const char*>(module->cmdline);
+        const char* modName = reinterpret_cast<const char*>(modulePtr->cmdline + KERNEL_VIRTUAL_BASE);
         if (strcmp(name, modName) == 0)
         {
-            progAddr = module->mod_start;
+            module = modulePtr;
             found = true;
             break;
         }
@@ -563,11 +565,9 @@ bool Shell::findProgram(const char* name, uint32_t& progAddr)
     return found;
 }
 
-void Shell::runProgram(uint32_t addr)
+void Shell::runProgram(const multiboot_mod_list* module)
 {
-    programPtr program = reinterpret_cast<programPtr>(addr);
-    int rc = program();
-    screen << "Return code: " << rc << '\n';
+    processMgr.createProcess(module);
 }
 
 void Shell::displayHelp()

@@ -58,7 +58,7 @@ debug: CONFIG = debug
 SRC = $(sort $(notdir $(wildcard $(SRCDIR)/*.c $(SRCDIR)/*.cpp $(SRCDIR)/*.s)))
 
 # source files without crti.s and crtn.s
-NO_CRT_SRC = $(patsubst crt%.s,,$(SRC))
+NO_CRT_SRC = $(filter-out crt%.s,$(SRC))
 
 CRTBEGIN_OBJ = $(shell $(CXX) $(CXXFLAGS) -print-file-name=crtbegin.o)
 CRTEND_OBJ = $(shell $(CXX) $(CXXFLAGS) -print-file-name=crtend.o)

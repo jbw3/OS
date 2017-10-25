@@ -18,6 +18,8 @@ long long llabs(long long n);
 
 int atoi(const char* str);
 
+void exit(int status);
+
 long strtol(const char* str, char** strEnd, int base);
 
 #ifdef __cplusplus
