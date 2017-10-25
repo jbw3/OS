@@ -9,37 +9,32 @@ def stripPackExt(name):
                 return name.rstrip(ext)
     return name
 
-def getBinutilsFilename(verStr):
-    return 'binutils-{}.tar.bz2'.format(verStr)
+def getBinutilsBaseFilename(verStr):
+    return 'binutils-{}'.format(verStr)
 
-def getGccFilename(verStr):
-    return 'gcc-{}.tar.bz2'.format(verStr)
+def getGccBaseFilename(verStr):
+    return 'gcc-{}'.format(verStr)
 
-def getBinutilsUrl(verStr):
-    filename = getBinutilsFilename(verStr)
-    return 'http://ftp.gnu.org/gnu/binutils/{}'.format(filename)
+def getBinutilsBaseUrl(verStr):
+    filename = getBinutilsBaseFilename(verStr)
+    return 'https://mirrors.ocf.berkeley.edu/gnu/binutils/{}'.format(filename)
 
-def getGccUrl(verStr):
-    filename = getGccFilename(verStr)
-    return 'http://mirrors.concertpass.com/gcc/releases/gcc-{}/{}'.format(verStr, filename)
+def getGccBaseUrl(verStr):
+    filename = getGccBaseFilename(verStr)
+    return 'https://mirrors.ocf.berkeley.edu/gnu/gcc/gcc-{}/{}'.format(verStr, filename)
 
-def downloadFile(name, url, filename):
-    ok = False
-    print('Downloading {}...'.format(name), end='', flush=True)
-
+def downloadFile(url, filename):
     try:
         urllib.request.urlretrieve(url, filename)
     except urllib.error.HTTPError:
-        print('error.')
+        return False
     else:
-        ok = True
-        print('done.')
+        return True
 
-    return ok
-
-class Builder(object):
+class Builder:
     CONFIG_DIRECTORY = os.path.expanduser(os.path.join('~', '.build-gcc'))
     CACHE_DIRECTORY = os.path.join(CONFIG_DIRECTORY, 'cache')
+    ARCHIVE_EXTENSIONS = ('.tar.xz', '.tar.bz2', '.tar.gz')
 
     def __init__(self, args):
         self.args = args
@@ -49,32 +44,56 @@ class Builder(object):
         self.subprocStdout = None if self.args.verbose else subprocess.DEVNULL
         self.cachedFiles = []
 
+    def _downloadDependency(self, name, baseUrl, basePath):
+        print('Downloading {}...'.format(name), end='', flush=True)
+
+        ok = False
+        for ext in Builder.ARCHIVE_EXTENSIONS:
+            url = baseUrl + ext
+            path = basePath + ext
+            ok = downloadFile(url, path)
+            if ok:
+                break
+
+        if not ok:
+            print('error.')
+            sys.exit(1)
+
+        print('done.')
+        return path
+
+    def _getDependency(self, name, baseFilename, baseUrl):
+        isCached = False
+
+        # check for cached file
+        for ext in Builder.ARCHIVE_EXTENSIONS:
+            filename = baseFilename + ext
+            path = os.path.join(Builder.CACHE_DIRECTORY, filename)
+            if os.path.exists(path):
+                isCached = True
+                break
+
+        # download file
+        if not isCached:
+            basePath = os.path.join(Builder.CACHE_DIRECTORY, baseFilename)
+            path = self._downloadDependency(name, baseUrl, basePath)
+            self.cachedFiles.append(path)
+
+        return path
+
     def _getDependencies(self):
         # create cache directory if it does not already exist
         os.makedirs(Builder.CACHE_DIRECTORY, exist_ok=True)
 
-        binutilsFilename = getBinutilsFilename(self.args.binutils_version)
-        gccFilename = getGccFilename(self.args.gcc_version)
+        # get binutils
+        binutilsBaseFilename = getBinutilsBaseFilename(self.args.binutils_version)
+        binutilsBaseUrl = getBinutilsBaseUrl(self.args.binutils_version)
+        self.binutilsPath = self._getDependency('Binutils', binutilsBaseFilename, binutilsBaseUrl)
 
-        self.binutilsPath = os.path.join(Builder.CACHE_DIRECTORY, binutilsFilename)
-        self.gccPath = os.path.join(Builder.CACHE_DIRECTORY, gccFilename)
-
-        binutilsUrl = getBinutilsUrl(self.args.binutils_version)
-        gccUrl = getGccUrl(self.args.gcc_version)
-
-        # download binutils if needed
-        if not os.path.exists(self.binutilsPath):
-            ok = downloadFile('Binutils', binutilsUrl, self.binutilsPath)
-            if not ok:
-                sys.exit(1)
-            self.cachedFiles.append(self.binutilsPath)
-
-        # download GCC if needed
-        if not os.path.exists(self.gccPath):
-            ok = downloadFile('GCC', gccUrl, self.gccPath)
-            if not ok:
-                sys.exit(1)
-            self.cachedFiles.append(self.gccPath)
+        # get GCC
+        gccBaseFilename = getGccBaseFilename(self.args.gcc_version)
+        gccBaseUrl = getGccBaseUrl(self.args.gcc_version)
+        self.gccPath = self._getDependency('GCC', gccBaseFilename, gccBaseUrl)
 
     def _processSrc(self, src):
         if os.path.isdir(src):
@@ -218,8 +237,8 @@ Tool to build GCC and its dependencies.
     parser = argparse.ArgumentParser(description=DESCRIPTION,
                                      epilog=EPILOG,
                                      formatter_class=argparse.RawTextHelpFormatter)
-    parser.add_argument('-b', '--binutils-version', default='2.28', help='the binutils version')
-    parser.add_argument('-g', '--gcc-version', default='6.3.0', help='the GCC version')
+    parser.add_argument('-b', '--binutils-version', default='2.29.1', help='the binutils version')
+    parser.add_argument('-g', '--gcc-version', default='7.2.0', help='the GCC version')
     parser.add_argument('-t', '--targets', nargs='+', metavar='TARGET', default=['i686-elf'], help='the target processors (e.g. i686-elf, x86_64-elf, etc.)')
     parser.add_argument('--no-cache', action='store_true', help="don't cache downloaded files")
     parser.add_argument('-o', '--output', default=None, help='the output directory where GCC will be installed')
@@ -229,10 +248,13 @@ Tool to build GCC and its dependencies.
 
     # expand output path
     if args.output is None:
-        outDir = 'gcc-{}'.format(args.gcc_version)
-        args.output = os.path.join('~', 'opt', 'cross', outDir)
+        args.output = os.path.join('~', 'opt', 'cross')
     args.output = os.path.expanduser(args.output)
     args.output = os.path.abspath(args.output)
+
+    # add GCC sub-dir to path
+    outDir = 'gcc-{}'.format(args.gcc_version)
+    args.output = os.path.join(args.output, outDir)
 
     return args
 

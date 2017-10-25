@@ -2,9 +2,9 @@
 
 ## Quick Start
 
-Install and build cross-compiler
+Install and build cross-compiler:
 
-`make install-gcc32`
+`./tools/build-gcc.py`
 
 Build OS (as iso image)
 
@@ -19,14 +19,19 @@ Run in QEMU!
 ### Building the Cross-Compiler
 
 To build the OS kernel you will need a cross-compiler.
-GCC 6.3.0 is the compiler currently being used.
+GCC 7.2.0 is the compiler currently being used.
 Some other compilers or GCC versions will probably work, but note that support for the C11 and C++14 standards is required.
 A script to build a GCC cross-compiler can be found in the tools directory: `build-gcc.py`.
-A tutorial (from which this script was taken) can be found at [OSDev](http://wiki.osdev.org/GCC_Cross-Compiler).
+A tutorial can also be found at [OSDev](http://wiki.osdev.org/GCC_Cross-Compiler).
+Run `build-gcc.py -h` for help and command line options.
 
 ### Assembler
 
 This project uses the NASM assembler.
+On Ubuntu, they can be installed as follows:
+```
+sudo apt install nasm
+```
 
 
 ## Building
