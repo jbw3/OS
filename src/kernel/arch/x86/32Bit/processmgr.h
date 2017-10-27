@@ -160,6 +160,10 @@ public:
      */
     ProcessInfo* getCurrentProcessInfo();
 
+    uint32_t getNumModules() const;
+
+    bool getModuleName(uint32_t index, char* name) const;
+
 private:
     constexpr static int MAX_NUM_PROCESSES = 32;
     ProcessInfo processes[MAX_NUM_PROCESSES];

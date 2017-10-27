@@ -1,3 +1,4 @@
+#include "os.h"
 #include "stdio.h"
 #include "stdlib.h"
 #include "string.h"
@@ -155,6 +156,11 @@ bool Shell::runBuiltInCommand()
         done = true;
         found = true;
     }
+    else if (strcmp(args[0], "help") == 0)
+    {
+        printHelp();
+        found = true;
+    }
 
     return found;
 }
@@ -186,5 +192,17 @@ void Shell::runCommand()
             // wait for child process to finish
             wait(nullptr);
         }
+    }
+}
+
+void Shell::printHelp()
+{
+    int numModules = getNumModules();
+    for (int i = 0; i < numModules; ++i)
+    {
+        char name[128];
+        getModuleName(i, name);
+
+        printf("%s\n", name);
     }
 }

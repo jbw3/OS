@@ -27,6 +27,8 @@ private:
     bool runBuiltInCommand();
 
     void runCommand();
+
+    void printHelp();
 };
 
 #endif // SHELL_H_

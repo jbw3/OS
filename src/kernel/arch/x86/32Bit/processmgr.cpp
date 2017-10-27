@@ -366,6 +366,27 @@ ProcessMgr::ProcessInfo* ProcessMgr::getCurrentProcessInfo()
     return *ProcessInfo::PROCESS_INFO;
 }
 
+uint32_t ProcessMgr::getNumModules() const
+{
+    return mbootInfo->mods_count;
+}
+
+bool ProcessMgr::getModuleName(uint32_t index, char* name) const
+{
+    if (index >= mbootInfo->mods_count)
+    {
+        name[0] = '\0';
+        return false;
+    }
+
+    const multiboot_mod_list* moduleList = reinterpret_cast<const multiboot_mod_list*>(mbootInfo->mods_addr + KERNEL_VIRTUAL_BASE);
+
+    const char* modName = reinterpret_cast<const char*>(moduleList[index].cmdline + KERNEL_VIRTUAL_BASE);
+    strcpy(name, modName);
+
+    return true;
+}
+
 bool ProcessMgr::findModule(const char* name, const multiboot_mod_list*& module)
 {
     bool found = false;

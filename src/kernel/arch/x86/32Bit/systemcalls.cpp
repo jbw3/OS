@@ -27,6 +27,16 @@ pid_t fork()
     return processMgr.forkCurrentProcess();
 }
 
+int getNumModules()
+{
+    return processMgr.getNumModules();
+}
+
+void getModuleName(int index, char* name)
+{
+    processMgr.getModuleName(index, name);
+}
+
 pid_t getpid()
 {
     return processMgr.getCurrentProcessInfo()->getId();
@@ -160,8 +170,8 @@ const void* SYSTEM_CALLS[SYSTEM_CALLS_SIZE] = {
     reinterpret_cast<const void*>(systemcall::getppid),
     reinterpret_cast<const void*>(systemcall::waitpid),
     reinterpret_cast<const void*>(systemcall::execv),
-    nullptr,
-    nullptr,
+    reinterpret_cast<const void*>(systemcall::getNumModules),
+    reinterpret_cast<const void*>(systemcall::getModuleName),
     nullptr,
     nullptr,
     nullptr,
