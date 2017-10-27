@@ -9,6 +9,24 @@
 namespace systemcall
 {
 
+void clearTerminal()
+{
+    screen.clear();
+}
+
+void configTerminal(int background, int foreground)
+{
+    if (background >= 0 && background <= 15)
+    {
+        screen.setBackgroundColor(static_cast<os::Screen::EColor>(background));
+    }
+
+    if (foreground >= 0 && foreground <= 15)
+    {
+        screen.setForegroundColor(static_cast<os::Screen::EColor>(foreground));
+    }
+}
+
 int execv(const char* path, char* const argv[])
 {
     processMgr.switchCurrentProcessExecutable(path, argv);
@@ -25,6 +43,32 @@ void exit(int status)
 pid_t fork()
 {
     return processMgr.forkCurrentProcess();
+}
+
+uint32_t getKey()
+{
+    uint16_t key = 0;
+    bool found = false;
+    while (!found)
+    {
+        found = os::Keyboard::getKey(key);
+        if (!found)
+        {
+            processMgr.yieldCurrentProcess();
+        }
+    }
+
+    return key;
+}
+
+int getNumModules()
+{
+    return processMgr.getNumModules();
+}
+
+void getModuleName(int index, char* name)
+{
+    processMgr.getModuleName(index, name);
 }
 
 pid_t getpid()
@@ -45,11 +89,9 @@ ssize_t read(int fildes, void* buf, size_t nbyte)
         return -1;
     }
 
-    os::Keyboard::processQueue();
-
     char ch;
     size_t idx = 0;
-    while (idx < nbyte && screen.read(ch))
+    while (idx < nbyte && os::Keyboard::getChar(ch))
     {
         reinterpret_cast<char*>(buf)[idx] = ch;
         ++idx;
@@ -160,11 +202,11 @@ const void* SYSTEM_CALLS[SYSTEM_CALLS_SIZE] = {
     reinterpret_cast<const void*>(systemcall::getppid),
     reinterpret_cast<const void*>(systemcall::waitpid),
     reinterpret_cast<const void*>(systemcall::execv),
-    nullptr,
-    nullptr,
-    nullptr,
-    nullptr,
-    nullptr,
+    reinterpret_cast<const void*>(systemcall::getNumModules),
+    reinterpret_cast<const void*>(systemcall::getModuleName),
+    reinterpret_cast<const void*>(systemcall::configTerminal),
+    reinterpret_cast<const void*>(systemcall::clearTerminal),
+    reinterpret_cast<const void*>(systemcall::getKey),
     nullptr,
     nullptr,
 };

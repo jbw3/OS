@@ -1,3 +1,5 @@
+#include <ctype.h>
+#include "os.h"
 #include "stdio.h"
 #include "stdlib.h"
 #include "string.h"
@@ -6,11 +8,85 @@
 
 #include "shell.h"
 
+Shell::Commands::iterator::iterator(int builtInIndex, int moduleIndex)
+{
+    builtInIdx = builtInIndex;
+    moduleIdx = moduleIndex;
+}
+
+Shell::Commands::iterator Shell::Commands::iterator::operator++()
+{
+    if (builtInIdx < Shell::NUM_BUILT_IN_COMMANDS)
+    {
+        ++builtInIdx;
+    }
+    else if (moduleIdx < getNumModules())
+    {
+        ++moduleIdx;
+    }
+
+    return *this;
+}
+
+const char* Shell::Commands::iterator::operator*()
+{
+    if (builtInIdx < Shell::NUM_BUILT_IN_COMMANDS)
+    {
+        return Shell::BUILT_IN_COMMANDS[builtInIdx];
+    }
+    else if (moduleIdx < getNumModules())
+    {
+        getModuleName(moduleIdx, moduleName);
+        return moduleName;
+    }
+    else
+    {
+        return nullptr;
+    }
+}
+
+bool Shell::Commands::iterator::operator==(const Shell::Commands::iterator& other) const
+{
+    return builtInIdx == other.builtInIdx && moduleIdx == other.moduleIdx;
+}
+
+bool Shell::Commands::iterator::operator!=(const Shell::Commands::iterator& other) const
+{
+    return !(*this == other);
+}
+
+Shell::Commands::iterator Shell::Commands::begin()
+{
+    return iterator();
+}
+
+Shell::Commands::iterator Shell::Commands::end()
+{
+    return iterator(Shell::NUM_BUILT_IN_COMMANDS, getNumModules());
+}
+
+const char* Shell::BUILT_IN_COMMANDS[] =
+{
+    "exit",
+    "help",
+    "history"
+};
+
 const char* Shell::PROMPT = "> ";
 
 Shell::Shell()
 {
     cmd[0] = '\0';
+    for (int i = 0; i < MAX_HISTORY_SIZE; ++i)
+    {
+        history[i][0] = '\0';
+    }
+
+    // set history size to 1 (the history includes
+    // the current command being edited)
+    historySize = 1;
+
+    historyIdx = 0;
     done = false;
 }
 
@@ -54,15 +130,60 @@ void Shell::interactiveLoop()
     }
 }
 
+size_t Shell::complete()
+{
+    char bestMatch[MAX_CMD_SIZE] = "";
+    size_t origCmdLen = strlen(cmd);
+
+    for (const char* newCmd : commands)
+    {
+        if (strncmp(cmd, newCmd, origCmdLen) == 0)
+        {
+            if (bestMatch[0] == '\0')
+            {
+                strcpy(bestMatch, newCmd);
+                strcat(bestMatch, " ");
+            }
+            else
+            {
+                size_t j = origCmdLen;
+                while (bestMatch[j] != '\0' && bestMatch[j] == newCmd[j])
+                {
+                    ++j;
+                }
+                bestMatch[j] = '\0';
+            }
+        }
+    }
+
+    if (bestMatch[0] == '\0')
+    {
+        return origCmdLen;
+    }
+
+    strcpy(cmd, bestMatch);
+    size_t newCmdLen = strlen(cmd);
+    for (size_t i = origCmdLen; i < newCmdLen; ++i)
+    {
+        putchar(bestMatch[i]);
+    }
+
+    return newCmdLen;
+}
+
 void Shell::getCommand()
 {
     printf("%s", Shell::PROMPT);
 
+    // reset history index
+    historyIdx = 0;
+
     int cmdSize = 0;
-    char ch = getchar();
-    while (ch != '\n')
+    cmd[0] = '\0';
+    uint16_t key = getKey();
+    while (key != '\n')
     {
-        if (ch == '\b')
+        if (key == '\b')
         {
             if (cmdSize > 0)
             {
@@ -70,17 +191,63 @@ void Shell::getCommand()
                 printf("\b \b");
             }
         }
-        else if (cmdSize < MAX_CMD_SIZE - 1)
+        else if (key == '\t')
         {
+            cmdSize = complete();
+        }
+        else if (key == KEY_UP)
+        {
+            if (historyIdx < historySize - 1)
+            {
+                if (historyIdx == 0)
+                {
+                    strcpy(history[0], cmd);
+                }
+
+                ++historyIdx;
+                const char* newCmd = history[historyIdx];
+                setCommand(newCmd);
+                cmdSize = strlen(newCmd);
+            }
+        }
+        else if (key == KEY_DOWN)
+        {
+            if (historyIdx > 0)
+            {
+                --historyIdx;
+                const char* newCmd = history[historyIdx];
+                setCommand(newCmd);
+                cmdSize = strlen(newCmd);
+            }
+        }
+        else if ( isprint(key) && cmdSize < MAX_CMD_SIZE - 1 )
+        {
+            char ch = static_cast<char>(key);
             cmd[cmdSize++] = ch;
             putchar(ch);
         }
 
-        ch = getchar();
+        cmd[cmdSize] = '\0';
+
+        key = getKey();
     }
 
     putchar('\n');
-    cmd[cmdSize] = '\0';
+}
+
+void Shell::setCommand(const char* newCmd)
+{
+    char chars[MAX_CMD_SIZE * 3 + 1];
+
+    // overwrite current command in terminal
+    size_t cmdLen = strlen(cmd);
+    memset(chars, '\b', cmdLen);
+    memset(chars + cmdLen, ' ', cmdLen);
+    memset(chars + 2 * cmdLen, '\b', cmdLen);
+    chars[3 * cmdLen] = '\0';
+    printf("%s%s", chars, newCmd);
+
+    strcpy(cmd, newCmd);
 }
 
 void Shell::parseCommand()
@@ -155,6 +322,16 @@ bool Shell::runBuiltInCommand()
         done = true;
         found = true;
     }
+    else if (strcmp(args[0], "help") == 0)
+    {
+        printHelp();
+        found = true;
+    }
+    else if (strcmp(args[0], "history") == 0)
+    {
+        printHistory();
+        found = true;
+    }
 
     return found;
 }
@@ -163,12 +340,15 @@ void Shell::runCommand()
 {
     parseCommand();
 
-    if (!runBuiltInCommand())
+    if (args[0] != nullptr)
     {
-        const char* name = args[0];
+        // add command to history
+        addToHistory();
 
-        if (name != nullptr)
+        if (!runBuiltInCommand())
         {
+            const char* name = args[0];
+
             pid_t pid = fork();
             if (pid < 0)
             {
@@ -186,5 +366,60 @@ void Shell::runCommand()
             // wait for child process to finish
             wait(nullptr);
         }
+
+        // shift history to make room for new command
+        shiftHistory();
+    }
+}
+
+void Shell::shiftHistory()
+{
+    if (historySize < MAX_HISTORY_SIZE)
+    {
+        // shift history
+        for (int i = historySize; i > 0; --i)
+        {
+            strcpy(history[i], history[i - 1]);
+        }
+
+        ++historySize;
+    }
+    else
+    {
+        // shift history
+        for (int i = MAX_HISTORY_SIZE - 1; i > 0; --i)
+        {
+            strcpy(history[i], history[i - 1]);
+        }
+    }
+}
+
+void Shell::addToHistory()
+{
+    // copy command to history
+    strcpy(history[0], cmd);
+}
+
+void Shell::printHelp()
+{
+    for (const char* cmdName : commands)
+    {
+        printf(" %s\n", cmdName);
+    }
+}
+
+void Shell::printHistory()
+{
+    // Note: Don't print the last item in the history since
+    // it won't be accessible to the user.
+    int maxIdx = historySize - 1;
+    if (historySize >= MAX_HISTORY_SIZE)
+    {
+        --maxIdx;
+    }
+
+    for (int i = maxIdx; i >= 0; --i)
+    {
+        printf(" %s\n", history[i]);
     }
 }
