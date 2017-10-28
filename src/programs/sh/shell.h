@@ -20,6 +20,8 @@ private:
 
     void interactiveLoop();
 
+    size_t complete();
+
     void getCommand();
 
     void parseCommand();

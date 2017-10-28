@@ -55,6 +55,51 @@ void Shell::interactiveLoop()
     }
 }
 
+size_t Shell::complete()
+{
+    char bestMatch[MAX_CMD_SIZE] = "";
+    size_t origCmdLen = strlen(cmd);
+
+    int numModules = getNumModules();
+    for (int i = 0; i < numModules; ++i)
+    {
+        char moduleName[MAX_CMD_SIZE];
+        getModuleName(i, moduleName);
+
+        if (strncmp(cmd, moduleName, origCmdLen) == 0)
+        {
+            if (bestMatch[0] == '\0')
+            {
+                strcpy(bestMatch, moduleName);
+                strcat(bestMatch, " ");
+            }
+            else
+            {
+                size_t j = origCmdLen;
+                while (bestMatch[j] != '\0' && bestMatch[j] == moduleName[j])
+                {
+                    ++j;
+                }
+                bestMatch[j] = '\0';
+            }
+        }
+    }
+
+    if (bestMatch[0] == '\0')
+    {
+        return origCmdLen;
+    }
+
+    strcpy(cmd, bestMatch);
+    size_t newCmdLen = strlen(cmd);
+    for (size_t i = origCmdLen; i < newCmdLen; ++i)
+    {
+        putchar(bestMatch[i]);
+    }
+
+    return newCmdLen;
+}
+
 void Shell::getCommand()
 {
     printf("%s", Shell::PROMPT);
@@ -70,6 +115,11 @@ void Shell::getCommand()
                 --cmdSize;
                 printf("\b \b");
             }
+        }
+        else if (ch == '\t')
+        {
+            cmd[cmdSize] = '\0';
+            cmdSize = complete();
         }
         else if (cmdSize < MAX_CMD_SIZE - 1)
         {
