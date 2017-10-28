@@ -26,6 +26,8 @@ enum EColor
     eWhite        = 15,
 };
 
+void clearTerminal();
+
 int getNumModules();
 
 void getModuleName(int index, char* name);

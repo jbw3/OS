@@ -9,6 +9,11 @@
 namespace systemcall
 {
 
+void clearTerminal()
+{
+    screen.clear();
+}
+
 void configTerminal(int background, int foreground)
 {
     if (background >= 0 && background <= 15)
@@ -186,7 +191,7 @@ const void* SYSTEM_CALLS[SYSTEM_CALLS_SIZE] = {
     reinterpret_cast<const void*>(systemcall::getNumModules),
     reinterpret_cast<const void*>(systemcall::getModuleName),
     reinterpret_cast<const void*>(systemcall::configTerminal),
-    nullptr,
+    reinterpret_cast<const void*>(systemcall::clearTerminal),
     nullptr,
     nullptr,
     nullptr,

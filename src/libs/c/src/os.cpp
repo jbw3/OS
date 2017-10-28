@@ -1,6 +1,11 @@
 #include <os.h>
 #include "systemcall.h"
 
+void clearTerminal()
+{
+    systemCall(SYSTEM_CALL_CLEAR_TERMINAL);
+}
+
 int getNumModules()
 {
     return systemCall(SYSTEM_CALL_GET_NUM_MODULES);
