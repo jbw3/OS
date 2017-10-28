@@ -157,6 +157,32 @@ int strcmp(const char* str1, const char* str2)
     return ch1 - ch2;
 }
 
+int strncmp(const char* str1, const char* str2, size_t num)
+{
+    size_t i = 0;
+    char ch1 = str1[i];
+    char ch2 = str2[i];
+    while (ch1 != '\0' && ch2 != '\0')
+    {
+        int diff = ch1 - ch2;
+        if (diff != 0)
+        {
+            return diff;
+        }
+
+        ++i;
+        if (i >= num)
+        {
+            break;
+        }
+
+        ch1 = str1[i];
+        ch2 = str2[i];
+    }
+
+    return ch1 - ch2;
+}
+
 char* strcpy(char* dst, const char* src)
 {
     size_t idx = 0;
