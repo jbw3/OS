@@ -9,6 +9,19 @@
 namespace systemcall
 {
 
+void configTerminal(int background, int foreground)
+{
+    if (background >= 0 && background <= 15)
+    {
+        screen.setBackgroundColor(static_cast<os::Screen::EColor>(background));
+    }
+
+    if (foreground >= 0 && foreground <= 15)
+    {
+        screen.setForegroundColor(static_cast<os::Screen::EColor>(foreground));
+    }
+}
+
 int execv(const char* path, char* const argv[])
 {
     processMgr.switchCurrentProcessExecutable(path, argv);
@@ -172,7 +185,7 @@ const void* SYSTEM_CALLS[SYSTEM_CALLS_SIZE] = {
     reinterpret_cast<const void*>(systemcall::execv),
     reinterpret_cast<const void*>(systemcall::getNumModules),
     reinterpret_cast<const void*>(systemcall::getModuleName),
-    nullptr,
+    reinterpret_cast<const void*>(systemcall::configTerminal),
     nullptr,
     nullptr,
     nullptr,
