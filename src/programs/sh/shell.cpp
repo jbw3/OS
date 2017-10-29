@@ -7,6 +7,69 @@
 
 #include "shell.h"
 
+Shell::Commands::iterator::iterator(int builtInIndex, int moduleIndex)
+{
+    builtInIdx = builtInIndex;
+    moduleIdx = moduleIndex;
+}
+
+Shell::Commands::iterator Shell::Commands::iterator::operator++()
+{
+    if (builtInIdx < Shell::NUM_BUILT_IN_COMMANDS)
+    {
+        ++builtInIdx;
+    }
+    else if (moduleIdx < getNumModules())
+    {
+        ++moduleIdx;
+    }
+
+    return *this;
+}
+
+const char* Shell::Commands::iterator::operator*()
+{
+    if (builtInIdx < Shell::NUM_BUILT_IN_COMMANDS)
+    {
+        return Shell::BUILT_IN_COMMANDS[builtInIdx];
+    }
+    else if (moduleIdx < getNumModules())
+    {
+        getModuleName(moduleIdx, moduleName);
+        return moduleName;
+    }
+    else
+    {
+        return nullptr;
+    }
+}
+
+bool Shell::Commands::iterator::operator==(const Shell::Commands::iterator& other) const
+{
+    return builtInIdx == other.builtInIdx && moduleIdx == other.moduleIdx;
+}
+
+bool Shell::Commands::iterator::operator!=(const Shell::Commands::iterator& other) const
+{
+    return !(*this == other);
+}
+
+Shell::Commands::iterator Shell::Commands::begin()
+{
+    return iterator();
+}
+
+Shell::Commands::iterator Shell::Commands::end()
+{
+    return iterator(Shell::NUM_BUILT_IN_COMMANDS, getNumModules());
+}
+
+const char* Shell::BUILT_IN_COMMANDS[] =
+{
+    "exit",
+    "help"
+};
+
 const char* Shell::PROMPT = "> ";
 
 Shell::Shell()
@@ -60,23 +123,19 @@ size_t Shell::complete()
     char bestMatch[MAX_CMD_SIZE] = "";
     size_t origCmdLen = strlen(cmd);
 
-    int numModules = getNumModules();
-    for (int i = 0; i < numModules; ++i)
+    for (const char* newCmd : commands)
     {
-        char moduleName[MAX_CMD_SIZE];
-        getModuleName(i, moduleName);
-
-        if (strncmp(cmd, moduleName, origCmdLen) == 0)
+        if (strncmp(cmd, newCmd, origCmdLen) == 0)
         {
             if (bestMatch[0] == '\0')
             {
-                strcpy(bestMatch, moduleName);
+                strcpy(bestMatch, newCmd);
                 strcat(bestMatch, " ");
             }
             else
             {
                 size_t j = origCmdLen;
-                while (bestMatch[j] != '\0' && bestMatch[j] == moduleName[j])
+                while (bestMatch[j] != '\0' && bestMatch[j] == newCmd[j])
                 {
                     ++j;
                 }
