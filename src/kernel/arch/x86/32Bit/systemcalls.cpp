@@ -45,6 +45,22 @@ pid_t fork()
     return processMgr.forkCurrentProcess();
 }
 
+uint32_t getKey()
+{
+    uint16_t key = 0;
+    bool found = false;
+    while (!found)
+    {
+        found = os::Keyboard::getKey(key);
+        if (!found)
+        {
+            processMgr.yieldCurrentProcess();
+        }
+    }
+
+    return key;
+}
+
 int getNumModules()
 {
     return processMgr.getNumModules();
@@ -73,11 +89,9 @@ ssize_t read(int fildes, void* buf, size_t nbyte)
         return -1;
     }
 
-    os::Keyboard::processQueue();
-
     char ch;
     size_t idx = 0;
-    while (idx < nbyte && screen.read(ch))
+    while (idx < nbyte && os::Keyboard::getChar(ch))
     {
         reinterpret_cast<char*>(buf)[idx] = ch;
         ++idx;
@@ -192,7 +206,7 @@ const void* SYSTEM_CALLS[SYSTEM_CALLS_SIZE] = {
     reinterpret_cast<const void*>(systemcall::getModuleName),
     reinterpret_cast<const void*>(systemcall::configTerminal),
     reinterpret_cast<const void*>(systemcall::clearTerminal),
-    nullptr,
+    reinterpret_cast<const void*>(systemcall::getKey),
     nullptr,
     nullptr,
 };

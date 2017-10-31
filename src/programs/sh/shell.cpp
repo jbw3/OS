@@ -1,3 +1,4 @@
+#include <ctype.h>
 #include "os.h"
 #include "stdio.h"
 #include "stdlib.h"
@@ -164,10 +165,10 @@ void Shell::getCommand()
     printf("%s", Shell::PROMPT);
 
     int cmdSize = 0;
-    char ch = getchar();
-    while (ch != '\n')
+    uint16_t key = getKey();
+    while (key != '\n')
     {
-        if (ch == '\b')
+        if (key == '\b')
         {
             if (cmdSize > 0)
             {
@@ -175,18 +176,19 @@ void Shell::getCommand()
                 printf("\b \b");
             }
         }
-        else if (ch == '\t')
+        else if (key == '\t')
         {
             cmd[cmdSize] = '\0';
             cmdSize = complete();
         }
-        else if (cmdSize < MAX_CMD_SIZE - 1)
+        else if ( isprint(key) && cmdSize < MAX_CMD_SIZE - 1 )
         {
+            char ch = static_cast<char>(key);
             cmd[cmdSize++] = ch;
             putchar(ch);
         }
 
-        ch = getchar();
+        key = getKey();
     }
 
     putchar('\n');

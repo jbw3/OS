@@ -1,4 +1,5 @@
 #include "debug.h"
+#include "keyboard.h"
 #include "paging.h"
 #include "processmgr.h"
 #include "screen.h"
@@ -445,12 +446,12 @@ Shell::Shell(const multiboot_info* mbootInfoPtr) :
 void Shell::update()
 {
     char ch;
-    bool avail = screen.read(ch);
+    bool avail = os::Keyboard::getChar(ch);
     while (avail)
     {
         processChar(ch);
 
-        avail = screen.read(ch);
+        avail = os::Keyboard::getChar(ch);
     }
 }
 

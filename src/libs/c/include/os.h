@@ -1,10 +1,17 @@
 #ifndef _OS_H
 #define _OS_H 1
 
+#include <stdint.h>
+
 #ifdef __cplusplus
 extern "C"
 {
 #endif
+
+const uint16_t KEY_UP    = 0x80;
+const uint16_t KEY_DOWN  = 0x81;
+const uint16_t KEY_LEFT  = 0x82;
+const uint16_t KEY_RIGHT = 0x83;
 
 enum EColor
 {
@@ -31,6 +38,8 @@ void clearTerminal();
 int getNumModules();
 
 void getModuleName(int index, char* name);
+
+uint16_t getKey();
 
 void setTerminalBackground(enum EColor color);
 
