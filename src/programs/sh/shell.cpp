@@ -346,13 +346,9 @@ void Shell::appendToHistory()
 
 void Shell::printHelp()
 {
-    int numModules = getNumModules();
-    for (int i = 0; i < numModules; ++i)
+    for (const char* cmdName : commands)
     {
-        char name[128];
-        getModuleName(i, name);
-
-        printf("%s\n", name);
+        printf("%s\n", cmdName);
     }
 }
 
