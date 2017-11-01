@@ -68,7 +68,8 @@ Shell::Commands::iterator Shell::Commands::end()
 const char* Shell::BUILT_IN_COMMANDS[] =
 {
     "exit",
-    "help"
+    "help",
+    "history"
 };
 
 const char* Shell::PROMPT = "> ";
@@ -76,6 +77,11 @@ const char* Shell::PROMPT = "> ";
 Shell::Shell()
 {
     cmd[0] = '\0';
+    for (int i = 0; i < MAX_HISTORY_SIZE; ++i)
+    {
+        history[i][0] = '\0';
+    }
+    historySize = 0;
     done = false;
 }
 
@@ -272,6 +278,11 @@ bool Shell::runBuiltInCommand()
         printHelp();
         found = true;
     }
+    else if (strcmp(args[0], "history") == 0)
+    {
+        printHistory();
+        found = true;
+    }
 
     return found;
 }
@@ -280,12 +291,12 @@ void Shell::runCommand()
 {
     parseCommand();
 
-    if (!runBuiltInCommand())
+    if (args[0] != nullptr)
     {
-        const char* name = args[0];
-
-        if (name != nullptr)
+        if (!runBuiltInCommand())
         {
+            const char* name = args[0];
+
             pid_t pid = fork();
             if (pid < 0)
             {
@@ -303,7 +314,34 @@ void Shell::runCommand()
             // wait for child process to finish
             wait(nullptr);
         }
+
+        appendToHistory();
     }
+}
+
+void Shell::appendToHistory()
+{
+    if (historySize < MAX_HISTORY_SIZE)
+    {
+        // shift history
+        for (int i = historySize; i > 0; --i)
+        {
+            strcpy(history[i], history[i - 1]);
+        }
+
+        ++historySize;
+    }
+    else
+    {
+        // shift history
+        for (int i = MAX_HISTORY_SIZE - 1; i > 0; --i)
+        {
+            strcpy(history[i], history[i - 1]);
+        }
+    }
+
+    // copy command to history
+    strcpy(history[0], cmd);
 }
 
 void Shell::printHelp()
@@ -315,5 +353,13 @@ void Shell::printHelp()
         getModuleName(i, name);
 
         printf("%s\n", name);
+    }
+}
+
+void Shell::printHistory()
+{
+    for (int i = historySize - 1; i >= 0; --i)
+    {
+        printf(" %s\n", history[i]);
     }
 }
