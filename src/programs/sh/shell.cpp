@@ -404,7 +404,7 @@ void Shell::printHelp()
 {
     for (const char* cmdName : commands)
     {
-        printf("%s\n", cmdName);
+        printf(" %s\n", cmdName);
     }
 }
 
