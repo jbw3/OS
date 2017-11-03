@@ -81,7 +81,12 @@ Shell::Shell()
     {
         history[i][0] = '\0';
     }
-    historySize = 0;
+
+    // set history size to 1 (the history includes
+    // the current command being edited)
+    historySize = 1;
+
+    historyIdx = 0;
     done = false;
 }
 
@@ -170,7 +175,11 @@ void Shell::getCommand()
 {
     printf("%s", Shell::PROMPT);
 
+    // reset history index
+    historyIdx = 0;
+
     int cmdSize = 0;
+    cmd[0] = '\0';
     uint16_t key = getKey();
     while (key != '\n')
     {
@@ -184,8 +193,32 @@ void Shell::getCommand()
         }
         else if (key == '\t')
         {
-            cmd[cmdSize] = '\0';
             cmdSize = complete();
+        }
+        else if (key == KEY_UP)
+        {
+            if (historyIdx < historySize - 1)
+            {
+                if (historyIdx == 0)
+                {
+                    strcpy(history[0], cmd);
+                }
+
+                ++historyIdx;
+                const char* newCmd = history[historyIdx];
+                setCommand(newCmd);
+                cmdSize = strlen(newCmd);
+            }
+        }
+        else if (key == KEY_DOWN)
+        {
+            if (historyIdx > 0)
+            {
+                --historyIdx;
+                const char* newCmd = history[historyIdx];
+                setCommand(newCmd);
+                cmdSize = strlen(newCmd);
+            }
         }
         else if ( isprint(key) && cmdSize < MAX_CMD_SIZE - 1 )
         {
@@ -194,11 +227,27 @@ void Shell::getCommand()
             putchar(ch);
         }
 
+        cmd[cmdSize] = '\0';
+
         key = getKey();
     }
 
     putchar('\n');
-    cmd[cmdSize] = '\0';
+}
+
+void Shell::setCommand(const char* newCmd)
+{
+    char chars[MAX_CMD_SIZE * 3 + 1];
+
+    // overwrite current command in terminal
+    size_t cmdLen = strlen(cmd);
+    memset(chars, '\b', cmdLen);
+    memset(chars + cmdLen, ' ', cmdLen);
+    memset(chars + 2 * cmdLen, '\b', cmdLen);
+    chars[3 * cmdLen] = '\0';
+    printf("%s%s", chars, newCmd);
+
+    strcpy(cmd, newCmd);
 }
 
 void Shell::parseCommand()
@@ -293,6 +342,9 @@ void Shell::runCommand()
 
     if (args[0] != nullptr)
     {
+        // add command to history
+        addToHistory();
+
         if (!runBuiltInCommand())
         {
             const char* name = args[0];
@@ -315,11 +367,12 @@ void Shell::runCommand()
             wait(nullptr);
         }
 
-        appendToHistory();
+        // shift history to make room for new command
+        shiftHistory();
     }
 }
 
-void Shell::appendToHistory()
+void Shell::shiftHistory()
 {
     if (historySize < MAX_HISTORY_SIZE)
     {
@@ -339,7 +392,10 @@ void Shell::appendToHistory()
             strcpy(history[i], history[i - 1]);
         }
     }
+}
 
+void Shell::addToHistory()
+{
     // copy command to history
     strcpy(history[0], cmd);
 }
@@ -354,7 +410,15 @@ void Shell::printHelp()
 
 void Shell::printHistory()
 {
-    for (int i = historySize - 1; i >= 0; --i)
+    // Note: Don't print the last item in the history since
+    // it won't be accessible to the user.
+    int maxIdx = historySize - 1;
+    if (historySize >= MAX_HISTORY_SIZE)
+    {
+        --maxIdx;
+    }
+
+    for (int i = maxIdx; i >= 0; --i)
     {
         printf(" %s\n", history[i]);
     }

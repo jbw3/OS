@@ -50,6 +50,7 @@ private:
     char argStrings[MAX_TOTAL_ARGS_SIZE];
     char history[MAX_HISTORY_SIZE][MAX_CMD_SIZE];
     int historySize;
+    int historyIdx;
     bool done;
 
     void interactiveLoop();
@@ -58,13 +59,17 @@ private:
 
     void getCommand();
 
+    void setCommand(const char* newCmd);
+
     void parseCommand();
 
     bool runBuiltInCommand();
 
     void runCommand();
 
-    void appendToHistory();
+    void shiftHistory();
+
+    void addToHistory();
 
     void printHelp();
 
