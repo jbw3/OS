@@ -284,4 +284,6 @@ void AhciDriver::initHBA(ahci::HBAMemoryRegs* hba)
 
     // 2. Determine which ports are implemented by reading the PI register
     screen << "Ports Implemented: 0x" << hba->genericHostControl.PI << "\n";
+
+    // TODO: continue...
 }
