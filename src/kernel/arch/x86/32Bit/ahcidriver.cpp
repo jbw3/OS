@@ -5,6 +5,7 @@
 #include "pci.h"
 #include "screen.h"
 #include "system.h"
+#include "timer.h"
 #include "vmem.h"
 
 #define PORT 0
@@ -27,6 +28,7 @@ AhciDriver::AhciDriver()
             HBAMemoryRegs* hba = mapAhciDevice(dev);
 
             initHBA(hba);
+            return;     // TMP
 
             // -------------------------------------------------------------
             // TODO:
@@ -285,5 +287,66 @@ void AhciDriver::initHBA(ahci::HBAMemoryRegs* hba)
     // 2. Determine which ports are implemented by reading the PI register
     screen << "Ports Implemented: 0x" << hba->genericHostControl.PI << "\n";
 
-    // TODO: continue...
+    // 3. Ensure controller is not in a running state by making sure all
+    //    implemented ports are idle
+    screen << os::Screen::dec;
+
+    for (int i = 0; i < 32; i++)
+    {
+        bool portImplemented = (hba->genericHostControl.PI >> i) & 0x1;
+        if (portImplemented)
+        {
+            screen << "Port " << i << ": ";
+            screen << hba->portRegs[i].getSigString();
+
+            if (hba->portRegs[i].isIdle())
+            {
+                screen << " (idle)\n";
+            }
+            else
+            {
+                screen << " (running)\n";
+
+                screen << "Putting port " << i << " in an idle state...\n";
+                screen << "CR: " << (int)hba->portRegs[i].PxCMD.CR() << " FRE: " << (int)hba->portRegs[i].PxCMD.FRE() << " FR: " << (int)hba->portRegs[i].PxCMD.FR() << "\n";
+
+                // make idle
+                hba->portRegs[i].PxCMD.ST(0);   // clear ST
+                // wait 500ms, then verify CR goes to 0
+                do
+                {
+                    auto initialTicks = os::Timer::getTicks();
+                    while (os::Timer::getTicks() < (initialTicks+10))
+                    {
+                        // wait
+                    }
+                    screen << "500ms \n";
+                }
+                while (hba->portRegs[i].PxCMD.CR());
+
+                screen << "CR == 0\n";
+
+                if (hba->portRegs[i].PxCMD.FRE())
+                {
+                    hba->portRegs[i].PxCMD.FRE(0);  // clear FRE
+                    // wait 500ms, then verify FR goes to 0
+                    do
+                    {
+                        auto initialTicks = os::Timer::getTicks();
+                        while (os::Timer::getTicks() < (initialTicks+10))
+                        {
+                            // wait
+                        }
+                        screen << "500ms \n";
+                    }
+                    while (hba->portRegs[i].PxCMD.FR());
+                }
+
+                screen << "FR == 0\n";
+                screen << "CR: " << (int)hba->portRegs[i].PxCMD.CR() << " FRE: " << (int)hba->portRegs[i].PxCMD.FRE() << " FR: " << (int)hba->portRegs[i].PxCMD.FR() << "\n";
+
+                //break;
+            }
+        }
+    }
 }

@@ -74,8 +74,12 @@ struct PxCMDRegister
     // todo: fill in remaining bits...
 
     inline int CR()     { return (value >> 15) & 0x1; } // command list running
+    inline int FR()     { return (value >> 14) & 0x1; } // FIS receive running
     inline int FRE()    { return (value >> 4) & 0x1; }  // FIS receive enable
     inline int ST()     { return (value >> 0) & 0x1; }  // start
+
+    void FRE(bool fre) { value = ((fre & 0x1) << 4) | (value & 0xFFFF'FFEF); }
+    void ST(bool st) { value = ((st & 0x1) << 0) | (value & 0xFFFF'FFFE); }
 
 } __attribute__((packed));
 
@@ -122,6 +126,22 @@ struct AhciPortRegs
                 return "Unknown";
         }
     }
+
+    /**
+     * @brief Returns true if this port is idle
+     */
+    bool isIdle()
+    {
+        if (PxCMD.ST() || PxCMD.CR() || PxCMD.FRE() || PxCMD.FR())
+        {
+            return false;
+        }
+        else
+        {
+            return true;
+        }
+    }
+
 } __attribute__((packed));
 
 struct HBAMemoryRegs
