@@ -86,10 +86,6 @@ public:
 
     void setBlinking(bool enabled);
 
-    void addInput(char ch);
-
-    bool read(char& ch);
-
     void write(char ch);
 
     void write(const char* str);

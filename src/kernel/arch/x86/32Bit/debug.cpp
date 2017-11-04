@@ -99,10 +99,21 @@ void printMultibootModules(uint32_t addr, uint32_t len)
 {
     addr += KERNEL_VIRTUAL_BASE;
 
+    // print header
+    screen << "Start     End       Command Line\n"
+              "--------  --------  --------------------\n";
+
     for (uint32_t i = 0; i < len; ++i)
     {
         const multiboot_mod_list* module = reinterpret_cast<const multiboot_mod_list*>(addr);
 
+        // start and end addresses
+        screen << os::Screen::hex << os::Screen::setfill('0')
+               << os::Screen::setw(8) << module->mod_start << "  "
+               << os::Screen::setw(8) << module->mod_end << "  "
+               << os::Screen::dec << os::Screen::setfill(' ');
+
+        // command line
         const char* modName = reinterpret_cast<const char*>(module->cmdline + KERNEL_VIRTUAL_BASE);
         screen << modName << '\n';
 
@@ -187,7 +198,7 @@ void printMem(const uint32_t* ptr)
            << os::Screen::dec;
 }
 
-void printPageDir(int startIdx, int endIdx)
+void printPageDir(const uint32_t* pageDir, int startIdx, int endIdx)
 {
     if (startIdx > endIdx)
     {
@@ -198,7 +209,6 @@ void printPageDir(int startIdx, int endIdx)
     screen << "Idx   Address   S  A  D  W  U  R  P\n"
               "----  --------  -  -  -  -  -  -  -\n";
 
-    const uint32_t* pageDir = getKernelPageDirStart();
     for (int i = startIdx; i <= endIdx; ++i)
     {
         uint32_t entry = pageDir[i];
@@ -235,28 +245,23 @@ void printPageDir(int startIdx, int endIdx)
 
 }
 
-void printPageTable(int pageDirIdx, int startIdx, int endIdx)
+void printPageTable(const uint32_t* pageTable, int startIdx, int endIdx)
 {
-    if (pageDirIdx < 0 || pageDirIdx >= 1024)
+    if (startIdx < 0 || startIdx >= 1024)
     {
-        screen << "Page directory index out of range\n";
+        screen << "Start index is out of range\n";
+        return;
+    }
+
+    if (endIdx < 0 || endIdx >= 1024)
+    {
+        screen << "End index is out of range\n";
         return;
     }
 
     if (startIdx > endIdx)
     {
         screen << "Start index cannot be greater than end index\n";
-        return;
-    }
-
-    const uint32_t* pageDir = getKernelPageDirStart();
-    uint32_t pageDirEntry = pageDir[pageDirIdx];
-
-    const uint32_t* pageTable = reinterpret_cast<const uint32_t*>(pageDirEntry & PAGE_DIR_ADDRESS);
-    bool tablePresent = pageDirEntry & PAGE_DIR_PRESENT;
-    if (!tablePresent)
-    {
-        screen << "No page table is mapped at index " << pageDirIdx << '\n';
         return;
     }
 
@@ -299,6 +304,35 @@ void printPageTable(int pageDirIdx, int startIdx, int endIdx)
                << "  " << present
                << '\n';
     }
+}
+
+void printPageTable(const uint32_t* pageDir, int pageDirIdx, int startIdx, int endIdx)
+{
+    if (pageDirIdx < 0 || pageDirIdx >= 1024)
+    {
+        screen << "Page directory index out of range\n";
+        return;
+    }
+
+    if (startIdx > endIdx)
+    {
+        screen << "Start index cannot be greater than end index\n";
+        return;
+    }
+
+    uint32_t pageDirEntry = pageDir[pageDirIdx];
+
+    uint32_t physicalAddr = pageDirEntry & PAGE_DIR_ADDRESS;
+    uint32_t virtualAddr = physicalAddr + KERNEL_VIRTUAL_BASE;
+    const uint32_t* pageTable = reinterpret_cast<const uint32_t*>(virtualAddr);
+    bool tablePresent = pageDirEntry & PAGE_DIR_PRESENT;
+    if (!tablePresent)
+    {
+        screen << "No page table is mapped at index " << pageDirIdx << '\n';
+        return;
+    }
+
+    printPageTable(pageTable, startIdx, endIdx);
 }
 
 #define MASTER_DRIVE 0xA0

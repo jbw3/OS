@@ -1,17 +1,97 @@
 #include <stdarg.h>
 #include <stdio.h>
 #include <string.h>
+#include <unistd.h>
 
 #include "stringutils.h"
 
+int getchar()
+{
+    char ch;
+    ssize_t numRead = -1;
+
+    do
+    {
+        numRead = read(STDIN_FILENO, &ch, 1);
+    } while (numRead == 0);
+
+    if (numRead < 0)
+    {
+        return EOF;
+    }
+
+    return ch;
+}
+
+int putchar(int ch)
+{
+    unsigned char uChar = (unsigned char)(ch);
+    ssize_t status = write(STDOUT_FILENO, &uChar, 1);
+
+    return (status < 0) ? EOF : ch;
+}
+
+int puts(const char* s)
+{
+    size_t len = strlen(s);
+
+    ssize_t status = write(STDOUT_FILENO, s, len);
+    if (status < 0)
+    {
+        return EOF;
+    }
+
+    const char newline = '\n';
+    status = write(STDOUT_FILENO, &newline, 1);
+    if (status < 0)
+    {
+        return EOF;
+    }
+
+    return 0;
+}
+
+int printf(const char* fmt, ...)
+{
+    va_list args;
+    va_start(args, fmt);
+
+    int rv = vprintf(fmt, args);
+
+    va_end(args);
+
+    return rv;
+}
+
+int vprintf(const char* fmt, va_list args)
+{
+    char buff[128];
+
+    int numChars = vsprintf(buff, fmt, args);
+
+    ssize_t status = write(STDOUT_FILENO, buff, numChars);
+
+    return (status < 0) ? -1 : numChars;
+}
+
 int sprintf(char* buff, const char* fmt, ...)
+{
+    va_list args;
+    va_start(args, fmt);
+
+    int rv = vsprintf(buff, fmt, args);
+
+    va_end(args);
+
+    return rv;
+}
+
+int vsprintf(char* buff, const char* fmt, va_list args)
 {
     const char* buffStart = buff;
     int i;
     unsigned int ui;
     char* s;
-    va_list args;
-    va_start(args, fmt);
 
     while (*fmt != '\0')
     {
@@ -101,8 +181,6 @@ int sprintf(char* buff, const char* fmt, ...)
 
     }
     *buff = '\0';
-
-    va_end(args);
 
     return buff - buffStart;
 }

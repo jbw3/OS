@@ -45,19 +45,24 @@ extern void irq13();
 extern void irq14();
 extern void irq15();
 
-typedef void (*irqHandlerPtr)(const struct registers*);
+typedef void (*irqHandlerPtr)(const registers*);
 
 void initIrq();
 
 /**
- * @brief Register a handler for an IRQ
+ * @brief Register a handler for an IRQ.
  */
 void registerIrqHandler(uint8_t irq, irqHandlerPtr handler);
 
 /**
- * @brief Unregister a handler for an IRQ
+ * @brief Unregister a handler for an IRQ.
  */
 void unregisterIrqHandler(uint8_t irq);
+
+/**
+ * @brief Send End Of Interrupt (EOI) command to PIC.
+ */
+void sendPicEoi(const registers* regs);
 
 #ifdef __cplusplus
 } // extern "C"

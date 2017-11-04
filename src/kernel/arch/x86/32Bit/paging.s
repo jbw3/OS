@@ -2,6 +2,8 @@
 
 extern kernelPageDirStart
 extern kernelPageDirEnd
+extern kernelPageTableStart
+extern kernelPageTableEnd
 
 PAGE_DIR_INIT_ENTRY		equ PAGE_DIR_RW
 PAGE_TABLE_INIT_ENTRY	equ PAGE_TABLE_RW
@@ -22,6 +24,24 @@ getKernelPageDirStart:
 global getKernelPageDirEnd
 getKernelPageDirEnd:
 	mov eax, kernelPageDirEnd
+	ret
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+; get the address of the start of
+; the page table
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+global getKernelPageTableStart
+getKernelPageTableStart:
+	mov eax, kernelPageTableStart
+	ret
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+; get the address of the end of
+; the page table
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+global getKernelPageTableEnd
+getKernelPageTableEnd:
+	mov eax, kernelPageTableEnd
 	ret
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
@@ -119,5 +139,25 @@ global isPagingEnabled
 isPagingEnabled:
 	mov eax, cr0
 	shr eax, 31
+
+	ret
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+; sets the page directory
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+global setPageDirectory
+setPageDirectory:
+	mov eax, [esp + 4]
+	mov cr3, eax
+
+	ret
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+; invalidate TLB for given address
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+global invalidatePage
+invalidatePage:
+	mov eax, [esp + 4]
+	invlpg [eax]
 
 	ret

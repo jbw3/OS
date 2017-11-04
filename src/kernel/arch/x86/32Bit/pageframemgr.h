@@ -78,7 +78,7 @@ private:
     /**
      * @brief Allocate and initialize the page frame data structure
      */
-    void initDataStruct(const MemBlock* memBlocks, unsigned int numMemBlocks);
+    void initDataStruct(const multiboot_info* mbootInfo, const MemBlock* memBlocks, unsigned int numMemBlocks);
 
     /**
      * @brief Mark the page frames in use by the kernel

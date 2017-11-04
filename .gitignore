@@ -1,3 +1,5 @@
+.dep/
+.vscode/
 bin/
 lib/
 obj/

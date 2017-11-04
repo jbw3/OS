@@ -1,3 +1,4 @@
+#include "processmgr.h"
 #include "timer.h"
 #include "screen.h"
 #include "system.h"
@@ -31,9 +32,10 @@ uint64_t Timer::getTicks()
     return ticks;
 }
 
-void Timer::interruptHandler(const registers* /*regs*/)
+void Timer::interruptHandler(const registers* regs)
 {
     ++ticks;
+    processMgr.processTimerInterrupt(regs);
 }
 
 } // namespace os
