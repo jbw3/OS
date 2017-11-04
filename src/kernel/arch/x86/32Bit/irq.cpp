@@ -68,6 +68,19 @@ void unregisterIrqHandler(uint8_t irq)
     irqFunctions[irq] = nullptr;
 }
 
+void sendPicEoi(const registers* regs)
+{
+    // if the IDT entry is greater than or equal to IRQ8,
+    // send an EOI to the slave interrupt controller
+    if (regs->intNo >= IRQ_START_NUM + 8)
+    {
+        outb(0xA0, 0x20);
+    }
+
+    // always send an EOI to the master interrupt controller
+    outb(0x20, 0x20);
+}
+
 /**
  * @brief Called from assembly to handle IRQ
  */
@@ -83,13 +96,5 @@ void irqHandler(const struct registers* regs)
         handler(regs);
     }
 
-    // if the IDT entry is greater than or equal to IRQ8,
-    // send an EOI to the slave interrupt controller
-    if (regs->intNo >= IRQ_START_NUM + 8)
-    {
-        outb(0xA0, 0x20);
-    }
-
-    // always send an EOI to the master interrupt controller
-    outb(0x20, 0x20);
+    sendPicEoi(regs);
 }

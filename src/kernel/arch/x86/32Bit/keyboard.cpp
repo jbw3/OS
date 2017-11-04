@@ -1,5 +1,7 @@
+#include <ctype.h>
+
 #include "keyboard.h"
-#include "screen.h"
+#include "os.h"
 #include "system.h"
 
 #define CONTROL_KEYS_START 0x0100
@@ -91,15 +93,15 @@ const uint16_t Keyboard::LAYOUT_US[128] =
     KEY_NUM_LOCK, // num lock
     KEY_SCROLL_LOCK, // scroll lock
     0, // home
-    0, // up arrow
+    KEY_UP, // up arrow
     0, // page up
     '-',
-    0, // left arrow
+    KEY_LEFT, // left arrow
     0,
-    0, // right arrow
+    KEY_RIGHT, // right arrow
     '+',
     0, // end
-    0, // down arrow
+    KEY_DOWN, // down arrow
     0, // page down
     0, // insert
     0, // delete
@@ -112,9 +114,13 @@ const uint16_t Keyboard::LAYOUT_US[128] =
 
 uint16_t Keyboard::controlPressed = 0;
 
-uint8_t Keyboard::queue[Keyboard::QUEUE_SIZE];
-unsigned int Keyboard::qHead = 0;
-unsigned int Keyboard::qTail = 0;
+uint8_t Keyboard::scanCodeQueue[Keyboard::SCAN_CODE_QUEUE_SIZE];
+unsigned int Keyboard::scanCodeQHead = 0;
+unsigned int Keyboard::scanCodeQTail = 0;
+
+uint16_t Keyboard::keyQueue[KEY_QUEUE_SIZE];
+unsigned int Keyboard::keyQHead = 0;
+unsigned int Keyboard::keyQTail = 0;
 
 void Keyboard::init()
 {
@@ -127,33 +133,75 @@ void Keyboard::interruptHandler(const registers* /*regs*/)
     uint8_t scanCode = inb(0x60);
 
     // add the scan code to the queue if it is not full
-    if ( (qTail != qHead - 1) && !(qHead == 0 && qTail == QUEUE_SIZE - 1) )
+    if ( (scanCodeQTail != scanCodeQHead - 1) && !(scanCodeQHead == 0 && scanCodeQTail == SCAN_CODE_QUEUE_SIZE - 1) )
     {
-        queue[qTail] = scanCode;
-        if (qTail >= QUEUE_SIZE - 1)
+        scanCodeQueue[scanCodeQTail] = scanCode;
+        if (scanCodeQTail >= SCAN_CODE_QUEUE_SIZE - 1)
         {
-            qTail = 0;
+            scanCodeQTail = 0;
         }
         else
         {
-            ++qTail;
+            ++scanCodeQTail;
         }
     }
 }
 
+bool Keyboard::getKey(uint16_t& key)
+{
+    processQueue();
+
+    // if the queue is empty return false
+    if (keyQHead == keyQTail)
+    {
+        return false;
+    }
+
+    key = keyQueue[keyQHead];
+    if (keyQHead >= KEY_QUEUE_SIZE - 1)
+    {
+        keyQHead = 0;
+    }
+    else
+    {
+        ++keyQHead;
+    }
+
+    return true;
+}
+
+bool Keyboard::getChar(char& ch)
+{
+    uint16_t key = 0;
+
+    bool found = false;
+    bool isAscii = false;
+    bool isPrintable = false;
+    do
+    {
+        found = getKey(key);
+        ch = static_cast<char>(key & 0x7F);
+
+        isAscii = (key & 0x7F) == key;
+        isPrintable = isprint(ch) || ch == '\t' || ch == '\n';
+    } while (found && !(isAscii && isPrintable));
+
+    return found;
+}
+
 void Keyboard::processQueue()
 {
-    while (qHead != qTail)
+    while (scanCodeQHead != scanCodeQTail)
     {
         // read scan code from queue
-        uint16_t scanCode = queue[qHead];
-        if (qHead >= QUEUE_SIZE - 1)
+        uint16_t scanCode = scanCodeQueue[scanCodeQHead];
+        if (scanCodeQHead >= SCAN_CODE_QUEUE_SIZE - 1)
         {
-            qHead = 0;
+            scanCodeQHead = 0;
         }
         else
         {
-            ++qHead;
+            ++scanCodeQHead;
         }
 
         // if bit 7 is set, the key was just released
@@ -204,21 +252,22 @@ void Keyboard::keyPress(uint16_t key)
     }
     else
     {
-        char ch = static_cast<char>(key);
-
-        // check if this is a printable char
-        if ( (ch >= ' ' && ch <= '~') || ch == '\b' || ch == '\t' || ch == '\n' || ch == '\r' )
+        // check if this is an ASCII char
+        if ( (key & 0x7F) == key )
         {
+            char ch = static_cast<char>(key);
+
             // shift the char if
             // 1. either of the shift keys are pressed OR
             // 2. caps lock is active and the char is an alphabet char
             if ( (controlPressed & KEY_SHIFT) != 0 ||
                  ( (controlPressed & KEY_CAPS_LOCK) != 0 && ch >= 'a' && ch <= 'z' ) )
             {
-                ch = shift(ch);
+                key = shift(ch);
             }
-            screen.addInput(ch);
         }
+
+        addKey(key);
     }
 }
 
@@ -306,6 +355,23 @@ void Keyboard::updateLights()
 
     // send lights status
     outb(0x60, lights);
+}
+
+void Keyboard::addKey(uint16_t key)
+{
+    // the key to the queue if it is not full
+    if ( (keyQTail != keyQHead - 1) && !(keyQHead == 0 && keyQTail == KEY_QUEUE_SIZE - 1) )
+    {
+        keyQueue[keyQTail] = key;
+        if (keyQTail >= KEY_QUEUE_SIZE - 1)
+        {
+            keyQTail = 0;
+        }
+        else
+        {
+            ++keyQTail;
+        }
+    }
 }
 
 } // namespace os

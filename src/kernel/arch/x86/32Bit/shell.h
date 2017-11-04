@@ -6,6 +6,7 @@
 struct multiboot_info;
 
 class Command;
+class ProcessMgr;
 
 class Shell
 {
@@ -33,9 +34,9 @@ private:
 
     void processCmd();
 
-    bool findProgram(const char* name, uint32_t& progAddr);
+    bool findProgram(const char* name, const multiboot_mod_list*& module);
 
-    void runProgram(uint32_t addr);
+    void runProgram(const multiboot_mod_list* module);
 
     void displayHelp();
 

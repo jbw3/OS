@@ -1,11 +1,22 @@
 # Makefile for kernel
 
 SRCDIR = .
+DEPDIR = .dep
 OBJDIR = obj
 LIBSRCDIR = ../../../../libs
 LIBDIR = ../../../../../lib
 BINDIR = ../../../../../bin
 TOOLSDIR = ../../../../../tools
+
+# compiler flags for generating dependency makefiles
+# -MT:  the name of the target in the dependency file
+# -MMD: generate dependency files while compiling; also ignore system headers
+# -MP:  add a target for each prerequisite to avoid errors when deleting files
+# -MF:  the name of the dependency file
+C_DEPFLAGS = -MT $@ -MMD -MP -MF $(DEPDIR)/$<.Td
+
+# assembler flags for generating dependency makefiles
+A_DEPFLAGS = -MT $@ -MD $(DEPDIR)/$<.Td -MP
 
 # directory to search for dependencies
 VPATH = $(SRCDIR)
@@ -13,16 +24,22 @@ VPATH = $(SRCDIR)
 INCLUDES = -I$(SRCDIR) -I$(LIBSRCDIR)/c/include -I$(LIBSRCDIR)/c++/include
 
 CC = i686-elf-gcc
-CFLAGS = $(INCLUDES) -std=c11 -ffreestanding -Wall -Wextra
+CFLAGS = $(INCLUDES) -std=c11 -ffreestanding -Wall -Wextra $(C_DEPFLAGS)
 
 CXX = i686-elf-g++
-CXXFLAGS = $(INCLUDES) -std=c++1z -ffreestanding -Wall -Wextra -fno-exceptions -fno-rtti
+CXXFLAGS = $(INCLUDES) -std=c++1z -ffreestanding -Wall -Wextra -fno-exceptions -fno-rtti $(C_DEPFLAGS)
 
 AS = nasm
-ASFLAGS = -f elf32 -I$(SRCDIR)/
+ASFLAGS = -f elf32 -I$(SRCDIR)/ $(A_DEPFLAGS)
 
 LIBS = -L$(LIBDIR) -lc -lc++ -lgcc
 LDFLAGS = -T $(SRCDIR)/link.ld -ffreestanding -nostdlib $(LIBS)
+
+# After compiling, rename the temporary dependency file to its actual name.
+# This is so compilation failures will not result in a corrupted dependency file.
+# Also, touch the object file to make sure it is not older than the dependency
+# file.
+POSTCOMPILE = @mv -f $(DEPDIR)/$<.Td $(DEPDIR)/$<.d && touch $@
 
 release: CFLAGS += -O2
 release: CXXFLAGS += -O2
@@ -32,31 +49,21 @@ debug: CXXFLAGS += -O0 -g
 debug: ASFLAGS += -g
 debug: CONFIG = debug
 
-DEPS = debug.h gdt.h idt.h irq.h isr.h keyboard.h pageframemgr.h paging.h screen.h shell.h system.h timer.h
+# build list of source files
+# TODO: Sort is currently being used because boot.s must be first in the list.
+# This is because the multiboot header in boot.s must be at the beginning of the
+# kernel. A better solution is to break the multiboot header out into its own
+# file and modify the linker script to explicitly put it at the beginning of the
+# kernel.
+SRC = $(sort $(notdir $(wildcard $(SRCDIR)/*.c $(SRCDIR)/*.cpp $(SRCDIR)/*.s)))
+
+# source files without crti.s and crtn.s
+NO_CRT_SRC = $(filter-out crt%.s,$(SRC))
 
 CRTBEGIN_OBJ = $(shell $(CXX) $(CXXFLAGS) -print-file-name=crtbegin.o)
 CRTEND_OBJ = $(shell $(CXX) $(CXXFLAGS) -print-file-name=crtend.o)
-_OBJ = boot.s.o \
-	   debug.cpp.o \
-	   gdt.c.o \
-	   idt.c.o \
-	   interrupt.s.o \
-	   irq.cpp.o \
-	   isr.cpp.o \
-	   keyboard.cpp.o \
-	   main.cpp.o \
-	   pageframemgr.cpp.o \
-	   paging.cpp.o \
-	   paging.s.o \
-	   screen.cpp.o \
-	   shell.cpp.o \
-	   system.c.o \
-	   system.cpp.o \
-	   system.s.o \
-	   timer.cpp.o
-OBJ = $(patsubst %,$(OBJDIR)/%,$(_OBJ))
-BUILD_OBJ = $(OBJDIR)/crti.s.o $(OBJ) $(OBJDIR)/crtn.s.o
-LINK_OBJ = $(OBJDIR)/crti.s.o $(CRTBEGIN_OBJ) $(OBJ) $(CRTEND_OBJ) $(OBJDIR)/crtn.s.o
+BUILD_OBJ = $(patsubst %,$(OBJDIR)/%.o,$(SRC))
+LINK_OBJ = $(OBJDIR)/crti.s.o $(CRTBEGIN_OBJ) $(patsubst %,$(OBJDIR)/%.o,$(NO_CRT_SRC)) $(CRTEND_OBJ) $(OBJDIR)/crtn.s.o
 
 TARGET = $(BINDIR)/kernel-x86
 
@@ -68,8 +75,9 @@ debug: init libs $(TARGET)
 
 .PHONY: init
 init:
-	mkdir -p $(OBJDIR)
-	mkdir -p $(BINDIR)
+	@mkdir -p $(DEPDIR)
+	@mkdir -p $(OBJDIR)
+	@mkdir -p $(BINDIR)
 
 .PHONY: libs
 libs:
@@ -77,32 +85,44 @@ libs:
 	cd $(LIBSRCDIR)/c; make $(CONFIG)
 
 .PHONY: iso
-iso: release
+iso:
 	$(TOOLSDIR)/createIso.sh x86
 
 .PHONY: run
-run: release
-	qemu-system-i386 -kernel $(TARGET)
+run: release iso
+	qemu-system-i386 -cdrom $(BINDIR)/SandboxOS-x86.iso
 
 .PHONY: debugger
-debugger: debug
-	qemu-system-i386 -s -S -kernel $(TARGET) &
+debugger: debug iso
+	qemu-system-i386 -s -S -cdrom $(BINDIR)/SandboxOS-x86.iso &
 	gdb -x $(TOOLSDIR)/x86.gdb
 
 $(TARGET): $(BUILD_OBJ)
 	$(CXX) $(LINK_OBJ) -o $(TARGET) $(LDFLAGS)
 
-$(OBJDIR)/%.c.o: %.c $(DEPS)
-	$(CC) $(CFLAGS) -c $< -o $@
+$(OBJDIR)/%.c.o: %.c $(DEPDIR)/%.c.d
+	$(CC) -c $< $(CFLAGS) -o $@
+	$(POSTCOMPILE)
 
-$(OBJDIR)/%.cpp.o: %.cpp $(DEPS)
-	$(CXX) $(CXXFLAGS) -c $< -o $@
+$(OBJDIR)/%.cpp.o: %.cpp $(DEPDIR)/%.cpp.d
+	$(CXX) -c $< $(CXXFLAGS) -o $@
+	$(POSTCOMPILE)
 
-$(OBJDIR)/%.s.o: %.s
-	$(AS) $(ASFLAGS) $< -o $@
+$(OBJDIR)/%.s.o: %.s $(DEPDIR)/%.s.d
+	$(AS) $< $(ASFLAGS) -o $@
+	$(POSTCOMPILE)
+
+# rule for dependency files (this is here to keep make happy)
+$(DEPDIR)/%.d: ;
+
+# prevent make from deleting dependency files
+.PRECIOUS: $(patsubst %,$(DEPDIR)/%.d,$(SRC))
 
 .PHONY: clean
 clean:
 	cd $(LIBSRCDIR)/c++; make clean
 	cd $(LIBSRCDIR)/c; make clean
-	rm -f $(OBJDIR)/*.o $(TARGET)
+	rm -f $(TARGET) $(OBJDIR)/*.o $(DEPDIR)/*.d
+
+# include dependency makefiles
+include $(wildcard $(patsubst %,$(DEPDIR)/%.d,$(SRC)))

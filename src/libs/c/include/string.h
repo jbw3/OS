@@ -24,6 +24,8 @@ char* strchr(const char* str, int ch);
 
 int strcmp(const char* str1, const char* str2);
 
+int strncmp(const char* str1, const char* str2, size_t num);
+
 char* strcpy(char* dst, const char* src);
 
 size_t strlen(const char* str);

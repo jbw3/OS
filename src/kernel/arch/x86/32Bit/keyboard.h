@@ -6,12 +6,26 @@
 namespace os
 {
 
+/// @todo some of the code in this class needs an interrupt guard
 class Keyboard
 {
 public:
     static void init();
 
+    /**
+     * @brief The keyboard interrupt handler.
+     */
     static void interruptHandler(const registers* regs);
+
+    /**
+     * @brief Get the next key-press from the queue.
+     */
+    static bool getKey(uint16_t& key);
+
+    /**
+     * @brief Get the next ASCII character key from the queue.
+     */
+    static bool getChar(char& ch);
 
     static void processQueue();
 
@@ -22,11 +36,17 @@ private:
     // control keys that are currently pressed (shift, alt, etc.)
     static uint16_t controlPressed;
 
-    // queue of keys to process
-    static const unsigned int QUEUE_SIZE = 32;
-    static uint8_t queue[QUEUE_SIZE];
-    static unsigned int qHead;
-    static unsigned int qTail;
+    // queue of scan codes to process
+    static constexpr unsigned int SCAN_CODE_QUEUE_SIZE = 32;
+    static uint8_t scanCodeQueue[SCAN_CODE_QUEUE_SIZE];
+    static unsigned int scanCodeQHead;
+    static unsigned int scanCodeQTail;
+
+    // queue of keys
+    static constexpr unsigned int KEY_QUEUE_SIZE = 32;
+    static uint16_t keyQueue[KEY_QUEUE_SIZE];
+    static unsigned int keyQHead;
+    static unsigned int keyQTail;
 
     static void keyRelease(uint16_t key);
 
@@ -35,6 +55,8 @@ private:
     static char shift(char ch);
 
     static void updateLights();
+
+    static void addKey(uint16_t);
 };
 
 } // namespace os
