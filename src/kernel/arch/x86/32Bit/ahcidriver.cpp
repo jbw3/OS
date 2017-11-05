@@ -28,7 +28,16 @@ AhciDriver::AhciDriver()
             HBAMemoryRegs* hba = mapAhciDevice(dev);
 
             initHBA(hba);
-            return;     // TMP
+
+            screen << os::Screen::hex;
+            for (int i = 0; i < 32; i++)
+            {
+                bool portImplemented = (hba->genericHostControl.PI >> i) & 0x1;
+                if (portImplemented)
+                {
+                    screen << "PxSERR: " << hba->portRegs[i].PxSERR << "\n";
+                }
+            }
 
             // -------------------------------------------------------------
             // TODO:
@@ -212,6 +221,8 @@ AhciDriver::AhciDriver()
             screen << "TFES: " << (regs->PxIS & (0x1 << 30)) << "\n";
             regs->PxCI |= 0x1;
 
+            //return;     // TMP
+
             for (int poll = 0; poll < 10; poll++)
             {
                 if (!(regs->PxCI & 0x1))
@@ -307,10 +318,10 @@ void AhciDriver::initHBA(ahci::HBAMemoryRegs* hba)
             {
                 screen << " (running)\n";
 
+                // make idle
                 screen << "Putting port " << i << " in an idle state...\n";
                 screen << "CR: " << (int)hba->portRegs[i].PxCMD.CR() << " FRE: " << (int)hba->portRegs[i].PxCMD.FRE() << " FR: " << (int)hba->portRegs[i].PxCMD.FR() << "\n";
 
-                // make idle
                 hba->portRegs[i].PxCMD.ST(0);   // clear ST
                 // wait 500ms, then verify CR goes to 0
                 do

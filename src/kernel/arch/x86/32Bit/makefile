@@ -57,7 +57,7 @@ debug: CONFIG = debug
 # kernel. A better solution is to break the multiboot header out into its own
 # file and modify the linker script to explicitly put it at the beginning of the
 # kernel.
-SRC = $(sort $(notdir $(wildcard $(SRCDIR)/*.c $(SRCDIR)/*.cpp $(SRCDIR)/*.s)))
+SRC = boot.s $(filter-out boot.s, $(sort $(notdir $(wildcard $(SRCDIR)/*.c $(SRCDIR)/*.cpp $(SRCDIR)/*.s))))
 
 # source files without crti.s and crtn.s
 NO_CRT_SRC = $(patsubst crt%.s,,$(SRC))
