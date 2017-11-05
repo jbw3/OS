@@ -83,13 +83,21 @@ struct PxCMDRegister
 
 } __attribute__((packed));
 
+struct PxISRegister
+{
+    uint32_t value;     // get entire register value
+
+    inline int PCS()    { return (value >> 6) & 0x1; }  // port connect change status
+
+} __attribute__((packed));
+
 struct AhciPortRegs
 {
     uint32_t PxCLB;     // command list base address
     uint32_t PxCLBU;    // command list base address (upper)
     uint32_t PxFB;      // FIS base address
     uint32_t PxFBU;     // FIS base address (upper)
-    uint32_t PxIS;      // interrupt status
+    PxISRegister PxIS;      // interrupt status
     uint32_t PxIE;      // interrupt enable
     PxCMDRegister PxCMD;     // command and status
     uint32_t Reserved1C;    // reserved

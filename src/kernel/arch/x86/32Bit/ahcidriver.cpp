@@ -10,6 +10,8 @@
 
 #define PORT 0
 
+#define HACK_ATTEMPT
+
 using namespace ahci;
 
 AhciDriver::AhciDriver()
@@ -51,6 +53,9 @@ AhciDriver::AhciDriver()
             //hba->genericHostControl.GHC |= 1 << 31;    // set GHC.AE
             screen << "AHCI version: 0x" << hba->genericHostControl.VS << "\n";
             screen << "SAM: " << (int)hba->genericHostControl.CAP.SAM() << "\n";
+            screen << "SPM: " << hba->genericHostControl.CAP.SPM() << "\n";
+            screen << "PxIS: 0x" << hba->portRegs->PxIS.value << "\n";
+
             //screen << "NumPorts field: " << hba->genericHostControl.CAP.NP() << "\n";
             //screen << "Ports Implemented: 0x" << hba->genericHostControl.PI << "\n";
             auto pi = hba->genericHostControl.PI;
@@ -92,6 +97,23 @@ AhciDriver::AhciDriver()
             screen << "PxCLB: " << hba->portRegs[PORT].PxCLB << "\n";
             screen << "PxFB: " << hba->portRegs[PORT].PxFB << "\n";
 
+            // TMP: TRY TO USE LOCATIONS ALREADY MAPPED BY FIRMWARE
+            uint32_t cmdListPtr = 0;
+            uint32_t fbPtr = 0;
+
+            if (!currentPT.isMapped(hba->portRegs[PORT].PxCLB, cmdListPtr))
+            {
+                cmdListPtr = currentPT.mapNextAvailablePageToAddress(hba->portRegs[PORT].PxCLB);
+            }
+
+            if (!currentPT.isMapped(hba->portRegs[PORT].PxFB, fbPtr))
+            {
+                fbPtr = currentPT.mapNextAvailablePageToAddress(hba->portRegs[PORT].PxFB);
+            }
+
+            screen << "CLB: 0x" << cmdListPtr << " FB: 0x" << fbPtr << "\n";
+
+            // OLD STUFF - MAPPING IT TO MY NEW LOCATION...
             hba->portRegs[PORT].PxCLB = pageAddrPhys;     // point to command list
             hba->portRegs[PORT].PxFB = pageAddrPhys + (sizeof(CommandHeader)*32);     // point to receive FIS
 
@@ -110,11 +132,22 @@ AhciDriver::AhciDriver()
 
             // test command
             CommandHeader* header = &ahciDev._portMemory[PORT]->CommandList[0];
-            AhciPortRegs* regs = &ahciDev._devRegs->portRegs[PORT];
-            screen << "Port 0 PxCI: 0x" << ahciDev._devRegs->portRegs[PORT].PxCI << "\n";
+            //CommandHeader* commandList = (CommandHeader*)cmdListPtr;
+            //CommandHeader* header = (CommandHeader*) ((uint32_t)(&commandList[0]) + 0x10);    // USE 2nd COMMAND HEADER
+            screen << "sizeof(CommandHeader): 0x" << sizeof(CommandHeader) << "\n";
+            // screen << (uint32_t)commandList << "\n";
+            // screen << (uint32_t)header << "\n";
+
+
+            screen << "CTBA: 0x" << header->CTBA() << "\n";
+
+            //AhciPortRegs* regs = &ahciDev._devRegs->portRegs[PORT];
+            AhciPortRegs* regs = &hba->portRegs[PORT];
+            //screen << "Port 0 PxCI: 0x" << ahciDev._devRegs->portRegs[PORT].PxCI << "\n";
             screen << "PxCMD.ST: " << regs->PxCMD.ST() << "\n";
             screen << "PxCMD.CR: " << regs->PxCMD.CR() << "\n";
             screen << "PxCMD.FRE: " << regs->PxCMD.FRE() << "\n";
+            screen << "PxIS.PCS: " << regs->PxIS.PCS() << "\n";
             screen << "BIOS owned semaphore: " << (hba->genericHostControl.BOHC & 0x1) << "\n";
             //header->
 
@@ -160,7 +193,7 @@ AhciDriver::AhciDriver()
             }
 
             char* dataBuffer = (char*)currentPT.mapNextAvailablePageToAddress(dataBufferPhysAddr);
-            //screen << "DataBuffer phys: " << dataBufferPhysAddr << "\n";
+            screen << "DataBuffer phys: " << dataBufferPhysAddr << "\n";
             screen << "DataBuffer @0x" << (uint32_t)dataBuffer << "\n";
 
             dataBuffer[0] = 'c';
@@ -175,6 +208,12 @@ AhciDriver::AhciDriver()
 
             // create command FIS
             // todo: create zeroOut() function, then just set members that I'm actually using
+            uint8_t* cmdFISPtr = (uint8_t*)cmdTable->CommandFIS();
+            for (int i = 0; i < 0x50; i++)
+            {
+                cmdFISPtr[i] = 0;
+            }
+
             cmdTable->CommandFIS()->FISType = 0x27;     // identify device?
             cmdTable->CommandFIS()->Flags = 0xC;
             cmdTable->CommandFIS()->Command = 0xEC;
@@ -210,44 +249,70 @@ AhciDriver::AhciDriver()
             header->PRDBC(0);   // PRD byte count
             header->CFL(5);     // command FIS length of 5 DWORDS
             header->CTBA(commandTablePhys);     // set command table base address
+            screen << "Command Table Phys: 0x" << commandTablePhys << "\n";
+            if (commandTablePhys % 128 != 0)
+            {
+                PANIC("command table not on 128-byte boundary!!");
+            }
 
             // check BSY and DRQ
-            screen << "Ports Implemented: 0x" << hba->genericHostControl.PI << "\n";
+            //screen << "Ports Implemented: 0x" << hba->genericHostControl.PI << "\n";
 
-            screen << "Port regs: " << (uint32_t)regs << "\n";
+            //screen << "Port regs: " << (uint32_t)regs << "\n";
+            screen << "AE: " << (hba->genericHostControl.GHC & (1 << 31)) << "\n";
             screen << "BSY: " << (regs->PxTFD & (0x1 << 7)) << "\n";
             screen << "DRQ: " << (regs->PxTFD & (0x1 << 3)) << "\n";
-            //screen << "PxCI: " << regs->PxCI << "\n";
-            screen << "TFES: " << (regs->PxIS & (0x1 << 30)) << "\n";
-            regs->PxCI |= 0x1;
+            screen << "PxCI: " << regs->PxCI << "\n";
+            screen << "PxSACT: " << regs->PxSACT << "\n";
+            screen << "PxCMD.ST: " << regs->PxCMD.ST() << "\n";
+            //return;
+            screen << "TFES: " << (regs->PxIS.value & (0x1 << 30)) << "\n";
+
+
+            // --------------------------------------------------------
+            // TODO: TURN ON DMA ENGINE (ST=1) BEFORE ISSUING COMMAND
+            // --------------------------------------------------------
+
+
+            //regs->PxCI |= 0x1;
+            // per spec, only write 'new' bits to set to 1; the previous register contents should NOT be re-written in the
+            // register write
+            regs->PxCI = 0x1;
+            screen << "PxCI: " << regs->PxCI << "\n";
 
             //return;     // TMP
 
-            for (int poll = 0; poll < 10; poll++)
+            auto initialTicks = os::Timer::getTicks();
+            while (os::Timer::getTicks() < (initialTicks+10))
             {
-                if (!(regs->PxCI & 0x1))
-                {
-                    // CI bit has been cleared by HBA
-                    screen << "Command processed!" << "\n";
-                    screen << "TFES: " << (regs->PxIS & (0x1 << 30)) << "\n";
-                    // 16x32=512
-                    for (int i = 0; i < 32; i++)
-                    {
-                        for (int j = 0; j < 16; j++)
-                        {
-                            screen << dataBuffer[(i*32)+j] << " ";
-                        }
-                        screen << "\n";
-                        if (i == 10)
-                            break;
-                    }
+                // wait
+            }
+            screen << "500ms \n";
 
-                    if (!(regs->PxCI & 0x1))    // weird...break by itself seems to be optimized out...
+            if (!(regs->PxCI & 0x1))
+            {
+                // CI bit has been cleared by HBA
+                screen << "Command processed!" << "\n";
+                screen << "PRD byte count: " << header->PRDBC() << "\n";
+                screen << "PxCI: " << regs->PxCI << "\n";
+                screen << "TFES: " << (regs->PxIS.value & (0x1 << 30)) << "\n";
+                // 16x32=512
+                for (int i = 0; i < 32; i++)
+                {
+                    for (int j = 0; j < 16; j++)
                     {
-                        break;
+                        screen << dataBuffer[(i*32)+j] << " ";
                     }
+                    screen << "\n";
+                    if (i == 10)
+                        break;
                 }
             }
+            else
+            {
+                screen << "Command not processed within 500ms...\n";
+            }
+
             // screen << "PxCI: " << regs->PxCI << "\n";
             // screen << "PxCI: " << regs->PxCI << "\n";
             // screen << "PxCI: " << regs->PxCI << "\n";
