@@ -27,6 +27,12 @@ AhciDriver::AhciDriver()
 
             HBAMemoryRegs* hba = mapAhciDevice(dev);
 
+            screen << os::Screen::hex;
+            screen << "sizeof(GHC Regs): 0x" << sizeof(GenericHostControlRegs) << "\n";
+            screen << "sizeof(HBAMemoryRegs): 0x:" << sizeof(HBAMemoryRegs) << "\n";
+            screen << "sizeof(AhciPortRegs): 0x" << sizeof(AhciPortRegs) << "\n";
+            return;
+
             initHBA(hba);
 
             screen << os::Screen::hex;
@@ -82,7 +88,7 @@ AhciDriver::AhciDriver()
                 PANIC("Page table full - not handling this properly in AHCI driver!");
             }
             uint32_t pageAddr = currentPT.mapNextAvailablePageToAddress(pageAddrPhys);
-            uint32_t* pagePtr = (uint32_t*)pageAddr;
+            //uint32_t* pagePtr = (uint32_t*)pageAddr;
 
             screen << os::Screen::hex;
             screen << "sizeof(H2D): 0x" << sizeof(H2DFIS) << "\n";
@@ -146,7 +152,7 @@ AhciDriver::AhciDriver()
             screen << "PxCMD.CR: " << regs->PxCMD.CR() << "\n";
             screen << "PxCMD.FRE: " << regs->PxCMD.FRE() << "\n";
             screen << "PxIS.PCS: " << regs->PxIS.PCS() << "\n";
-            screen << "BIOS owned semaphore: " << (hba->genericHostControl.BOHC & 0x1) << "\n";
+            //screen << "BIOS owned semaphore: " << (hba->genericHostControl.BOHC & 0x1) << "\n";
             //header->
 
             //////////// TODO: Do all this the right way...
@@ -257,7 +263,7 @@ AhciDriver::AhciDriver()
             //screen << "Ports Implemented: 0x" << hba->genericHostControl.PI << "\n";
 
             //screen << "Port regs: " << (uint32_t)regs << "\n";
-            screen << "AE: " << (hba->genericHostControl.GHC & (1 << 31)) << "\n";
+            screen << "AE: " << (int)hba->genericHostControl.GHC.AE() << "\n";
             screen << "BSY: " << (regs->PxTFD & (0x1 << 7)) << "\n";
             screen << "DRQ: " << (regs->PxTFD & (0x1 << 3)) << "\n";
             screen << "PxCI: " << regs->PxCI << "\n";
@@ -353,10 +359,8 @@ HBAMemoryRegs* AhciDriver::mapAhciDevice(PciDevice* dev)
 
 void AhciDriver::initHBA(ahci::HBAMemoryRegs* hba)
 {
-    int AE_MASK = 0x1 << 31;    // Global HBA Control.AHCI Enable
-
     // 1. Indicate that system SW is AHCI aware by setting GHC.AE to 1
-    hba->genericHostControl.GHC |= AE_MASK;
+    hba->genericHostControl.GHC.AE(1);
 
     // 2. Determine which ports are implemented by reading the PI register
     screen << "Ports Implemented: 0x" << hba->genericHostControl.PI << "\n";

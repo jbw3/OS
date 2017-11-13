@@ -62,7 +62,7 @@ struct GHCRegister
 struct GenericHostControlRegs
 {
     CAPRegister CAP;       // capabilities
-    uint32_t GHC;       // global host control
+    GHCRegister GHC;       // global host control
     uint32_t IS;        // interrupt status
     uint32_t PI;        // ports implemented
     uint32_t VS;        // version
@@ -156,9 +156,9 @@ struct AhciPortRegs
 struct HBAMemoryRegs
 {
     GenericHostControlRegs genericHostControl;
-    char reserved[52];
-    char reservedForNVMHCI[64];
-    char vendorSpecific[96];
+    char reserved[12];          // 00-1F (including GHC regs)
+    char reserved2[0x80];       // 20-9F
+    char vendorSpecific[0x60];  // A0-FF
     AhciPortRegs portRegs[32];
 } __attribute__((packed));
 
