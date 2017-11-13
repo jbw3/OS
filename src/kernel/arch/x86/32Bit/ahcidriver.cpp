@@ -31,6 +31,9 @@ AhciDriver::AhciDriver()
             screen << "sizeof(GHC Regs): 0x" << sizeof(GenericHostControlRegs) << "\n";
             screen << "sizeof(HBAMemoryRegs): 0x:" << sizeof(HBAMemoryRegs) << "\n";
             screen << "sizeof(AhciPortRegs): 0x" << sizeof(AhciPortRegs) << "\n";
+
+            // TODO: pick up here with checking port reg definitions (against AHCI 1.0 standard)
+
             return;
 
             initHBA(hba);
