@@ -10,8 +10,6 @@
 
 #define PORT 0
 
-#define HACK_ATTEMPT
-
 using namespace ahci;
 
 AhciDriver::AhciDriver()
