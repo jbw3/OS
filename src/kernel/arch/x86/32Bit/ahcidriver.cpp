@@ -67,6 +67,17 @@ AhciDriver::AhciDriver()
             screen << "HBA Reset: " << (int)hba->genericHostControl.GHC.HR() << "\n";
 
             initHBA(hba);
+            screen << "IS after clear: " << hba->genericHostControl.IS << "\n";
+            //return;
+
+
+            /////////////////////////////////////////////////////////////
+            // TODO:
+            // - Check all steps in 10.3 (SW rules for DMA engines)
+            // - Validate Identify Device Command format
+            // - Check Receive FIS for anything interesting
+            /////////////////////////////////////////////////////////////
+
             screen << os::Screen::hex;
 
             // OLD INIT CODE (comment out as I go...)
@@ -203,17 +214,20 @@ AhciDriver::AhciDriver()
             // TODO: TURN ON DMA ENGINE (ST=1) BEFORE ISSUING COMMAND
             // --------------------------------------------------------
             regs->PxCMD.ST(1);
-            sleep(1000);    // wait after setting start?
+            screen << "PxIS: " << regs->PxIS.value << "\n";
+            sleep(500);    // wait after setting start?
 
             //regs->PxCI |= 0x1;
             // per spec, only write 'new' bits to set to 1; the previous register contents should NOT be re-written in the
             // register write
-            regs->PxCI = 0x1;
+            regs->PxCI |= 0x1;
             screen << "PxCI: " << regs->PxCI << " ";
             screen << "PxCMD.ST: " << regs->PxCMD.ST() << "\n";
 
             sleep(500);
             screen << "500ms \n";
+            screen << "PxSIG: " << regs->PxSIG << "\n";
+            screen << "PxTFD.ERR: " << (int)(regs->PxTFD & 0x1) << "\n";
 
             if (!(regs->PxCI & 0x1))
             {
@@ -254,6 +268,12 @@ AhciDriver::AhciDriver()
             {
                 screen << "Command not processed within 500ms...\n";
             }
+
+            screen << "PxTFD.ERR: " << (int)(regs->PxTFD & 0x1) << "\n";
+            screen << "PxIE: " << regs->PxIE << " ";
+            screen << "PxIS: " << regs->PxIS.value << " ";
+            screen << "HBA IS: " << hba->genericHostControl.IS << " ";
+            screen << "GHC.IE: " << hba->genericHostControl.GHC.IE() << "\n";
         }
     }
 }
@@ -386,6 +406,26 @@ void AhciDriver::initHBA(ahci::HBAMemoryRegs* hba)
     // }
 
     // 7. Configure interrupts (set GHC.IE and appropriate PxIE regs as desired)
+    for (int i = 0; i < 32; i++)
+    {
+        bool portImplemented = (hba->genericHostControl.PI >> i) & 0x1;
+        if (portImplemented)
+        {
+            hba->portRegs[i].PxIS.value = 0xFFFF'FFFF;
+        }
+    }
+
+    for (int i = 0; i < 32; i++)
+    {
+        bool portImplemented = (hba->genericHostControl.PI >> i) & 0x1;
+        if (portImplemented)
+        {
+            screen << "PxIS after clear: " << hba->portRegs[i].PxIS.value << "\n";
+        }
+    }
+
+    hba->genericHostControl.IS = 0xFFFF'FFFF;
+
     screen << "GHC.IE " << (int)hba->genericHostControl.GHC.IE() << "\n";
     hba->genericHostControl.GHC.IE(0);      // turn all interrupts off for now
     screen << "GHC.IE " << (int)hba->genericHostControl.GHC.IE() << "\n";
@@ -399,7 +439,8 @@ void AhciDriver::initHBA(ahci::HBAMemoryRegs* hba)
         if (portImplemented)
         {
             // verify PxSERR.DIAG.X is cleared
-            screen << "PxSERR.DIAG.X: " << (hba->portRegs[i].PxSERR & (int)(0x1 << 26)) << "\n";
+            screen << "PxIS: " << hba->portRegs[i].PxIS.value << " ";
+            screen << "PxSERR.DIAG.X: " << (hba->portRegs[i].PxSERR & (int)(0x1 << 26)) << " ";
             // verify functional device is present on the port (BSY=0, DRQ=0, DET=3)
             screen << "BSY: " << (hba->portRegs[i].PxTFD & (0x1 << 7)) << " DRQ: " << (hba->portRegs[i].PxTFD & (0x1 << 3)) << " ";
             screen << "DET: " << (hba->portRegs[i].PxSSTS & 0x0F) << "\n";
