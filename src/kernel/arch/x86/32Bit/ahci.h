@@ -4,6 +4,7 @@
 
 namespace ahci {
 
+// v1.0
 struct CAPRegister
 {
     uint32_t value;     // get entire register value
@@ -44,6 +45,7 @@ struct CAPRegister
 
 } __attribute__((packed));
 
+// v1.0
 struct GHCRegister
 {
     uint32_t value;     // get entire register value
@@ -59,6 +61,7 @@ struct GHCRegister
 
 } __attribute__((packed));
 
+// v1.0
 struct GenericHostControlRegs
 {
     CAPRegister CAP;       // capabilities
@@ -68,6 +71,7 @@ struct GenericHostControlRegs
     uint32_t VS;        // version
 } __attribute__((packed));
 
+// v1.0
 struct PxCMDRegister
 {
     uint32_t value;     // get entire register value
@@ -84,6 +88,7 @@ struct PxCMDRegister
 
 } __attribute__((packed));
 
+// v1.0
 struct PxISRegister
 {
     uint32_t value;     // get entire register value
@@ -92,6 +97,7 @@ struct PxISRegister
 
 } __attribute__((packed));
 
+// v1.0
 struct AhciPortRegs
 {
     uint32_t PxCLB;     // command list base address
@@ -151,6 +157,7 @@ struct AhciPortRegs
 
 } __attribute__((packed));
 
+// v1.0
 struct HBAMemoryRegs
 {
     GenericHostControlRegs genericHostControl;

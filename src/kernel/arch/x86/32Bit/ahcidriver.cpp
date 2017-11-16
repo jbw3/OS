@@ -50,6 +50,7 @@ AhciDriver::AhciDriver()
             // TODO: pick up here with checking port reg definitions (against AHCI 1.0 standard)
 
             screen << "Supports staggered spinup? " << hba->genericHostControl.CAP.SSS() << "\n";
+            screen << "64-bit addressing? " << (int)hba->genericHostControl.CAP.S64A() << "\n";
             screen << "HBA Reset: " << (int)hba->genericHostControl.GHC.HR() << "\n";
             screen << "HBA Reset=1...\n";
             hba->genericHostControl.GHC.HR(1);
