@@ -12,6 +12,16 @@
 
 using namespace ahci;
 
+void sleep(int ms)
+{
+    auto ticks = ms/50;     // 50ms increments
+    auto initialTicks = os::Timer::getTicks();
+    while (os::Timer::getTicks() < (initialTicks+ticks))
+    {
+        // wait
+    }
+}
+
 AhciDriver::AhciDriver()
 {
     // find any AHCI devices
@@ -34,9 +44,15 @@ AhciDriver::AhciDriver()
 
             // TODO: pick up here with checking port reg definitions (against AHCI 1.0 standard)
 
-            return;
+            screen << "Supports staggered spinup? " << hba->genericHostControl.CAP.SSS() << "\n";
+            screen << "HBA Reset: " << (int)hba->genericHostControl.GHC.HR() << "\n";
+            screen << "HBA Reset=1...\n";
+            hba->genericHostControl.GHC.HR(1);
+            sleep(500);
+            screen << "HBA Reset: " << (int)hba->genericHostControl.GHC.HR() << "\n";
 
             initHBA(hba);
+            return;
 
             screen << os::Screen::hex;
             for (int i = 0; i < 32; i++)
@@ -387,6 +403,7 @@ void AhciDriver::initHBA(ahci::HBAMemoryRegs* hba)
             else
             {
                 screen << " (running)\n";
+                continue;
 
                 // make idle
                 screen << "Putting port " << i << " in an idle state...\n";
