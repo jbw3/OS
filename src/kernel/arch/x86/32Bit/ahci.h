@@ -109,11 +109,9 @@ struct AhciPortRegs
     uint32_t PxSERR;    // SATA error
     uint32_t PxSACT;    // SATA active
     uint32_t PxCI;      // command issue
-    uint32_t PxSNTF;    // SATA notification
-    uint32_t PxFBS;     // FIS-based switch controlling
-    uint32_t PxDEVSLP;  // device sleep
-    char Reserved48 [40];
-    char PxVS [16];     // vendor specific
+    // reserved...
+    char Reserved34 [0x34];
+    char PxVS [0x10];     // vendor specific
 
     const char* getSigString()
     {

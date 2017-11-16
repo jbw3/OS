@@ -12,6 +12,11 @@
 
 using namespace ahci;
 
+/**
+ * @brief Sleep for ms milliseconds (needs to be 50ms multiple)
+ *
+ * @param ms
+ */
 void sleep(int ms)
 {
     auto ticks = ms/50;     // 50ms increments
