@@ -168,7 +168,7 @@ struct HBAMemoryRegs
 } __attribute__((packed));
 
 /**
- * @brief AHCI Command Header
+ * @brief AHCI Command Header (v1.0)
  */
 struct CommandHeader
 {
@@ -177,10 +177,6 @@ struct CommandHeader
     uint32_t DW1;
     uint32_t DW2;
     uint32_t DW3;
-    uint32_t DW4;
-    uint32_t DW5;
-    uint32_t DW6;
-    uint32_t DW7;
 
     int PRDTL() { return (DW0 >> 16) & 0xFFFF; }    // count of PRD table entries in command table
     int PMP()   { return (DW0 >> 12) & 0x000F; }
@@ -262,7 +258,7 @@ struct H2DFIS
 } __attribute__((packed));
 
 /**
- * @brief Physical Region Descriptor
+ * @brief Physical Region Descriptor (v1.0)
  */
 struct PRD
 {
@@ -279,11 +275,12 @@ struct PRD
 
 } __attribute__((packed));
 
+// v1.0
 struct CommandTable
 {
     uint8_t _CommandFIS[0x40];      // space req'd for cmd FIS
-    uint8_t _CommandPacket[0x10];   // space req'd for cmd packet...
-    uint8_t _Reserved[0x30];
+    uint8_t _ACMD[0x20];            // space req'd for ATAPI Command...
+    uint8_t _Reserved[0x20];
     PRD PRDTable;    // first entry in array of PRDs
 
     H2DFIS* CommandFIS() { return (H2DFIS*)(&_CommandFIS); }

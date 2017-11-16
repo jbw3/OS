@@ -34,4 +34,10 @@ private:
      * @param hba
      */
     void initHBA(ahci::HBAMemoryRegs* hba);
+
+    /**
+     * @brief Initializes the given port
+     *
+     */
+    void initAhciPort(ahci::AhciPortRegs* port);
 };

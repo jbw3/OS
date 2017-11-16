@@ -46,11 +46,15 @@ AhciDriver::AhciDriver()
             screen << "sizeof(GHC Regs): 0x" << sizeof(GenericHostControlRegs) << "\n";
             screen << "sizeof(HBAMemoryRegs): 0x:" << sizeof(HBAMemoryRegs) << "\n";
             screen << "sizeof(AhciPortRegs): 0x" << sizeof(AhciPortRegs) << "\n";
+            screen << "sizeof(CommandHeader): 0x" << sizeof(CommandHeader) << "\n";
 
             // TODO: pick up here with checking port reg definitions (against AHCI 1.0 standard)
 
             screen << "Supports staggered spinup? " << hba->genericHostControl.CAP.SSS() << "\n";
             screen << "64-bit addressing? " << (int)hba->genericHostControl.CAP.S64A() << "\n";
+            screen << "P0 idle? " << (int)hba->portRegs[PORT].isIdle() << "\n";
+            screen << "PxCLB: " << hba->portRegs[PORT].PxCLB << "\n";
+            screen << "PxFB: " << hba->portRegs[PORT].PxFB << "\n";
             screen << "HBA Reset: " << (int)hba->genericHostControl.GHC.HR() << "\n";
             screen << "HBA Reset=1...\n";
             hba->genericHostControl.GHC.HR(1);
@@ -59,6 +63,11 @@ AhciDriver::AhciDriver()
 
             initHBA(hba);
             return;
+            screen << os::Screen::hex;
+            screen << "PxCLB: " << hba->portRegs[PORT].PxCLB << "\n";
+            screen << "PxFB: " << hba->portRegs[PORT].PxFB << "\n";
+            screen << "P0 idle? " << (int)hba->portRegs[PORT].isIdle() << "\n";
+            //return;
 
             screen << os::Screen::hex;
             for (int i = 0; i < 32; i++)
@@ -209,9 +218,9 @@ AhciDriver::AhciDriver()
 
             // set up command table
             CommandTable* cmdTable = (CommandTable*)currentPT.mapNextAvailablePageToAddress(commandTablePhys);  // was pageAddrPhys...why???
-            for (int i = 0; i < 16; i++)
+            for (int i = 0; i < 0x20; i++)
             {
-                cmdTable->_CommandPacket[i] = 0;
+                cmdTable->_ACMD[i] = 0;
             }
 
             // allocate data buffer
@@ -243,6 +252,7 @@ AhciDriver::AhciDriver()
                 cmdFISPtr[i] = 0;
             }
 
+            // 0x27 - Register-H2D FIS Type
             cmdTable->CommandFIS()->FISType = 0x27;     // identify device?
             cmdTable->CommandFIS()->Flags = 0xC;
             cmdTable->CommandFIS()->Command = 0xEC;
@@ -297,10 +307,10 @@ AhciDriver::AhciDriver()
             //return;
             screen << "TFES: " << (regs->PxIS.value & (0x1 << 30)) << "\n";
 
-
             // --------------------------------------------------------
             // TODO: TURN ON DMA ENGINE (ST=1) BEFORE ISSUING COMMAND
             // --------------------------------------------------------
+            // regs->PxCMD.ST(1);
 
 
             //regs->PxCI |= 0x1;
@@ -419,11 +429,7 @@ void AhciDriver::initHBA(ahci::HBAMemoryRegs* hba)
                 // wait 500ms, then verify CR goes to 0
                 do
                 {
-                    auto initialTicks = os::Timer::getTicks();
-                    while (os::Timer::getTicks() < (initialTicks+10))
-                    {
-                        // wait
-                    }
+                    sleep(500);
                     screen << "500ms \n";
                 }
                 while (hba->portRegs[i].PxCMD.CR());
@@ -436,11 +442,7 @@ void AhciDriver::initHBA(ahci::HBAMemoryRegs* hba)
                     // wait 500ms, then verify FR goes to 0
                     do
                     {
-                        auto initialTicks = os::Timer::getTicks();
-                        while (os::Timer::getTicks() < (initialTicks+10))
-                        {
-                            // wait
-                        }
+                        sleep(500);
                         screen << "500ms \n";
                     }
                     while (hba->portRegs[i].PxCMD.FR());
@@ -453,4 +455,80 @@ void AhciDriver::initHBA(ahci::HBAMemoryRegs* hba)
             }
         }
     }
+
+    // 4. Determine how many command slots are supported
+    screen << "NCS: " << hba->genericHostControl.CAP.NCS() << "\n";     // is it NCS+1?
+
+    // 5. For each implemented port, system SW shall set up PxCLB and PxFB by:
+    //  - allocating memory
+    //  - zero-ing out memory
+    //  - setting port regs (PxCLB and PxFB) to the values of the physical addresses
+    //  - set PxCMD.FRE = 1 after PxFB is set up
+    for (int i = 0; i < 32; i++)
+    {
+        bool portImplemented = (hba->genericHostControl.PI >> i) & 0x1;
+        if (portImplemented)
+        {
+            initAhciPort(&hba->portRegs[i]);
+        }
+    }
+
+}
+
+void AhciDriver::initAhciPort(ahci::AhciPortRegs* port)
+{
+    // allocate memory for port
+    // allocate a page for the port command list and receive FIS
+    uintptr_t pagePtrPhys = PageFrameMgr::get()->allocPageFrame();
+    uint32_t pageAddrPhys = (uint32_t)pagePtrPhys;      // NEED TO KEEP PHYS ADDR FOR POINTING TO CMD LIST AND RECEIVE FIS
+
+    mem::PageTable currentPT(mem::lastUsedKernelPDEIndex());
+    if (currentPT.isFull())
+    {
+        PANIC("Page table full - not handling this properly in AHCI driver!");
+    }
+    uint32_t pageAddr = currentPT.mapNextAvailablePageToAddress(pageAddrPhys);
+
+    // zero-out page memory (best practice move here...)
+    uint32_t* pagePtr = (uint32_t*)pageAddr;    // zero out 4B at a time...
+
+    for (int i = 0; i < (PAGE_SIZE/sizeof(uint32_t)); i++)
+    {
+        pagePtr[i] = 0;
+    }
+
+    // set port regs to physical addresses...
+    port->PxCLB = pageAddrPhys;                                 // point to phys address of command list (start of new page)
+    port->PxFB = pageAddrPhys + (sizeof(CommandHeader)*32);     // point to receive FIS (directly after command list, on new page)
+
+    // command table = sizeof(CommandHeader)*32
+    // receive FIS = 256B
+    auto cmdTableSize = sizeof(CommandHeader)*32;
+    auto rxFISSize = 256;
+    auto totalSize = cmdTableSize + rxFISSize;
+
+    screen << os::Screen::dec;
+    screen << "AHCI port memory utilizing " << totalSize << "B of " << PAGE_SIZE << "B available\n";
+    // screen << "sizeof(PortMemory): " << sizeof(PortSystemMemory) << "\n";
+    // screen << "Remaining space: " << PAGE_SIZE - totalSize << "B (" << (double)(PAGE_SIZE - totalSize)/(double)PAGE_SIZE << "%)\n";
+
+    // screen << "PxCLB: " << port->PxCLB << "\n";
+    // screen << "PxFB: " << port->PxFB << "\n";
+
+    // TODO: once I get this working...
+    // set up AhciDevice instance for access later on...
+    // AhciDevice ahciDev;
+    // ahciDev._devRegs = hba;
+    // ahciDev._portMemoryPhysAddr[PORT] = pageAddrPhys;
+    // ahciDev._portMemory[PORT] = (PortSystemMemory*)pageAddr;
+
+    screen << os::Screen::hex;
+    //screen << "sizeof(H2D): 0x" << sizeof(H2DFIS) << "\n";
+    //screen << "sizeof(CommandHeader): 0x" << sizeof(CommandHeader) << "\n";
+    // screen << "sizeof(PortSystemMemory): 0x" << sizeof(PortSystemMemory) << "\n";
+    static_assert(sizeof(PortSystemMemory) <= 0x1000);
+    // note: I can currently fit 2 PortSystemMemory structures in a single page,
+    // or do 1 per page with some extra room to store other info at the bottom?
+
+
 }
