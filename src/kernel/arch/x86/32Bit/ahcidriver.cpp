@@ -27,8 +27,12 @@ void sleep(int ms)
     }
 }
 
+static AhciDevice device;   // TMP - hardcoded until I get everything working
+
 AhciDriver::AhciDriver()
 {
+    device._portMemory[0] = nullptr;
+
     // find any AHCI devices
     auto pci = Pci::get();
 
@@ -41,6 +45,7 @@ AhciDriver::AhciDriver()
             dev->printDeviceInfo(false);
 
             HBAMemoryRegs* hba = mapAhciDevice(dev);
+            device._devRegs = hba;  // TMP
 
             screen << os::Screen::hex;
             screen << "sizeof(GHC Regs): 0x" << sizeof(GenericHostControlRegs) << "\n";
@@ -62,132 +67,23 @@ AhciDriver::AhciDriver()
             screen << "HBA Reset: " << (int)hba->genericHostControl.GHC.HR() << "\n";
 
             initHBA(hba);
-            return;
             screen << os::Screen::hex;
-            screen << "PxCLB: " << hba->portRegs[PORT].PxCLB << "\n";
-            screen << "PxFB: " << hba->portRegs[PORT].PxFB << "\n";
-            screen << "P0 idle? " << (int)hba->portRegs[PORT].isIdle() << "\n";
-            //return;
-
-            screen << os::Screen::hex;
-            for (int i = 0; i < 32; i++)
-            {
-                bool portImplemented = (hba->genericHostControl.PI >> i) & 0x1;
-                if (portImplemented)
-                {
-                    screen << "PxSERR: " << hba->portRegs[i].PxSERR << "\n";
-                }
-            }
-
-            // -------------------------------------------------------------
-            // TODO:
-            // Create an initHBA() function, move applicable code over, and
-            // clean up everything. When cleaning up:
-            // 1. Follow System SW Initialization Steps exactly to init HBA
-            // 2. If that doesn't work, try an HBA reset
-            // -------------------------------------------------------------
 
             // OLD INIT CODE (comment out as I go...)
-            //hba->genericHostControl.GHC |= 1 << 31;    // set GHC.AE
-            screen << "AHCI version: 0x" << hba->genericHostControl.VS << "\n";
-            screen << "SAM: " << (int)hba->genericHostControl.CAP.SAM() << "\n";
-            screen << "SPM: " << hba->genericHostControl.CAP.SPM() << "\n";
-            screen << "PxIS: 0x" << hba->portRegs->PxIS.value << "\n";
-
-            //screen << "NumPorts field: " << hba->genericHostControl.CAP.NP() << "\n";
-            //screen << "Ports Implemented: 0x" << hba->genericHostControl.PI << "\n";
-            auto pi = hba->genericHostControl.PI;
-            int numPorts = 0;
-            for (int i = 0; i < (int)sizeof(pi)*8; i++)
-            {
-                numPorts += (int)((pi >> i) & 0x1);
-            }
-            screen << "# ports: " << numPorts << "\n";
-
-            // TODO: MAP PORTS!!
-            //mem::autoMapKernelPageForAddress()
-
-            screen << "Port type: " << hba->portRegs[PORT].getSigString() << "\n";
-            screen << os::Screen::dec;
-
-            // max command slots I can allocate for each port
-            screen << "# command slots: " << hba->genericHostControl.CAP.NumCommandSlots() << "\n";
-
-            // allocate a page for the port command list and receive FIS
-            uintptr_t pagePtrPhys = PageFrameMgr::get()->allocPageFrame();
-            uint32_t pageAddrPhys = (uint32_t)pagePtrPhys;      // TODO: NEED TO KEEP PHYS ADDR FOR POINTING TO CMD LIST AND RECEIVE FIS
-            mem::PageTable currentPT(mem::lastUsedKernelPDEIndex());
-            if (currentPT.isFull())
-            {
-                PANIC("Page table full - not handling this properly in AHCI driver!");
-            }
-            uint32_t pageAddr = currentPT.mapNextAvailablePageToAddress(pageAddrPhys);
-            //uint32_t* pagePtr = (uint32_t*)pageAddr;
-
-            screen << os::Screen::hex;
-            screen << "sizeof(H2D): 0x" << sizeof(H2DFIS) << "\n";
-            screen << "sizeof(CommandHeader): 0x" << sizeof(CommandHeader) << "\n";
-            screen << "sizeof(PortSystemMemory): 0x" << sizeof(PortSystemMemory) << "\n";
-            static_assert(sizeof(PortSystemMemory) <= 0x1000);
-            // note: I can currently fit 2 PortSystemMemory structures in a single page,
-            // or do 1 per page with some extra room to store other info at the bottom?
-
-            screen << "PxCLB: " << hba->portRegs[PORT].PxCLB << "\n";
-            screen << "PxFB: " << hba->portRegs[PORT].PxFB << "\n";
-
-            // TMP: TRY TO USE LOCATIONS ALREADY MAPPED BY FIRMWARE
-            uint32_t cmdListPtr = 0;
-            uint32_t fbPtr = 0;
-
-            if (!currentPT.isMapped(hba->portRegs[PORT].PxCLB, cmdListPtr))
-            {
-                cmdListPtr = currentPT.mapNextAvailablePageToAddress(hba->portRegs[PORT].PxCLB);
-            }
-
-            if (!currentPT.isMapped(hba->portRegs[PORT].PxFB, fbPtr))
-            {
-                fbPtr = currentPT.mapNextAvailablePageToAddress(hba->portRegs[PORT].PxFB);
-            }
-
-            screen << "CLB: 0x" << cmdListPtr << " FB: 0x" << fbPtr << "\n";
-
-            // OLD STUFF - MAPPING IT TO MY NEW LOCATION...
-            hba->portRegs[PORT].PxCLB = pageAddrPhys;     // point to command list
-            hba->portRegs[PORT].PxFB = pageAddrPhys + (sizeof(CommandHeader)*32);     // point to receive FIS
-
-            screen << "PxCLB: " << hba->portRegs[PORT].PxCLB << "\n";
-            screen << "PxFB: " << hba->portRegs[PORT].PxFB << "\n";
-
-            screen << "Receive FIS Phys: 0x" << hba->portRegs[PORT].PxFB << "\n";
-
-            screen << "sizeof(CommandHeader)*32: 0x" << sizeof(CommandHeader)*32 << "\n";
-
-            // set up AhciDevice instance for access later on...
-            AhciDevice ahciDev;
-            ahciDev._devRegs = hba;
-            ahciDev._portMemoryPhysAddr[PORT] = pageAddrPhys;
-            ahciDev._portMemory[PORT] = (PortSystemMemory*)pageAddr;
+            // screen << "AHCI version: 0x" << hba->genericHostControl.VS << "\n";
+            // screen << "SAM: " << (int)hba->genericHostControl.CAP.SAM() << "\n";
+            // screen << "SPM: " << hba->genericHostControl.CAP.SPM() << "\n";
+            // screen << "PxIS: 0x" << hba->portRegs->PxIS.value << "\n";
 
             // test command
-            CommandHeader* header = &ahciDev._portMemory[PORT]->CommandList[0];
-            //CommandHeader* commandList = (CommandHeader*)cmdListPtr;
-            //CommandHeader* header = (CommandHeader*) ((uint32_t)(&commandList[0]) + 0x10);    // USE 2nd COMMAND HEADER
-            screen << "sizeof(CommandHeader): 0x" << sizeof(CommandHeader) << "\n";
-            // screen << (uint32_t)commandList << "\n";
-            // screen << (uint32_t)header << "\n";
-
-
+            CommandHeader* header = &device._portMemory[PORT]->CommandList[0];
             screen << "CTBA: 0x" << header->CTBA() << "\n";
 
-            //AhciPortRegs* regs = &ahciDev._devRegs->portRegs[PORT];
             AhciPortRegs* regs = &hba->portRegs[PORT];
-            //screen << "Port 0 PxCI: 0x" << ahciDev._devRegs->portRegs[PORT].PxCI << "\n";
-            screen << "PxCMD.ST: " << regs->PxCMD.ST() << "\n";
-            screen << "PxCMD.CR: " << regs->PxCMD.CR() << "\n";
-            screen << "PxCMD.FRE: " << regs->PxCMD.FRE() << "\n";
-            screen << "PxIS.PCS: " << regs->PxIS.PCS() << "\n";
-            //screen << "BIOS owned semaphore: " << (hba->genericHostControl.BOHC & 0x1) << "\n";
-            //header->
+            // screen << "PxCMD.ST: " << regs->PxCMD.ST() << "\n";
+            // screen << "PxCMD.CR: " << regs->PxCMD.CR() << "\n";
+            // screen << "PxCMD.FRE: " << regs->PxCMD.FRE() << "\n";
+            // screen << "PxIS.PCS: " << regs->PxIS.PCS() << "\n";
 
             //////////// TODO: Do all this the right way...
             // -------------------------------------------------------------
@@ -210,7 +106,7 @@ AhciDriver::AhciDriver()
 
             // allocate command table page
             uint32_t commandTablePhys = (uint32_t)PageFrameMgr::get()->allocPageFrame();
-            //mem::PageTable currentPT(mem::lastUsedKernelPDEIndex());
+            mem::PageTable currentPT(mem::lastUsedKernelPDEIndex());
             if (currentPT.isFull())
             {
                 PANIC("Page table full - not handling this properly in AHCI driver!");
@@ -298,34 +194,25 @@ AhciDriver::AhciDriver()
             //screen << "Ports Implemented: 0x" << hba->genericHostControl.PI << "\n";
 
             //screen << "Port regs: " << (uint32_t)regs << "\n";
-            screen << "AE: " << (int)hba->genericHostControl.GHC.AE() << "\n";
-            screen << "BSY: " << (regs->PxTFD & (0x1 << 7)) << "\n";
-            screen << "DRQ: " << (regs->PxTFD & (0x1 << 3)) << "\n";
-            screen << "PxCI: " << regs->PxCI << "\n";
-            screen << "PxSACT: " << regs->PxSACT << "\n";
-            screen << "PxCMD.ST: " << regs->PxCMD.ST() << "\n";
-            //return;
+            screen << "PxCI: " << regs->PxCI << " ";
+            screen << "PxSACT: " << regs->PxSACT << " ";
+            screen << "PxCMD.ST: " << regs->PxCMD.ST() << " ";
             screen << "TFES: " << (regs->PxIS.value & (0x1 << 30)) << "\n";
 
             // --------------------------------------------------------
             // TODO: TURN ON DMA ENGINE (ST=1) BEFORE ISSUING COMMAND
             // --------------------------------------------------------
-            // regs->PxCMD.ST(1);
-
+            regs->PxCMD.ST(1);
+            sleep(1000);    // wait after setting start?
 
             //regs->PxCI |= 0x1;
             // per spec, only write 'new' bits to set to 1; the previous register contents should NOT be re-written in the
             // register write
             regs->PxCI = 0x1;
-            screen << "PxCI: " << regs->PxCI << "\n";
+            screen << "PxCI: " << regs->PxCI << " ";
+            screen << "PxCMD.ST: " << regs->PxCMD.ST() << "\n";
 
-            //return;     // TMP
-
-            auto initialTicks = os::Timer::getTicks();
-            while (os::Timer::getTicks() < (initialTicks+10))
-            {
-                // wait
-            }
+            sleep(500);
             screen << "500ms \n";
 
             if (!(regs->PxCI & 0x1))
@@ -334,6 +221,8 @@ AhciDriver::AhciDriver()
                 screen << "Command processed!" << "\n";
                 screen << "PRD byte count: " << header->PRDBC() << "\n";
                 screen << "PxCI: " << regs->PxCI << "\n";
+                // screen << "PxCMD.ST: " << regs->PxCMD.ST() << "\n";
+                // screen << "PxSACT: " << regs->PxSACT << "\n";
                 screen << "TFES: " << (regs->PxIS.value & (0x1 << 30)) << "\n";
                 // 16x32=512
                 for (int i = 0; i < 32; i++)
@@ -346,26 +235,25 @@ AhciDriver::AhciDriver()
                     if (i == 10)
                         break;
                 }
+
+                for (int i = 0; i < 32; i++)
+                {
+                    bool portImplemented = (hba->genericHostControl.PI >> i) & 0x1;
+                    if (portImplemented)
+                    {
+                        // verify PxSERR.DIAG.X is cleared
+                        screen << "PxSERR.DIAG.X: " << (hba->portRegs[i].PxSERR & (int)(0x1 << 26)) << " ";
+                        screen << "PxSERR: " << hba->portRegs[i].PxSERR << " ";
+                        // verify functional device is present on the port (BSY=0, DRQ=0, DET=3)
+                        screen << "BSY: " << (hba->portRegs[i].PxTFD & (0x1 << 7)) << " DRQ: " << (hba->portRegs[i].PxTFD & (0x1 << 3)) << " ";
+                        screen << "DET: " << (hba->portRegs[i].PxSSTS & 0x0F) << "\n";
+                    }
+                }
             }
             else
             {
                 screen << "Command not processed within 500ms...\n";
             }
-
-            // screen << "PxCI: " << regs->PxCI << "\n";
-            // screen << "PxCI: " << regs->PxCI << "\n";
-            // screen << "PxCI: " << regs->PxCI << "\n";
-
-
-            // ##############################
-            // TODO: check BIOS ownership, try device reset, check everything...
-            // ##############################
-
-
-            // pick a command header and go...
-            //ahciDev._portMemory[0]->CommandList[0].PRDTL(5);
-            // JUST PICK A SPOT AND HARDCODE A DEVICE THERE TO GET STARTED...
-            // todo: place AhciDevice in array...?
         }
     }
 }
@@ -568,6 +456,11 @@ void AhciDriver::initAhciPort(ahci::AhciPortRegs* port)
     // ahciDev._devRegs = hba;
     // ahciDev._portMemoryPhysAddr[PORT] = pageAddrPhys;
     // ahciDev._portMemory[PORT] = (PortSystemMemory*)pageAddr;
+    if (device._portMemory[0] == nullptr)
+    {
+        device._portMemoryPhysAddr[0] = pageAddrPhys;
+        device._portMemory[0] = (PortSystemMemory*)pageAddr;
+    }
 
     screen << os::Screen::hex;
     //screen << "sizeof(H2D): 0x" << sizeof(H2DFIS) << "\n";
@@ -576,6 +469,4 @@ void AhciDriver::initAhciPort(ahci::AhciPortRegs* port)
     static_assert(sizeof(PortSystemMemory) <= 0x1000);
     // note: I can currently fit 2 PortSystemMemory structures in a single page,
     // or do 1 per page with some extra room to store other info at the bottom?
-
-
 }
