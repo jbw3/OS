@@ -486,14 +486,35 @@ void AhciDriver::initHBA(ahci::HBAMemoryRegs* hba)
         }
     }
 
-    sleep(500);
+    // quick check to make sure this worked...
+    // sleep(500);
+    // for (int i = 0; i < 32; i++)
+    // {
+    //     bool portImplemented = (hba->genericHostControl.PI >> i) & 0x1;
+    //     if (portImplemented)
+    //     {
+    //         screen << "PxSERR: " << hba->portRegs[i].PxSERR << "\n";
+    //     }
+    // }
 
+    // 7. Configure interrupts (set GHC.IE and appropriate PxIE regs as desired)
+    screen << "GHC.IE " << (int)hba->genericHostControl.GHC.IE() << "\n";
+    hba->genericHostControl.GHC.IE(0);      // turn all interrupts off for now
+    screen << "GHC.IE " << (int)hba->genericHostControl.GHC.IE() << "\n";
+
+    // TODO: when setting interrupts, clear PxIS first, then clear IS.IPS BEFORE programming PxIE and GHC.IE
+
+    // Final steps
     for (int i = 0; i < 32; i++)
     {
         bool portImplemented = (hba->genericHostControl.PI >> i) & 0x1;
         if (portImplemented)
         {
-            screen << "PxSERR: " << hba->portRegs[i].PxSERR << "\n";
+            // verify PxSERR.DIAG.X is cleared
+            screen << "PxSERR.DIAG.X: " << (hba->portRegs[i].PxSERR & (int)(0x1 << 26)) << "\n";
+            // verify functional device is present on the port (BSY=0, DRQ=0, DET=3)
+            screen << "BSY: " << (hba->portRegs[i].PxTFD & (0x1 << 7)) << " DRQ: " << (hba->portRegs[i].PxTFD & (0x1 << 3)) << " ";
+            screen << "DET: " << (hba->portRegs[i].PxSSTS & 0x0F) << "\n";
         }
     }
 }
