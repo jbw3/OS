@@ -473,6 +473,29 @@ void AhciDriver::initHBA(ahci::HBAMemoryRegs* hba)
         }
     }
 
+    // 6. For each implemented port, clear PxSERR register by writing 1's to each
+    // implemented bit location
+    for (int i = 0; i < 32; i++)
+    {
+        bool portImplemented = (hba->genericHostControl.PI >> i) & 0x1;
+        if (portImplemented)
+        {
+            screen << "PxSERR: " << hba->portRegs[i].PxSERR << "\n";
+            hba->portRegs[i].PxSERR = 0xFFFF'FFFF;
+            screen << "PxSERR: " << hba->portRegs[i].PxSERR << "\n";
+        }
+    }
+
+    sleep(500);
+
+    for (int i = 0; i < 32; i++)
+    {
+        bool portImplemented = (hba->genericHostControl.PI >> i) & 0x1;
+        if (portImplemented)
+        {
+            screen << "PxSERR: " << hba->portRegs[i].PxSERR << "\n";
+        }
+    }
 }
 
 void AhciDriver::initAhciPort(ahci::AhciPortRegs* port)
@@ -500,6 +523,9 @@ void AhciDriver::initAhciPort(ahci::AhciPortRegs* port)
     // set port regs to physical addresses...
     port->PxCLB = pageAddrPhys;                                 // point to phys address of command list (start of new page)
     port->PxFB = pageAddrPhys + (sizeof(CommandHeader)*32);     // point to receive FIS (directly after command list, on new page)
+
+    // set PxCMD.FRE = 1 after setup is complete
+    port->PxCMD.FRE(1);
 
     // command table = sizeof(CommandHeader)*32
     // receive FIS = 256B
