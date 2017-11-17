@@ -53,8 +53,6 @@ AhciDriver::AhciDriver()
             screen << "sizeof(AhciPortRegs): 0x" << sizeof(AhciPortRegs) << "\n";
             screen << "sizeof(CommandHeader): 0x" << sizeof(CommandHeader) << "\n";
 
-            // TODO: pick up here with checking port reg definitions (against AHCI 1.0 standard)
-
             screen << "Supports staggered spinup? " << hba->genericHostControl.CAP.SSS() << "\n";
             screen << "64-bit addressing? " << (int)hba->genericHostControl.CAP.S64A() << "\n";
             screen << "P0 idle? " << (int)hba->portRegs[PORT].isIdle() << "\n";
@@ -68,8 +66,8 @@ AhciDriver::AhciDriver()
 
             initHBA(hba);
             screen << "IS after clear: " << hba->genericHostControl.IS << "\n";
+            screen << "CR: " << hba->portRegs[0].PxCMD.CR() << "\n";
             //return;
-
 
             /////////////////////////////////////////////////////////////
             // TODO:
@@ -125,9 +123,14 @@ AhciDriver::AhciDriver()
 
             // set up command table
             CommandTable* cmdTable = (CommandTable*)currentPT.mapNextAvailablePageToAddress(commandTablePhys);  // was pageAddrPhys...why???
-            for (int i = 0; i < 0x20; i++)
+            uint8_t* cmdTableBytePtr = (uint8_t*)cmdTable;
+            for (int i = 0; i < 0x60; i++)
             {
-                cmdTable->_ACMD[i] = 0;
+                cmdTableBytePtr[i] = 0;
+            }
+            for (int i = 0x80; i < 0x120; i++)
+            {
+                cmdTableBytePtr[i] = 0;
             }
 
             // allocate data buffer
@@ -147,14 +150,16 @@ AhciDriver::AhciDriver()
             dataBuffer[3] = 'e';
             dataBuffer[4] = 'b';
 
+            cmdTable->getPRDTableArray()[0].DBAU = 0x0;
             cmdTable->getPRDTableArray()[0].DBA = dataBufferPhysAddr;    // phys address of buffer for identify data
             cmdTable->getPRDTableArray()[0].IOC(false);
             cmdTable->getPRDTableArray()[0].DBC(512-1);
+            screen << "DataBufferPhys: 0x" << cmdTable->getPRDTableArray()->DBA << "\n";
 
             // create command FIS
             // todo: create zeroOut() function, then just set members that I'm actually using
             uint8_t* cmdFISPtr = (uint8_t*)cmdTable->CommandFIS();
-            for (int i = 0; i < 0x50; i++)
+            for (int i = 0; i < 0x60; i++)
             {
                 cmdFISPtr[i] = 0;
             }
@@ -195,6 +200,13 @@ AhciDriver::AhciDriver()
             header->PRDBC(0);   // PRD byte count
             header->CFL(5);     // command FIS length of 5 DWORDS
             header->CTBA(commandTablePhys);     // set command table base address
+            // TODO: fix this some other way...
+            if (header->CTBA() & 0x7F)
+            {
+                PANIC("CTBA not aligned!!");
+            }
+            screen << "CTBA: 0x" << commandTablePhys << "\n";
+
             screen << "Command Table Phys: 0x" << commandTablePhys << "\n";
             if (commandTablePhys % 128 != 0)
             {
@@ -238,6 +250,9 @@ AhciDriver::AhciDriver()
                 // screen << "PxCMD.ST: " << regs->PxCMD.ST() << "\n";
                 // screen << "PxSACT: " << regs->PxSACT << "\n";
                 screen << "TFES: " << (regs->PxIS.value & (0x1 << 30)) << "\n";
+
+                break;
+
                 // 16x32=512
                 for (int i = 0; i < 32; i++)
                 {
