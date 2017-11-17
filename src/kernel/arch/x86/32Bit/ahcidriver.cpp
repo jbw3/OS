@@ -102,6 +102,14 @@ AhciDriver::AhciDriver()
             initHBA(hba);
             screen << os::Screen::hex;
             screen << "PxSIG: " << hba->portRegs[0].PxSIG << "\n";
+
+            // AFTER...
+            screen << "RxFIS: " << (uint32_t)device._portMemory[0]->ReceiveFIS << "\n";
+            for (int i = 0; i < 32; i++)
+            {
+                screen << device._portMemory[0]->ReceiveFIS[i] << " ";
+            }
+            screen << "\n";
             return;
             screen << "IS after clear: " << hba->genericHostControl.IS << "\n";
             screen << "CR: " << hba->portRegs[0].PxCMD.CR() << "\n";
@@ -523,9 +531,15 @@ void AhciDriver::initAhciPort(ahci::AhciPortRegs* port)
         pagePtr[i] = 0;
     }
 
+    screen << os::Screen::hex;
+    screen << "PxCMD.FRE: " << port->PxCMD.FRE() << "\n";
+    screen << "PxFB: " << port->PxFB << "\n";
+    //PANIC("tmp");
+
     // set port regs to physical addresses...
     port->PxCLB = pageAddrPhys;                                 // point to phys address of command list (start of new page)
     port->PxFB = pageAddrPhys + (sizeof(CommandHeader)*32);     // point to receive FIS (directly after command list, on new page)
+    screen << "PxFB: " << port->PxFB << "\n";
 
     // STATE NOTES
     // ------------------
@@ -535,24 +549,35 @@ void AhciDriver::initAhciPort(ahci::AhciPortRegs* port)
     // into our PxFB buffer.
 
     // check before/after to see if this is the case...
-    screen << "PxSERR.DIAG.X: " << (port->PxSERR & (int)(0x1 << 26)) << " ";
+    screen << "PxSERR.DIAG.X: " << (port->PxSERR & (int)(0x1 << 26)) << "\n";
 
     uint8_t* rxFISPtr = (uint8_t*)pagePtr;
     int startIdx = sizeof(CommandHeader)*32;
 
     // BEFORE...
-    for (int i = startIdx; i < startIdx+64; i++)
+    screen << os::Screen::hex;
+    screen << "pagePtr: 0x" << (uint32_t)pagePtr << "\n";
+    screen << "RxFIS: 0x" << (uint32_t)(&rxFISPtr[startIdx]) << "\n";
+    for (int i = startIdx; i < startIdx+32; i++)
     {
-        // TODO: PICK UP HERE...
-
-        //screen << rxFISPtr[i]
+        screen << rxFISPtr[i] << " ";
     }
+    screen << "\n";
 
     // set PxCMD.FRE = 1 after setup is complete
     port->PxCMD.FRE(1);
 
-    // TODO: AFTER...
+    ///////////////////////////////////////////////////////////////////
+    // D2H Register FIS is being received in RxFIS immediately after
+    // setting FRE = 1 (RIGHT HERE!)
+    //
+    //  => We have transitioned to H:RegFisPostToMem as described above
+    //
+    // TODO: Parse out this register FIS and see if the contents are
+    // interesting...
+    ///////////////////////////////////////////////////////////////////
 
+    //sleep(100);
     PANIC("TMP");
 
     // command table = sizeof(CommandHeader)*32
