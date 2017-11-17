@@ -60,11 +60,49 @@ AhciDriver::AhciDriver()
             screen << "PxFB: " << hba->portRegs[PORT].PxFB << "\n";
             screen << "HBA Reset: " << (int)hba->genericHostControl.GHC.HR() << "\n";
             screen << "HBA Reset=1...\n";
+
+            // STATE: enter H:Init
+            // ---------------------
+            // - hbaIssueTag=0
+            // - hbaDataTag=0
+            // - hbaPMP=0
+            // - hbaXferAtapi=0
+            // - hbaPioXfer=???
+            // - hbaPioESts=0
+            // - hbaPioErr=0
+            // - hbaPioIbit=0
+            // - hbaDmaXferCnt=0
+            // - hbaFatal=0
+            // - hbaCmdToIssue=0
+            // - hbaPrdIntr=0
+            // - hbaUpdateSig=1
+            // - hbaSActive=0
+            // ---------------------
+            // cls: my interpretation is that the hba performs a H:Init->H:NotRunning transition when GHC.HR goes to 0
+            screen << "PxSIG: " << hba->portRegs[0].PxSIG << "\n";
             hba->genericHostControl.GHC.HR(1);
+            screen << "PxSIG: " << hba->portRegs[0].PxSIG << "\n";
+
             sleep(500);
             screen << "HBA Reset: " << (int)hba->genericHostControl.GHC.HR() << "\n";
+            screen << "PxSIG: " << hba->portRegs[0].PxSIG << "\n";
+
+            // STATE: enter H:NotRunning
+            // -------------------------
+            // - hbaIssueTag=32
+            // - z=CAP.NCS
+            // -------------------------
+            // Transitions I think are possible...
+            // 7. PxCMD.ST = 1                  ....    enter H:Idle
+            // 8. D2H Register FIS received     ....    enter NDR:Entry
+            // 9. PxCMD.FRE 0 -> 1 AND
+            //      register FIS is in receive FIFO AND
+            //      PxSERR.DIAG.X = 0           ....    enter H:RegFisPostToMem
 
             initHBA(hba);
+            screen << os::Screen::hex;
+            screen << "PxSIG: " << hba->portRegs[0].PxSIG << "\n";
+            return;
             screen << "IS after clear: " << hba->genericHostControl.IS << "\n";
             screen << "CR: " << hba->portRegs[0].PxCMD.CR() << "\n";
             //return;
@@ -403,9 +441,9 @@ void AhciDriver::initHBA(ahci::HBAMemoryRegs* hba)
         bool portImplemented = (hba->genericHostControl.PI >> i) & 0x1;
         if (portImplemented)
         {
-            screen << "PxSERR: " << hba->portRegs[i].PxSERR << "\n";
+            // screen << "PxSERR: " << hba->portRegs[i].PxSERR << "\n";
             hba->portRegs[i].PxSERR = 0xFFFF'FFFF;
-            screen << "PxSERR: " << hba->portRegs[i].PxSERR << "\n";
+            // screen << "PxSERR: " << hba->portRegs[i].PxSERR << "\n";
         }
     }
 
@@ -435,7 +473,7 @@ void AhciDriver::initHBA(ahci::HBAMemoryRegs* hba)
         bool portImplemented = (hba->genericHostControl.PI >> i) & 0x1;
         if (portImplemented)
         {
-            screen << "PxIS after clear: " << hba->portRegs[i].PxIS.value << "\n";
+            // screen << "PxIS after clear: " << hba->portRegs[i].PxIS.value << "\n";
         }
     }
 
@@ -489,8 +527,33 @@ void AhciDriver::initAhciPort(ahci::AhciPortRegs* port)
     port->PxCLB = pageAddrPhys;                                 // point to phys address of command list (start of new page)
     port->PxFB = pageAddrPhys + (sizeof(CommandHeader)*32);     // point to receive FIS (directly after command list, on new page)
 
+    // STATE NOTES
+    // ------------------
+    // It is possible that a D2H register FIS has already been received by the
+    // HBA and is in the HBA's FIFO. If so, setting FRE to 1 will take us to
+    // H:RegFisPostToMem (if PxSERR.DIAG.X = 0) and copy the register D2H FIS
+    // into our PxFB buffer.
+
+    // check before/after to see if this is the case...
+    screen << "PxSERR.DIAG.X: " << (port->PxSERR & (int)(0x1 << 26)) << " ";
+
+    uint8_t* rxFISPtr = (uint8_t*)pagePtr;
+    int startIdx = sizeof(CommandHeader)*32;
+
+    // BEFORE...
+    for (int i = startIdx; i < startIdx+64; i++)
+    {
+        // TODO: PICK UP HERE...
+
+        //screen << rxFISPtr[i]
+    }
+
     // set PxCMD.FRE = 1 after setup is complete
     port->PxCMD.FRE(1);
+
+    // TODO: AFTER...
+
+    PANIC("TMP");
 
     // command table = sizeof(CommandHeader)*32
     // receive FIS = 256B
