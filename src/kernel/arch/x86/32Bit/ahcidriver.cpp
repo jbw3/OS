@@ -110,9 +110,11 @@ AhciDriver::AhciDriver()
                 screen << device._portMemory[0]->ReceiveFIS[i] << " ";
             }
             screen << "\n";
-            return;
+
             screen << "IS after clear: " << hba->genericHostControl.IS << "\n";
             screen << "CR: " << hba->portRegs[0].PxCMD.CR() << "\n";
+            screen << "PxSIG string: " << hba->portRegs[0].getSigString() << "\n";
+            screen << "PxIS: " << hba->portRegs[0].PxIS.value << "\n";
             //return;
 
             /////////////////////////////////////////////////////////////
@@ -212,7 +214,8 @@ AhciDriver::AhciDriver()
 
             // 0x27 - Register-H2D FIS Type
             cmdTable->CommandFIS()->FISType = 0x27;     // identify device?
-            cmdTable->CommandFIS()->Flags = 0xC;
+            //cmdTable->CommandFIS()->Flags = 0xC;
+            cmdTable->CommandFIS()->Flags = 0x80;
             cmdTable->CommandFIS()->Command = 0xEC;
             cmdTable->CommandFIS()->Features = 0;
             cmdTable->CommandFIS()->LBA0_SectorNum = 0;
@@ -228,6 +231,9 @@ AhciDriver::AhciDriver()
             cmdTable->CommandFIS()->Reserved = 0;
             cmdTable->CommandFIS()->Control = 0x08;
             cmdTable->CommandFIS()->Reserved2 = 0;
+
+            screen << "CommandFIS: 0x" << (uint32_t)cmdTable->CommandFIS() << "\n";
+            //return;
 
             // update command header
             header->PRDTL(1);   // one physical region descriptor table (PRDT length=1)
@@ -297,19 +303,25 @@ AhciDriver::AhciDriver()
                 // screen << "PxSACT: " << regs->PxSACT << "\n";
                 screen << "TFES: " << (regs->PxIS.value & (0x1 << 30)) << "\n";
 
-                break;
+                // break;
+
+                uint16_t* wordPtr = (uint16_t*)dataBuffer;
+                for (int i = 0; i < 6; i++)
+                {
+                    screen << wordPtr[i] << " ";
+                }
 
                 // 16x32=512
-                for (int i = 0; i < 32; i++)
-                {
-                    for (int j = 0; j < 16; j++)
-                    {
-                        screen << dataBuffer[(i*32)+j] << " ";
-                    }
-                    screen << "\n";
-                    if (i == 10)
-                        break;
-                }
+                // for (int i = 0; i < 32; i++)
+                // {
+                //     for (int j = 0; j < 16; j++)
+                //     {
+                //         screen << dataBuffer[(i*32)+j] << " ";
+                //     }
+                //     screen << "\n";
+                //     if (i == 20)
+                //         break;
+                // }
 
                 for (int i = 0; i < 32; i++)
                 {
@@ -335,6 +347,7 @@ AhciDriver::AhciDriver()
             screen << "PxIS: " << regs->PxIS.value << " ";
             screen << "HBA IS: " << hba->genericHostControl.IS << " ";
             screen << "GHC.IE: " << hba->genericHostControl.GHC.IE() << "\n";
+            screen << "PxIS: " << hba->portRegs[0].PxIS.value << "\n";
         }
     }
 }
@@ -577,8 +590,14 @@ void AhciDriver::initAhciPort(ahci::AhciPortRegs* port)
     // interesting...
     ///////////////////////////////////////////////////////////////////
 
+    screen << os::Screen::hex;
+    screen << "PxIE: " << port->PxIE << "\n";
+    screen << "PxIS: " << port->PxIS.value << "\n";
+    screen << "PxTFD.ERR: 0x" << ((port->PxTFD >> 8) & 0xFF) << "\n";
+    screen << "PxTFD.STS: 0x" << (port->PxTFD & 0xFF) << "\n";
+    screen << "PxSERR: 0x" << port->PxSERR << "\n";
     //sleep(100);
-    PANIC("TMP");
+    //PANIC("TMP");
 
     // command table = sizeof(CommandHeader)*32
     // receive FIS = 256B

@@ -7,3 +7,4 @@
 - **Collect all the major takeaways/lessons learned/specific issues resolved into a TIPS section**
 - Include details about what changed before/after doing a full HBA reset (state of ports, CLB, etc.)
 - Maybe include brief list of **highlights** of differences between AHCI v1.0 and v1.3??
+- **Include a folder of PDFs of all reference documents!!**
