@@ -310,6 +310,34 @@ AhciDriver::AhciDriver()
                 {
                     screen << wordPtr[i] << " ";
                 }
+                screen << "\n";
+
+                // serial number
+                for (int i = 10*2; i < 19*2; i++)
+                {
+                    screen << dataBuffer[i+1];
+                    screen << dataBuffer[i];
+                    i++;
+                }
+                screen << "\n";
+
+                // firmware revision
+                for (int i = 23*2; i < 26*2; i++)
+                {
+                    screen << dataBuffer[i+1];
+                    screen << dataBuffer[i];
+                    i++;
+                }
+                screen << "\n";
+
+                // model number
+                for (int i = 27*2; i < 46*2; i++)
+                {
+                    screen << dataBuffer[i+1];
+                    screen << dataBuffer[i];
+                    i++;
+                }
+                screen << "\n";
 
                 // 16x32=512
                 // for (int i = 0; i < 32; i++)
