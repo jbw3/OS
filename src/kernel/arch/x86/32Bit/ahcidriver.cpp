@@ -339,29 +339,17 @@ AhciDriver::AhciDriver()
                 }
                 screen << "\n";
 
-                // 16x32=512
-                // for (int i = 0; i < 32; i++)
-                // {
-                //     for (int j = 0; j < 16; j++)
-                //     {
-                //         screen << dataBuffer[(i*32)+j] << " ";
-                //     }
-                //     screen << "\n";
-                //     if (i == 20)
-                //         break;
-                // }
-
                 for (int i = 0; i < 32; i++)
                 {
                     bool portImplemented = (hba->genericHostControl.PI >> i) & 0x1;
                     if (portImplemented)
                     {
                         // verify PxSERR.DIAG.X is cleared
-                        screen << "PxSERR.DIAG.X: " << (hba->portRegs[i].PxSERR & (int)(0x1 << 26)) << " ";
-                        screen << "PxSERR: " << hba->portRegs[i].PxSERR << " ";
+                        // screen << "PxSERR.DIAG.X: " << (hba->portRegs[i].PxSERR & (int)(0x1 << 26)) << " ";
+                        // screen << "PxSERR: " << hba->portRegs[i].PxSERR << " ";
                         // verify functional device is present on the port (BSY=0, DRQ=0, DET=3)
-                        screen << "BSY: " << (hba->portRegs[i].PxTFD & (0x1 << 7)) << " DRQ: " << (hba->portRegs[i].PxTFD & (0x1 << 3)) << " ";
-                        screen << "DET: " << (hba->portRegs[i].PxSSTS & 0x0F) << "\n";
+                        // screen << "BSY: " << (hba->portRegs[i].PxTFD & (0x1 << 7)) << " DRQ: " << (hba->portRegs[i].PxTFD & (0x1 << 3)) << " ";
+                        // screen << "DET: " << (hba->portRegs[i].PxSSTS & 0x0F) << "\n";
                     }
                 }
             }
@@ -376,6 +364,47 @@ AhciDriver::AhciDriver()
             screen << "HBA IS: " << hba->genericHostControl.IS << " ";
             screen << "GHC.IE: " << hba->genericHostControl.GHC.IE() << "\n";
             screen << "PxIS: " << hba->portRegs[0].PxIS.value << "\n";
+
+            // process completed command
+            // in ISR:
+            // read IS.IPS to see which ports have an interrupt
+            // for each port:
+            // 1. Read PxIS to see cause of interrupt
+            // 2. Clear appropriate PxIS bits
+            // 3. Clear IS.IPS bit for port
+            // 4. Read PxCI to compare with previous value. Mark any
+            //    completed commands as successful.
+            // 5. If errors (in PxIS or PxTFD.STS.ERR), perform error
+            //    recovery actions.
+            regs->PxIS.value = 0xFFFF'FFFF;
+
+            // try another command...
+            screen << "PxIS: " << regs->PxIS.value << "\n";
+            screen << "RxFIS: " << (uint32_t)device._portMemory[0]->ReceiveFIS << "\n";
+
+            // allocate data buffer
+            uint32_t buffer2PhysAddr = PageFrameMgr::get()->allocPageFrame();
+            if (currentPT.isFull())
+            {
+                PANIC("Page table full - not handling this properly in AHCI driver!");
+            }
+
+            char* buffer2 = (char*)currentPT.mapNextAvailablePageToAddress(buffer2PhysAddr);
+            screen << "DataBuffer 2 phys: " << buffer2PhysAddr << "\n";
+            screen << "DataBuffer 2 @0x" << (uint32_t)buffer2 << "\n";
+
+            buffer2[0] = 'c';
+            buffer2[1] = 'a';
+            buffer2[2] = 'l';
+            buffer2[3] = 'e';
+            buffer2[4] = 'b';
+
+            cmdTable->getPRDTableArray()[0].DBAU = 0x0;
+            cmdTable->getPRDTableArray()[0].DBA = buffer2PhysAddr;    // phys address of buffer for identify data
+            regs->PxCI |= 0x1;
+            sleep(500);
+            screen << "PxCI: " << regs->PxCI << "\n";
+            screen << "PxIS: " << regs->PxIS.value << "\n";
         }
     }
 }
