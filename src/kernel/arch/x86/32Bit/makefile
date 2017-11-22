@@ -50,12 +50,7 @@ debug: ASFLAGS += -g
 debug: CONFIG = debug
 
 # build list of source files
-# TODO: Sort is currently being used because boot.s must be first in the list.
-# This is because the multiboot header in boot.s must be at the beginning of the
-# kernel. A better solution is to break the multiboot header out into its own
-# file and modify the linker script to explicitly put it at the beginning of the
-# kernel.
-SRC = $(sort $(notdir $(wildcard $(SRCDIR)/*.c $(SRCDIR)/*.cpp $(SRCDIR)/*.s)))
+SRC = $(notdir $(wildcard $(SRCDIR)/*.c $(SRCDIR)/*.cpp $(SRCDIR)/*.s))
 
 # source files without crti.s and crtn.s
 NO_CRT_SRC = $(filter-out crt%.s,$(SRC))

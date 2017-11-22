@@ -18,9 +18,23 @@ SECTIONS
 
     .text ALIGN(4096) : AT(ADDR(.text) - kernelVirtualBase)
     {
-        *(.text)  /* text sections from all files */
-        *(.ctors) /* table of pointers for global C++ constructors */
-        *(.dtors) /* table of pointers for global C++ destructors */
+        /* The multiboot header must be at the start of the file. */
+        *(.multiboot_header)
+
+        /* The start section is the first section of kernel code that is
+           executed. The page this section is in is identity mapped in the page
+           table, so it can execute before the kernel jumps to the higher half.
+         */
+        *(.start)
+
+        /* Text sections from all files. */
+        *(.text)
+
+        /* Table of pointers for global C++ constructors. */
+        *(.ctors)
+
+        /* Table of pointers for global C++ destructors. */
+        *(.dtors)
     }
 
     .rodata ALIGN(4096) : AT(ADDR(.rodata) - kernelVirtualBase)
