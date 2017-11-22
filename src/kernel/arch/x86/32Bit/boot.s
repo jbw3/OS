@@ -26,9 +26,9 @@ extern _init				; global variable initialization
 extern kernelMain			; C code entry point
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-; Text Section
+; Multiboot Header Section
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-section .text
+section .multiboot_header
 
 ; this part must be 4-byte aligned
 align 4
@@ -43,6 +43,12 @@ mboot:
 	dd bssEndAddr
 	dd start
 
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+; Start Section
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+section .start
+
+align 4
 ; kernel entry point
 global start
 start	equ (_start - KERNEL_VIRTUAL_BASE)
