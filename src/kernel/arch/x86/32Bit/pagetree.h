@@ -12,11 +12,11 @@ public:
     /**
      * @brief Map a page at a specified virtual address.
      */
-    virtual bool map(uintptr_t physicalAddr, uintptr_t virtualAddr) = 0;
+    virtual bool map(uintptr_t virtualAddr, uintptr_t physicalAddr) = 0;
 
-    virtual bool mapOnOrAfter(uintptr_t startAddr, uintptr_t physicalAddr, uintptr_t& virtualAddr) = 0;
+    virtual bool mapOnOrAfter(uintptr_t startAddr, uintptr_t& virtualAddr, uintptr_t physicalAddr) = 0;
 
-    virtual bool mapOnOrBefore(uintptr_t startAddr, uintptr_t physicalAddr, uintptr_t& virtualAddr) = 0;
+    virtual bool mapOnOrBefore(uintptr_t startAddr, uintptr_t& virtualAddr, uintptr_t physicalAddr) = 0;
 
     virtual void unmap(uintptr_t virtualAddr) = 0;
 };
