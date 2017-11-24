@@ -9,14 +9,23 @@
 class PageTree
 {
 public:
+    enum EFlags
+    {
+        /// User processes have access to the page.
+        eUser = 0x1,
+
+        /// The page can be read and written to.
+        eReadWrite = 0x2,
+    };
+
     /**
      * @brief Map a page at a specified virtual address.
      */
-    virtual bool map(uintptr_t virtualAddr, uintptr_t physicalAddr) = 0;
+    virtual bool map(uintptr_t virtualAddr, uintptr_t physicalAddr, unsigned int flags = 0) = 0;
 
-    virtual bool mapOnOrAfter(uintptr_t startAddr, uintptr_t& virtualAddr, uintptr_t physicalAddr) = 0;
+    virtual bool mapOnOrAfter(uintptr_t startAddr, uintptr_t& virtualAddr, uintptr_t physicalAddr, unsigned int flags = 0) = 0;
 
-    virtual bool mapOnOrBefore(uintptr_t startAddr, uintptr_t& virtualAddr, uintptr_t physicalAddr) = 0;
+    virtual bool mapOnOrBefore(uintptr_t startAddr, uintptr_t& virtualAddr, uintptr_t physicalAddr, unsigned int flags = 0) = 0;
 
     virtual void unmap(uintptr_t virtualAddr) = 0;
 };

@@ -8,11 +8,11 @@ class PageTreeX86_32 : public PageTree
 public:
     PageTreeX86_32(uintptr_t pageDirAddr);
 
-    bool map(uintptr_t virtualAddr, uintptr_t physicalAddr) override;
+    bool map(uintptr_t virtualAddr, uintptr_t physicalAddr, unsigned int flags = 0) override;
 
-    bool mapOnOrAfter(uintptr_t startAddr, uintptr_t& virtualAddr, uintptr_t physicalAddr) override;
+    bool mapOnOrAfter(uintptr_t startAddr, uintptr_t& virtualAddr, uintptr_t physicalAddr, unsigned int flags = 0) override;
 
-    bool mapOnOrBefore(uintptr_t startAddr, uintptr_t& virtualAddr, uintptr_t physicalAddr) override;
+    bool mapOnOrBefore(uintptr_t startAddr, uintptr_t& virtualAddr, uintptr_t physicalAddr, unsigned int flags = 0) override;
 
     void unmap(uintptr_t virtualAddr) override;
 

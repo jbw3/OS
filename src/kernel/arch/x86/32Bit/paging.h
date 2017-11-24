@@ -5,6 +5,7 @@
 
 #include "isr.h"
 
+/// @todo These constants need to be moved to pagetreex86_32.h.
 #define PAGE_SIZE          4096
 #define PAGE_BOUNDARY_MASK (~(PAGE_SIZE - 1))
 #define PAGE_SIZE_MASK     (PAGE_SIZE - 1)
@@ -13,7 +14,8 @@
 #define PAGE_DIR_INDEX_MASK  (PAGE_DIR_NUM_ENTRIES - 1)
 
 #define PAGE_TABLE_NUM_ENTRIES 1024
-#define PAGE_TABLE_INDEX_MASK  (PAGE_DIR_NUM_ENTRIES - 1)
+#define PAGE_TABLE_INDEX_MASK  (PAGE_TABLE_NUM_ENTRIES - 1)
+#define PAGE_TABLE_INDEX_SHIFT (12)
 
 #define PAGE_DIR_ADDRESS       0xFFFFF000
 #define PAGE_DIR_PAGE_SIZE     0x00000080
