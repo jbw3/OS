@@ -443,7 +443,7 @@ AhciDriver::AhciDriver()
             cmdTable->getPRDTableArray()[0].DBAU = 0x0;
             cmdTable->getPRDTableArray()[0].DBA = readBufferPhys;    // phys address of buffer for read data
             cmdTable->getPRDTableArray()[0].IOC(false);
-            cmdTable->getPRDTableArray()[0].DBC(512-1);
+            cmdTable->getPRDTableArray()[0].DBC(512-1);     // must be sector (512B) multiple!
             screen << "DataBufferPhys: 0x" << cmdTable->getPRDTableArray()->DBA << "\n";
 
             // create command FIS
