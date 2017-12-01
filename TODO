@@ -1,7 +1,7 @@
 
 AHCI Driver:
     ☐ Get read/write commands working @critical
-    ☐ Test that a 2nd identify device command works @next
+    ✔ Test that a 2nd identify device command works @next @done(17-11-21 06:37)
     ☐ Interrupts??? @low
     ☐ Add shell command to view disk info
     ☐ Add shell command to write disk bytes

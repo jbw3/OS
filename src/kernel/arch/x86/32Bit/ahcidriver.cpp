@@ -405,6 +405,115 @@ AhciDriver::AhciDriver()
             sleep(500);
             screen << "PxCI: " << regs->PxCI << "\n";
             screen << "PxIS: " << regs->PxIS.value << "\n";
+
+
+            // ---------------------
+            // try read command...(prepare buffer with predefined pattern)
+            // ---------------------
+            regs->PxIS.value = 0xFFFF'FFFF;
+            screen << "PxCI: " << regs->PxCI << "\n";
+            screen << "PxIS: " << regs->PxIS.value << "\n";
+
+            cmdTableBytePtr = (uint8_t*)cmdTable;   // zero-out the cmd table
+            for (int i = 0; i < 0x60; i++)
+            {
+                cmdTableBytePtr[i] = 0;
+            }
+            for (int i = 0x80; i < 0x120; i++)
+            {
+                cmdTableBytePtr[i] = 0;
+            }
+
+            // allocate data buffer
+            uint32_t readBufferPhys = PageFrameMgr::get()->allocPageFrame();
+            if (currentPT.isFull())
+            {
+                PANIC("Page table full - not handling this properly in AHCI driver!");
+            }
+
+            char* readBuffer = (char*)currentPT.mapNextAvailablePageToAddress(readBufferPhys);
+            screen << "Read buffer @0x" << (uint32_t)readBuffer << "\n";
+
+            uint8_t* readBufferIntPtr = (uint8_t*)readBuffer;
+            for (int i = 0; i < 4096; i++)
+            {
+                readBufferIntPtr[i] = 0x33;    // set memory in buffer to distinct pattern
+            }
+
+            cmdTable->getPRDTableArray()[0].DBAU = 0x0;
+            cmdTable->getPRDTableArray()[0].DBA = readBufferPhys;    // phys address of buffer for read data
+            cmdTable->getPRDTableArray()[0].IOC(false);
+            cmdTable->getPRDTableArray()[0].DBC(512-1);
+            screen << "DataBufferPhys: 0x" << cmdTable->getPRDTableArray()->DBA << "\n";
+
+            // create command FIS
+            // todo: create zeroOut() function, then just set members that I'm actually using
+            cmdFISPtr = (uint8_t*)cmdTable->CommandFIS();
+            for (int i = 0; i < 0x60; i++)
+            {
+                cmdFISPtr[i] = 0;
+            }
+
+            // 0x27 - Register-H2D FIS Type
+            cmdTable->CommandFIS()->FISType = 0x27;     // identify device?
+            //cmdTable->CommandFIS()->Flags = 0xC;
+            cmdTable->CommandFIS()->Flags = 0x80;
+            cmdTable->CommandFIS()->Command = 0x25;     // READ_DMA_EXT (TODO: change to READ_DMA command if 48-bit LBA not supported?)
+            cmdTable->CommandFIS()->Features = 0;
+            cmdTable->CommandFIS()->LBA0_SectorNum = 0;
+            cmdTable->CommandFIS()->LBA1_CylLow = 0;
+            cmdTable->CommandFIS()->LBA2_CylHigh = 0;
+            cmdTable->CommandFIS()->DevHead = 0x40;     // LBA      // old: 0xA0;
+            cmdTable->CommandFIS()->LBA3_SectorNumExp = 0;
+            cmdTable->CommandFIS()->LBA4_CylLowExp = 0;
+            cmdTable->CommandFIS()->LBA5_CylHighExp = 0;
+            cmdTable->CommandFIS()->FeaturesExp = 0;
+            cmdTable->CommandFIS()->SectorCountLow = 1;
+            cmdTable->CommandFIS()->SectorCountHigh = 0;
+            cmdTable->CommandFIS()->Reserved = 0;
+            cmdTable->CommandFIS()->Control = 0x08;
+            cmdTable->CommandFIS()->Reserved2 = 0;
+
+            screen << "CommandFIS: 0x" << (uint32_t)cmdTable->CommandFIS() << "\n";
+            //return;
+
+            // update command header
+            header->PRDTL(1);   // one physical region descriptor table (PRDT length=1)
+            header->PMP(0);     // no port multiplier
+
+            // flags = 0
+            header->C(0);
+            header->B(0);
+            header->R(0);
+            header->P(0);
+            header->W(0);
+            header->A(0);
+
+            // PRDBC initialized to 0 by software (me) here, but updated by hardware
+            // as the transfer occurrs
+            header->PRDBC(0);   // PRD byte count
+            header->CFL(5);     // command FIS length of 5 DWORDS
+            header->CTBA(commandTablePhys);     // set command table base address
+            // TODO: fix this some other way...
+            if (header->CTBA() & 0x7F)
+            {
+                PANIC("CTBA not aligned!!");
+            }
+            screen << "CTBA: 0x" << commandTablePhys << "\n";
+
+            screen << "Command Table Phys: 0x" << commandTablePhys << "\n";
+            if (commandTablePhys % 128 != 0)
+            {
+                PANIC("command table not on 128-byte boundary!!");
+            }
+
+            screen << "PxCI: " << regs->PxCI << "\n";
+            screen << "PxIS: " << regs->PxIS.value << "\n";
+            regs->PxCI |= 0x1;
+            sleep(500);
+            screen << "PxCI: " << regs->PxCI << "\n";
+            screen << "PxIS: " << regs->PxIS.value << "\n";
+
         }
     }
 }
