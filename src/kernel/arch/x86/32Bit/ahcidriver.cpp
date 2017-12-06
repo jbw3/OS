@@ -63,22 +63,7 @@ AhciDriver::AhciDriver()
 
             // STATE: enter H:Init
             // ---------------------
-            // - hbaIssueTag=0
-            // - hbaDataTag=0
-            // - hbaPMP=0
-            // - hbaXferAtapi=0
-            // - hbaPioXfer=???
-            // - hbaPioESts=0
-            // - hbaPioErr=0
-            // - hbaPioIbit=0
-            // - hbaDmaXferCnt=0
-            // - hbaFatal=0
-            // - hbaCmdToIssue=0
-            // - hbaPrdIntr=0
-            // - hbaUpdateSig=1
-            // - hbaSActive=0
-            // ---------------------
-            // cls: my interpretation is that the hba performs a H:Init->H:NotRunning transition when GHC.HR goes to 0
+            // HBA RESET = 1
             screen << "PxSIG: " << hba->portRegs[0].PxSIG << "\n";
             hba->genericHostControl.GHC.HR(1);
             screen << "PxSIG: " << hba->portRegs[0].PxSIG << "\n";
@@ -89,16 +74,6 @@ AhciDriver::AhciDriver()
 
             // STATE: enter H:NotRunning
             // -------------------------
-            // - hbaIssueTag=32
-            // - z=CAP.NCS
-            // -------------------------
-            // Transitions I think are possible...
-            // 7. PxCMD.ST = 1                  ....    enter H:Idle
-            // 8. D2H Register FIS received     ....    enter NDR:Entry
-            // 9. PxCMD.FRE 0 -> 1 AND
-            //      register FIS is in receive FIFO AND
-            //      PxSERR.DIAG.X = 0           ....    enter H:RegFisPostToMem
-
             initHBA(hba);
             screen << os::Screen::hex;
             screen << "PxSIG: " << hba->portRegs[0].PxSIG << "\n";
@@ -115,50 +90,17 @@ AhciDriver::AhciDriver()
             screen << "CR: " << hba->portRegs[0].PxCMD.CR() << "\n";
             screen << "PxSIG string: " << hba->portRegs[0].getSigString() << "\n";
             screen << "PxIS: " << hba->portRegs[0].PxIS.value << "\n";
-            //return;
-
-            /////////////////////////////////////////////////////////////
-            // TODO:
-            // - Check all steps in 10.3 (SW rules for DMA engines)
-            // - Validate Identify Device Command format
-            // - Check Receive FIS for anything interesting
-            /////////////////////////////////////////////////////////////
 
             screen << os::Screen::hex;
-
-            // OLD INIT CODE (comment out as I go...)
-            // screen << "AHCI version: 0x" << hba->genericHostControl.VS << "\n";
-            // screen << "SAM: " << (int)hba->genericHostControl.CAP.SAM() << "\n";
-            // screen << "SPM: " << hba->genericHostControl.CAP.SPM() << "\n";
-            // screen << "PxIS: 0x" << hba->portRegs->PxIS.value << "\n";
 
             // test command
             CommandHeader* header = &device._portMemory[PORT]->CommandList[0];
             screen << "CTBA: 0x" << header->CTBA() << "\n";
 
             AhciPortRegs* regs = &hba->portRegs[PORT];
-            // screen << "PxCMD.ST: " << regs->PxCMD.ST() << "\n";
-            // screen << "PxCMD.CR: " << regs->PxCMD.CR() << "\n";
-            // screen << "PxCMD.FRE: " << regs->PxCMD.FRE() << "\n";
-            // screen << "PxIS.PCS: " << regs->PxIS.PCS() << "\n";
-
-            //////////// TODO: Do all this the right way...
-            // -------------------------------------------------------------
-            // TODO: as you go, make sure all bits in regs/command headers/etc. are initialized to good defaults (0?)
-
-            // TODO: verify that PxCMD.CR is 0
-
-            // FROM SPEC:
-            // Additionally, software shall not set PxCMD.ST to ‘1’ until a functional device is present on the port (as
-            // determined by PxTFD.STS.BSY = ‘0’, PxTFD.STS.DRQ = ‘0’, and (PxSSTS.DET = 3h, or PxSSTS.IPM =
-            // 2h or 6h or 8h))
-
-            // TODO: set PxCMD.FRE to 1
-            // TODO: set PxCMD.ST to 1
-            // -------------------------------------------------------------
 
             // #################################
-            // try identify device command
+            // identify device command
             // #################################
 
             // allocate command table page
@@ -233,7 +175,6 @@ AhciDriver::AhciDriver()
             cmdTable->CommandFIS()->Reserved2 = 0;
 
             screen << "CommandFIS: 0x" << (uint32_t)cmdTable->CommandFIS() << "\n";
-            //return;
 
             // update command header
             header->PRDTL(1);   // one physical region descriptor table (PRDT length=1)
@@ -378,7 +319,8 @@ AhciDriver::AhciDriver()
             //    recovery actions.
             regs->PxIS.value = 0xFFFF'FFFF;
 
-            // try another command...
+            // try running another identify device command...
+
             screen << "PxIS: " << regs->PxIS.value << "\n";
             screen << "RxFIS: " << (uint32_t)device._portMemory[0]->ReceiveFIS << "\n";
 
@@ -406,10 +348,9 @@ AhciDriver::AhciDriver()
             screen << "PxCI: " << regs->PxCI << "\n";
             screen << "PxIS: " << regs->PxIS.value << "\n";
 
-
-            // ---------------------
-            // try read command...(prepare buffer with predefined pattern)
-            // ---------------------
+            // #################################
+            // read command...(prepare buffer with predefined pattern)
+            // #################################
             regs->PxIS.value = 0xFFFF'FFFF;
             screen << "PxCI: " << regs->PxCI << "\n";
             screen << "PxIS: " << regs->PxIS.value << "\n";
@@ -475,7 +416,6 @@ AhciDriver::AhciDriver()
             cmdTable->CommandFIS()->Reserved2 = 0;
 
             screen << "CommandFIS: 0x" << (uint32_t)cmdTable->CommandFIS() << "\n";
-            //return;
 
             // update command header
             header->PRDTL(1);   // one physical region descriptor table (PRDT length=1)
@@ -514,6 +454,7 @@ AhciDriver::AhciDriver()
             screen << "PxCI: " << regs->PxCI << "\n";
             screen << "PxIS: " << regs->PxIS.value << "\n";
 
+            // data should be in readBuffer... (in qemu, use: x /160wx <virt address of readBuffer>)
         }
     }
 }
