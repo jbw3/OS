@@ -70,32 +70,32 @@ AhciDriver::AhciDriver()
 
             sleep(500);
             screen << "HBA Reset: " << (int)hba->genericHostControl.GHC.HR() << "\n";
-            screen << "PxSIG: " << hba->portRegs[0].PxSIG << "\n";
+            // screen << "PxSIG: " << hba->portRegs[0].PxSIG << "\n";
 
             // STATE: enter H:NotRunning
             // -------------------------
             initHBA(hba);
             screen << os::Screen::hex;
-            screen << "PxSIG: " << hba->portRegs[0].PxSIG << "\n";
+            //screen << "PxSIG: " << hba->portRegs[0].PxSIG << "\n";
 
             // AFTER...
-            screen << "RxFIS: " << (uint32_t)device._portMemory[0]->ReceiveFIS << "\n";
-            for (int i = 0; i < 32; i++)
-            {
-                screen << device._portMemory[0]->ReceiveFIS[i] << " ";
-            }
-            screen << "\n";
+            // screen << "RxFIS: " << (uint32_t)device._portMemory[0]->ReceiveFIS << "\n";
+            // for (int i = 0; i < 32; i++)
+            // {
+            //     screen << device._portMemory[0]->ReceiveFIS[i] << " ";
+            // }
+            // screen << "\n";
 
-            screen << "IS after clear: " << hba->genericHostControl.IS << "\n";
-            screen << "CR: " << hba->portRegs[0].PxCMD.CR() << "\n";
+            // screen << "IS after clear: " << hba->genericHostControl.IS << "\n";
+            // screen << "CR: " << hba->portRegs[0].PxCMD.CR() << "\n";
             screen << "PxSIG string: " << hba->portRegs[0].getSigString() << "\n";
-            screen << "PxIS: " << hba->portRegs[0].PxIS.value << "\n";
+            // screen << "PxIS: " << hba->portRegs[0].PxIS.value << "\n";
 
             screen << os::Screen::hex;
 
             // test command
             CommandHeader* header = &device._portMemory[PORT]->CommandList[0];
-            screen << "CTBA: 0x" << header->CTBA() << "\n";
+            // screen << "CTBA: 0x" << header->CTBA() << "\n";
 
             AhciPortRegs* regs = &hba->portRegs[PORT];
 
@@ -131,7 +131,7 @@ AhciDriver::AhciDriver()
             }
 
             char* dataBuffer = (char*)currentPT.mapNextAvailablePageToAddress(dataBufferPhysAddr);
-            screen << "DataBuffer phys: " << dataBufferPhysAddr << "\n";
+            // screen << "DataBuffer phys: " << dataBufferPhysAddr << "\n";
             screen << "DataBuffer @0x" << (uint32_t)dataBuffer << "\n";
 
             dataBuffer[0] = 'c';
@@ -144,7 +144,7 @@ AhciDriver::AhciDriver()
             cmdTable->getPRDTableArray()[0].DBA = dataBufferPhysAddr;    // phys address of buffer for identify data
             cmdTable->getPRDTableArray()[0].IOC(false);
             cmdTable->getPRDTableArray()[0].DBC(512-1);
-            screen << "DataBufferPhys: 0x" << cmdTable->getPRDTableArray()->DBA << "\n";
+            // screen << "DataBufferPhys: 0x" << cmdTable->getPRDTableArray()->DBA << "\n";
 
             // create command FIS
             // todo: create zeroOut() function, then just set members that I'm actually using
@@ -174,7 +174,7 @@ AhciDriver::AhciDriver()
             cmdTable->CommandFIS()->Control = 0x08;
             cmdTable->CommandFIS()->Reserved2 = 0;
 
-            screen << "CommandFIS: 0x" << (uint32_t)cmdTable->CommandFIS() << "\n";
+            // screen << "CommandFIS: 0x" << (uint32_t)cmdTable->CommandFIS() << "\n";
 
             // update command header
             header->PRDTL(1);   // one physical region descriptor table (PRDT length=1)
@@ -198,9 +198,9 @@ AhciDriver::AhciDriver()
             {
                 PANIC("CTBA not aligned!!");
             }
-            screen << "CTBA: 0x" << commandTablePhys << "\n";
+            // screen << "CTBA: 0x" << commandTablePhys << "\n";
 
-            screen << "Command Table Phys: 0x" << commandTablePhys << "\n";
+            // screen << "Command Table Phys: 0x" << commandTablePhys << "\n";
             if (commandTablePhys % 128 != 0)
             {
                 PANIC("command table not on 128-byte boundary!!");
@@ -219,39 +219,39 @@ AhciDriver::AhciDriver()
             // TODO: TURN ON DMA ENGINE (ST=1) BEFORE ISSUING COMMAND
             // --------------------------------------------------------
             regs->PxCMD.ST(1);
-            screen << "PxIS: " << regs->PxIS.value << "\n";
+            // screen << "PxIS: " << regs->PxIS.value << "\n";
             sleep(500);    // wait after setting start?
 
             //regs->PxCI |= 0x1;
             // per spec, only write 'new' bits to set to 1; the previous register contents should NOT be re-written in the
             // register write
             regs->PxCI |= 0x1;
-            screen << "PxCI: " << regs->PxCI << " ";
-            screen << "PxCMD.ST: " << regs->PxCMD.ST() << "\n";
+            // screen << "PxCI: " << regs->PxCI << " ";
+            // screen << "PxCMD.ST: " << regs->PxCMD.ST() << "\n";
 
             sleep(500);
             screen << "500ms \n";
-            screen << "PxSIG: " << regs->PxSIG << "\n";
-            screen << "PxTFD.ERR: " << (int)(regs->PxTFD & 0x1) << "\n";
+            // screen << "PxSIG: " << regs->PxSIG << "\n";
+            // screen << "PxTFD.ERR: " << (int)(regs->PxTFD & 0x1) << "\n";
 
             if (!(regs->PxCI & 0x1))
             {
                 // CI bit has been cleared by HBA
-                screen << "Command processed!" << "\n";
-                screen << "PRD byte count: " << header->PRDBC() << "\n";
-                screen << "PxCI: " << regs->PxCI << "\n";
-                // screen << "PxCMD.ST: " << regs->PxCMD.ST() << "\n";
-                // screen << "PxSACT: " << regs->PxSACT << "\n";
-                screen << "TFES: " << (regs->PxIS.value & (0x1 << 30)) << "\n";
+                screen << "IDENTIFY DEVICE Command processed!" << "\n\n";
+                screen << "Device Info\n";
+                screen << "-----------\n";
+                // screen << "PRD byte count: " << header->PRDBC() << "\n";
+                // screen << "PxCI: " << regs->PxCI << "\n";
+                // screen << "TFES: " << (regs->PxIS.value & (0x1 << 30)) << "\n";
 
                 // break;
 
-                uint16_t* wordPtr = (uint16_t*)dataBuffer;
-                for (int i = 0; i < 6; i++)
-                {
-                    screen << wordPtr[i] << " ";
-                }
-                screen << "\n";
+                // uint16_t* wordPtr = (uint16_t*)dataBuffer;
+                // for (int i = 0; i < 6; i++)
+                // {
+                //     screen << wordPtr[i] << " ";
+                // }
+                // screen << "\n";
 
                 // serial number
                 for (int i = 10*2; i < 19*2; i++)
@@ -278,7 +278,7 @@ AhciDriver::AhciDriver()
                     screen << dataBuffer[i];
                     i++;
                 }
-                screen << "\n";
+                screen << "\n\n";
 
                 for (int i = 0; i < 32; i++)
                 {
@@ -299,12 +299,12 @@ AhciDriver::AhciDriver()
                 screen << "Command not processed within 500ms...\n";
             }
 
-            screen << "PxTFD.ERR: " << (int)(regs->PxTFD & 0x1) << "\n";
-            screen << "PxIE: " << regs->PxIE << " ";
-            screen << "PxIS: " << regs->PxIS.value << " ";
-            screen << "HBA IS: " << hba->genericHostControl.IS << " ";
-            screen << "GHC.IE: " << hba->genericHostControl.GHC.IE() << "\n";
-            screen << "PxIS: " << hba->portRegs[0].PxIS.value << "\n";
+            // screen << "PxTFD.ERR: " << (int)(regs->PxTFD & 0x1) << "\n";
+            // screen << "PxIE: " << regs->PxIE << " ";
+            // screen << "PxIS: " << regs->PxIS.value << " ";
+            // screen << "HBA IS: " << hba->genericHostControl.IS << " ";
+            // screen << "GHC.IE: " << hba->genericHostControl.GHC.IE() << "\n";
+            // screen << "PxIS: " << hba->portRegs[0].PxIS.value << "\n";
 
             // process completed command
             // in ISR:
@@ -321,8 +321,11 @@ AhciDriver::AhciDriver()
 
             // try running another identify device command...
 
-            screen << "PxIS: " << regs->PxIS.value << "\n";
-            screen << "RxFIS: " << (uint32_t)device._portMemory[0]->ReceiveFIS << "\n";
+            // uncomment here to make sure PxIS was cleared...
+            // -----------------------------------------------
+            // screen << "PxIS: " << regs->PxIS.value << "\n";
+            // -----------------------------------------------
+            // screen << "RxFIS: " << (uint32_t)device._portMemory[0]->ReceiveFIS << "\n";
 
             // allocate data buffer
             uint32_t buffer2PhysAddr = PageFrameMgr::get()->allocPageFrame();
@@ -332,8 +335,8 @@ AhciDriver::AhciDriver()
             }
 
             char* buffer2 = (char*)currentPT.mapNextAvailablePageToAddress(buffer2PhysAddr);
-            screen << "DataBuffer 2 phys: " << buffer2PhysAddr << "\n";
-            screen << "DataBuffer 2 @0x" << (uint32_t)buffer2 << "\n";
+            //screen << "DataBuffer 2 phys: " << buffer2PhysAddr << "\n";
+            screen << "DataBuffer2 (identify device output) @0x" << (uint32_t)buffer2 << "\n";
 
             buffer2[0] = 'c';
             buffer2[1] = 'a';
@@ -345,15 +348,15 @@ AhciDriver::AhciDriver()
             cmdTable->getPRDTableArray()[0].DBA = buffer2PhysAddr;    // phys address of buffer for identify data
             regs->PxCI |= 0x1;
             sleep(500);
-            screen << "PxCI: " << regs->PxCI << "\n";
-            screen << "PxIS: " << regs->PxIS.value << "\n";
+            // screen << "PxCI: " << regs->PxCI << "\n";
+            // screen << "PxIS: " << regs->PxIS.value << "\n";
 
             // #################################
             // read command...(prepare buffer with predefined pattern)
             // #################################
             regs->PxIS.value = 0xFFFF'FFFF;
-            screen << "PxCI: " << regs->PxCI << "\n";
-            screen << "PxIS: " << regs->PxIS.value << "\n";
+            // screen << "PxCI: " << regs->PxCI << "\n";
+            // screen << "PxIS: " << regs->PxIS.value << "\n";
 
             cmdTableBytePtr = (uint8_t*)cmdTable;   // zero-out the cmd table
             for (int i = 0; i < 0x60; i++)
@@ -385,7 +388,7 @@ AhciDriver::AhciDriver()
             cmdTable->getPRDTableArray()[0].DBA = readBufferPhys;    // phys address of buffer for read data
             cmdTable->getPRDTableArray()[0].IOC(false);
             cmdTable->getPRDTableArray()[0].DBC(512-1);     // must be sector (512B) multiple!
-            screen << "DataBufferPhys: 0x" << cmdTable->getPRDTableArray()->DBA << "\n";
+            //screen << "DataBufferPhys: 0x" << cmdTable->getPRDTableArray()->DBA << "\n";
 
             // create command FIS
             // todo: create zeroOut() function, then just set members that I'm actually using
@@ -415,7 +418,7 @@ AhciDriver::AhciDriver()
             cmdTable->CommandFIS()->Control = 0x08;
             cmdTable->CommandFIS()->Reserved2 = 0;
 
-            screen << "CommandFIS: 0x" << (uint32_t)cmdTable->CommandFIS() << "\n";
+            //screen << "CommandFIS: 0x" << (uint32_t)cmdTable->CommandFIS() << "\n";
 
             // update command header
             header->PRDTL(1);   // one physical region descriptor table (PRDT length=1)
@@ -439,20 +442,24 @@ AhciDriver::AhciDriver()
             {
                 PANIC("CTBA not aligned!!");
             }
-            screen << "CTBA: 0x" << commandTablePhys << "\n";
+            //screen << "CTBA: 0x" << commandTablePhys << "\n";
 
-            screen << "Command Table Phys: 0x" << commandTablePhys << "\n";
+            //screen << "Command Table Phys: 0x" << commandTablePhys << "\n";
             if (commandTablePhys % 128 != 0)
             {
                 PANIC("command table not on 128-byte boundary!!");
             }
 
-            screen << "PxCI: " << regs->PxCI << "\n";
-            screen << "PxIS: " << regs->PxIS.value << "\n";
+            // screen << "PxCI: " << regs->PxCI << "\n";
+            // screen << "PxIS: " << regs->PxIS.value << "\n";
             regs->PxCI |= 0x1;
             sleep(500);
-            screen << "PxCI: " << regs->PxCI << "\n";
-            screen << "PxIS: " << regs->PxIS.value << "\n";
+            // screen << "PxCI: " << regs->PxCI << "\n";
+            // screen << "PxIS: " << regs->PxIS.value << "\n";
+            if (regs->PxIS.value & 0x1)
+            {
+                screen << "Done! Check the read buffer...\n";
+            }
 
             // data should be in readBuffer... (in qemu, use: x /160wx <virt address of readBuffer>)
         }
@@ -607,9 +614,9 @@ void AhciDriver::initHBA(ahci::HBAMemoryRegs* hba)
 
     hba->genericHostControl.IS = 0xFFFF'FFFF;
 
-    screen << "GHC.IE " << (int)hba->genericHostControl.GHC.IE() << "\n";
+    // screen << "GHC.IE " << (int)hba->genericHostControl.GHC.IE() << "\n";
     hba->genericHostControl.GHC.IE(0);      // turn all interrupts off for now
-    screen << "GHC.IE " << (int)hba->genericHostControl.GHC.IE() << "\n";
+    // screen << "GHC.IE " << (int)hba->genericHostControl.GHC.IE() << "\n";
 
     // TODO: when setting interrupts, clear PxIS first, then clear IS.IPS BEFORE programming PxIE and GHC.IE
 
@@ -620,11 +627,11 @@ void AhciDriver::initHBA(ahci::HBAMemoryRegs* hba)
         if (portImplemented)
         {
             // verify PxSERR.DIAG.X is cleared
-            screen << "PxIS: " << hba->portRegs[i].PxIS.value << " ";
-            screen << "PxSERR.DIAG.X: " << (hba->portRegs[i].PxSERR & (int)(0x1 << 26)) << " ";
+            // screen << "PxIS: " << hba->portRegs[i].PxIS.value << " ";
+            // screen << "PxSERR.DIAG.X: " << (hba->portRegs[i].PxSERR & (int)(0x1 << 26)) << " ";
             // verify functional device is present on the port (BSY=0, DRQ=0, DET=3)
-            screen << "BSY: " << (hba->portRegs[i].PxTFD & (0x1 << 7)) << " DRQ: " << (hba->portRegs[i].PxTFD & (0x1 << 3)) << " ";
-            screen << "DET: " << (hba->portRegs[i].PxSSTS & 0x0F) << "\n";
+            // screen << "BSY: " << (hba->portRegs[i].PxTFD & (0x1 << 7)) << " DRQ: " << (hba->portRegs[i].PxTFD & (0x1 << 3)) << " ";
+            // screen << "DET: " << (hba->portRegs[i].PxSSTS & 0x0F) << "\n";
         }
     }
 }
@@ -652,14 +659,14 @@ void AhciDriver::initAhciPort(ahci::AhciPortRegs* port)
     }
 
     screen << os::Screen::hex;
-    screen << "PxCMD.FRE: " << port->PxCMD.FRE() << "\n";
-    screen << "PxFB: " << port->PxFB << "\n";
+    // screen << "PxCMD.FRE: " << port->PxCMD.FRE() << "\n";
+    // screen << "PxFB: " << port->PxFB << "\n";
     //PANIC("tmp");
 
     // set port regs to physical addresses...
     port->PxCLB = pageAddrPhys;                                 // point to phys address of command list (start of new page)
     port->PxFB = pageAddrPhys + (sizeof(CommandHeader)*32);     // point to receive FIS (directly after command list, on new page)
-    screen << "PxFB: " << port->PxFB << "\n";
+    // screen << "PxFB: " << port->PxFB << "\n";
 
     // STATE NOTES
     // ------------------
@@ -669,20 +676,20 @@ void AhciDriver::initAhciPort(ahci::AhciPortRegs* port)
     // into our PxFB buffer.
 
     // check before/after to see if this is the case...
-    screen << "PxSERR.DIAG.X: " << (port->PxSERR & (int)(0x1 << 26)) << "\n";
+    // screen << "PxSERR.DIAG.X: " << (port->PxSERR & (int)(0x1 << 26)) << "\n";
 
     uint8_t* rxFISPtr = (uint8_t*)pagePtr;
     int startIdx = sizeof(CommandHeader)*32;
 
     // BEFORE...
     screen << os::Screen::hex;
-    screen << "pagePtr: 0x" << (uint32_t)pagePtr << "\n";
-    screen << "RxFIS: 0x" << (uint32_t)(&rxFISPtr[startIdx]) << "\n";
-    for (int i = startIdx; i < startIdx+32; i++)
-    {
-        screen << rxFISPtr[i] << " ";
-    }
-    screen << "\n";
+    // screen << "pagePtr: 0x" << (uint32_t)pagePtr << "\n";
+    // screen << "RxFIS: 0x" << (uint32_t)(&rxFISPtr[startIdx]) << "\n";
+    // for (int i = startIdx; i < startIdx+32; i++)
+    // {
+    //     screen << rxFISPtr[i] << " ";
+    // }
+    // screen << "\n";
 
     // set PxCMD.FRE = 1 after setup is complete
     port->PxCMD.FRE(1);
@@ -698,11 +705,11 @@ void AhciDriver::initAhciPort(ahci::AhciPortRegs* port)
     ///////////////////////////////////////////////////////////////////
 
     screen << os::Screen::hex;
-    screen << "PxIE: " << port->PxIE << "\n";
-    screen << "PxIS: " << port->PxIS.value << "\n";
-    screen << "PxTFD.ERR: 0x" << ((port->PxTFD >> 8) & 0xFF) << "\n";
-    screen << "PxTFD.STS: 0x" << (port->PxTFD & 0xFF) << "\n";
-    screen << "PxSERR: 0x" << port->PxSERR << "\n";
+    // screen << "PxIE: " << port->PxIE << "\n";
+    // screen << "PxIS: " << port->PxIS.value << "\n";
+    // screen << "PxTFD.ERR: 0x" << ((port->PxTFD >> 8) & 0xFF) << "\n";
+    // screen << "PxTFD.STS: 0x" << (port->PxTFD & 0xFF) << "\n";
+    // screen << "PxSERR: 0x" << port->PxSERR << "\n";
     //sleep(100);
     //PANIC("TMP");
 
@@ -713,7 +720,10 @@ void AhciDriver::initAhciPort(ahci::AhciPortRegs* port)
     auto totalSize = cmdTableSize + rxFISSize;
 
     screen << os::Screen::dec;
-    screen << "AHCI port memory utilizing " << totalSize << "B of " << PAGE_SIZE << "B available\n";
+
+    // screen << "AHCI port memory utilizing " << totalSize << "B of " << PAGE_SIZE << "B available\n";
+
+
     // screen << "sizeof(PortMemory): " << sizeof(PortSystemMemory) << "\n";
     // screen << "Remaining space: " << PAGE_SIZE - totalSize << "B (" << (double)(PAGE_SIZE - totalSize)/(double)PAGE_SIZE << "%)\n";
 
