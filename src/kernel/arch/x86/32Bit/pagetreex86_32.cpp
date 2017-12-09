@@ -2,9 +2,18 @@
 #include "pagetreex86_32.h"
 #include "system.h"
 
-PageTreeX86_32::PageTreeX86_32(uintptr_t pageDirAddr)
+PageTree::entry* const PageTreeX86_32::KERNEL_PAGE_TABLES = reinterpret_cast<entry* const>(8_MiB);
+PageTree::entry* const PageTreeX86_32::PROCESS_PAGE_TABLES = PageTreeX86_32::KERNEL_PAGE_TABLES + (PAGE_DIR_NUM_ENTRIES * PAGE_SIZE);
+
+void PageTreeX86_32::init()
 {
-    pageDir = reinterpret_cast<uintptr_t*>(pageDirAddr);
+    /// @todo set up the kernel page tables
+}
+
+PageTreeX86_32::PageTreeX86_32(uintptr_t pageDirAddr, bool isKernel) :
+    pageTables(isKernel ? KERNEL_PAGE_TABLES : PROCESS_PAGE_TABLES)
+{
+    pageDir = reinterpret_cast<entry*>(pageDirAddr);
 }
 
 bool PageTreeX86_32::map(uintptr_t virtualAddr, uintptr_t physicalAddr, unsigned int flags)
@@ -13,23 +22,23 @@ bool PageTreeX86_32::map(uintptr_t virtualAddr, uintptr_t physicalAddr, unsigned
     int pageDirIdx = virtualAddr & PAGE_DIR_INDEX_MASK;
 
     // get the page dir entry
-    uint32_t pageDirEntry = pageDir[pageDirIdx];
+    entry pageDirEntry = pageDir[pageDirIdx];
 
     // make sure the page table is present
     if ( (pageDirEntry & PAGE_DIR_PRESENT) == 0 )
     {
         PANIC("TODO: Map page table.");
+        return false;
     }
 
     // get the page table
-    uint32_t pageTableAddr = pageDirEntry & PAGE_DIR_ADDRESS;
-    uint32_t* pageTable = reinterpret_cast<uint32_t*>(pageTableAddr);
+    entry* pageTable = getPageTable(pageDirIdx);
 
     // calculate the page table index
     int pageTableIdx = (virtualAddr >> PAGE_TABLE_INDEX_SHIFT) & PAGE_TABLE_INDEX_MASK;
 
     // create the page table entry
-    uint32_t pageTableEntry = 0;
+    entry pageTableEntry = 0;
     pageTableEntry |= physicalAddr & PAGE_TABLE_ADDRESS; // add new address
     pageTableEntry |= PAGE_TABLE_PRESENT;                // set present bit
 
@@ -51,10 +60,12 @@ bool PageTreeX86_32::map(uintptr_t virtualAddr, uintptr_t physicalAddr, unsigned
 
 bool PageTreeX86_32::mapOnOrAfter(uintptr_t startAddr, uintptr_t& virtualAddr, uintptr_t physicalAddr, unsigned int flags)
 {
+    PANIC("Not implemented.");
 }
 
 bool PageTreeX86_32::mapOnOrBefore(uintptr_t startAddr, uintptr_t& virtualAddr, uintptr_t physicalAddr, unsigned int flags)
 {
+    PANIC("Not implemented.");
 }
 
 void PageTreeX86_32::unmap(uintptr_t virtualAddr)
@@ -63,14 +74,13 @@ void PageTreeX86_32::unmap(uintptr_t virtualAddr)
     int pageDirIdx = virtualAddr & PAGE_DIR_INDEX_MASK;
 
     // get the page dir entry
-    uint32_t pageDirEntry = pageDir[pageDirIdx];
+    entry pageDirEntry = pageDir[pageDirIdx];
 
     // make sure the page table is present
     if ( (pageDirEntry & PAGE_DIR_PRESENT) != 0 )
     {
         // get the page table
-        uint32_t pageTableAddr = pageDirEntry & PAGE_DIR_ADDRESS;
-        uint32_t* pageTable = reinterpret_cast<uint32_t*>(pageTableAddr);
+        entry* pageTable = getPageTable(pageDirIdx);
 
         // calculate the page table index
         int pageTableIdx = (virtualAddr >> PAGE_TABLE_INDEX_SHIFT) & PAGE_TABLE_INDEX_MASK;
@@ -81,4 +91,9 @@ void PageTreeX86_32::unmap(uintptr_t virtualAddr)
         // invalidate page in TLB
         invalidatePage(virtualAddr);
     }
+}
+
+PageTree::entry* PageTreeX86_32::getPageTable(int pageDirIdx) const
+{
+    return pageTables + (pageDirIdx * PAGE_SIZE);
 }
