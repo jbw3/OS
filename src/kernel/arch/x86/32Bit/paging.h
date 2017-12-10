@@ -45,32 +45,11 @@ struct multiboot_info;
 extern "C"
 {
 
-uint32_t* getKernelPageDirStart();
+uint32_t* getKernelPageDir();
 
-uint32_t* getKernelPageDirEnd();
+uint32_t* getKernelPageTable1();
 
-uint32_t* getKernelPageTableStart();
-
-uint32_t* getKernelPageTableEnd();
-
-/**
- * @brief Initialize the page directory
- */
-void initPageDir();
-
-/**
- * @brief Initialize a page table
- * @brief addr the address of the page table (MUST be 4 KiB aligned)
- */
-void initPageTable(uint32_t addr);
-
-[[deprecated]]
-void enablePaging();
-
-[[deprecated]]
-void disablePaging();
-
-bool isPagingEnabled();
+uint32_t* getKernelPageTable2();
 
 /**
  * @brief Sets the page directory.

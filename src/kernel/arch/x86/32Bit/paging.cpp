@@ -154,7 +154,7 @@ void mapModules(const multiboot_info* mbootInfo)
         for (uint32_t pageAddr = startPageAddr; pageAddr < endPageAddr; pageAddr += PAGE_SIZE)
         {
             uint32_t virtualAddr = pageAddr + KERNEL_VIRTUAL_BASE;
-            mapPage(getKernelPageTableStart(), virtualAddr, pageAddr);
+            mapPage(getKernelPageTable1(), virtualAddr, pageAddr);
         }
 
         modAddr += sizeof(multiboot_mod_list);

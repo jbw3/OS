@@ -134,7 +134,7 @@ void ProcessMgr::mainloop()
     while (true)
     {
         // switch to kernel's page directory
-        uintptr_t kernelPageDirPhyAddr = reinterpret_cast<uintptr_t>(getKernelPageDirStart()) - KERNEL_VIRTUAL_BASE;
+        uintptr_t kernelPageDirPhyAddr = reinterpret_cast<uintptr_t>(getKernelPageDir()) - KERNEL_VIRTUAL_BASE;
         setPageDirectory(kernelPageDirPhyAddr);
 
         // enable interrupts
@@ -199,19 +199,19 @@ void ProcessMgr::createProcess(const multiboot_mod_list* module)
 
     if (ok)
     {
-        ok = initPaging(newProcInfo, getKernelPageTableStart());
+        ok = initPaging(newProcInfo, getKernelPageTable1());
     }
 
     if (ok)
     {
         // copy kernel page table
-        copyKernelPageTable(newProcInfo, getKernelPageTableStart());
+        copyKernelPageTable(newProcInfo, getKernelPageTable1());
 
         // create process page tables
         createProcessPageTables(newProcInfo);
 
         // unmap process pages from kernel page table
-        unmapPages(newProcInfo, getKernelPageTableStart());
+        unmapPages(newProcInfo, getKernelPageTable1());
 
         // switch to process's page directory
         setPageDirectory(newProcInfo->pageDir.physicalAddr);
@@ -248,7 +248,7 @@ void ProcessMgr::createProcess(const multiboot_mod_list* module)
         // clean things up
 
         // switch back to kernel's page directory
-        uintptr_t kernelPageDirPhyAddr = reinterpret_cast<uintptr_t>(getKernelPageDirStart()) - KERNEL_VIRTUAL_BASE;
+        uintptr_t kernelPageDirPhyAddr = reinterpret_cast<uintptr_t>(getKernelPageDir()) - KERNEL_VIRTUAL_BASE;
         setPageDirectory(kernelPageDirPhyAddr);
 
         cleanUpProcess(newProcInfo);
@@ -423,13 +423,13 @@ ProcessMgr::ProcessInfo* ProcessMgr::forkProcess(ProcessInfo* procInfo)
 
     if (ok)
     {
-        ok = initPaging(newProcInfo, getKernelPageTableStart());
+        ok = initPaging(newProcInfo, getKernelPageTable1());
     }
 
     if (ok)
     {
         // copy kernel page table
-        copyKernelPageTable(newProcInfo, getKernelPageTableStart());
+        copyKernelPageTable(newProcInfo, getKernelPageTable1());
 
         // copy process page tables
         copyProcessPageTables(newProcInfo, procInfo);
@@ -444,7 +444,7 @@ ProcessMgr::ProcessInfo* ProcessMgr::forkProcess(ProcessInfo* procInfo)
     // unmap process pages from kernel page table
     if (newProcInfo != nullptr)
     {
-        unmapPages(newProcInfo, getKernelPageTableStart());
+        unmapPages(newProcInfo, getKernelPageTable1());
     }
 
     if (ok)
@@ -479,7 +479,7 @@ ProcessMgr::ProcessInfo* ProcessMgr::forkProcess(ProcessInfo* procInfo)
     }
 
     // switch back to kernel's page directory
-    uintptr_t kernelPageDirPhyAddr = reinterpret_cast<uintptr_t>(getKernelPageDirStart()) - KERNEL_VIRTUAL_BASE;
+    uintptr_t kernelPageDirPhyAddr = reinterpret_cast<uintptr_t>(getKernelPageDir()) - KERNEL_VIRTUAL_BASE;
     setPageDirectory(kernelPageDirPhyAddr);
 
     return ok ? newProcInfo : nullptr;
@@ -762,13 +762,13 @@ bool ProcessMgr::copyProcessPages(ProcessInfo* dstProc, ProcessInfo* srcProc)
         // temporarily map the pages in the kernel's page table so we can copy
         uintptr_t dstTempAddr = 0;
         uintptr_t srcTempAddr = 0;
-        bool ok = mapPage((KERNEL_VIRTUAL_BASE >> 22), getKernelPageTableStart(), dstTempAddr, dstPhyAddr);
+        bool ok = mapPage((KERNEL_VIRTUAL_BASE >> 22), getKernelPageTable1(), dstTempAddr, dstPhyAddr);
         if (!ok)
         {
             logError("Could not map destination temporary page.");
             return false;
         }
-        ok = mapPage((KERNEL_VIRTUAL_BASE >> 22), getKernelPageTableStart(), srcTempAddr, srcPageInfo.physicalAddr);
+        ok = mapPage((KERNEL_VIRTUAL_BASE >> 22), getKernelPageTable1(), srcTempAddr, srcPageInfo.physicalAddr);
         if (!ok)
         {
             logError("Could not map source temporary page.");
@@ -779,8 +779,8 @@ bool ProcessMgr::copyProcessPages(ProcessInfo* dstProc, ProcessInfo* srcProc)
         memcpy(reinterpret_cast<void*>(dstTempAddr), reinterpret_cast<const void*>(srcTempAddr), PAGE_SIZE);
 
         // unmap the temporary pages from the kernel's page table
-        unmapPage(getKernelPageTableStart(), dstTempAddr);
-        unmapPage(getKernelPageTableStart(), srcTempAddr);
+        unmapPage(getKernelPageTable1(), dstTempAddr);
+        unmapPage(getKernelPageTable1(), srcTempAddr);
     }
 
     return true;

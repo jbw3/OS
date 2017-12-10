@@ -54,7 +54,7 @@ global start
 start	equ (_start - KERNEL_VIRTUAL_BASE)
 _start:
 	; set up paging directory
-	mov ecx, (kernelPageDirStart - KERNEL_VIRTUAL_BASE)
+	mov ecx, (kernelPageDir - KERNEL_VIRTUAL_BASE)
 	mov cr3, ecx
 
 	; enable paging
@@ -68,7 +68,7 @@ _start:
 
 .higherHalf:
 	; unmap temporary identity mapped page
-	mov dword [kernelPageDirStart + 0], 0
+	mov dword [kernelPageDir + 0], 0
 	invlpg [0]
 
 	; set up stack
@@ -104,41 +104,43 @@ idtFlush:
 section .data
 
 ; kernel page directory
-global kernelPageDirStart
-global kernelPageDirEnd
+global kernelPageDir
 
 align 4096
-kernelPageDirStart:
-dd ((tempPageTableStart - KERNEL_VIRTUAL_BASE) + (PAGE_DIR_RW | PAGE_DIR_PRESENT))
+kernelPageDir:
+dd ((tempPageTable - KERNEL_VIRTUAL_BASE) + (PAGE_DIR_RW | PAGE_DIR_PRESENT))
 times (KERNEL_PAGE_TABLE_IDX - 1) dd 0
-dd ((kernelPageTableStart - KERNEL_VIRTUAL_BASE) + (PAGE_DIR_RW | PAGE_DIR_PRESENT))
+dd ((kernelPageTable1 - KERNEL_VIRTUAL_BASE) + (PAGE_DIR_RW | PAGE_DIR_PRESENT))
 times (PAGE_TABLE_ENTRIES - KERNEL_PAGE_TABLE_IDX - 1) dd 0
-kernelPageDirEnd:
 
 ; kernel page table
-global kernelPageTableStart
-global kernelPageTableEnd
+global kernelPageTable1
 
 align 4096
-kernelPageTableStart:
+kernelPageTable1:
 %assign address 0
 %rep 768
 dd (address | (PAGE_TABLE_RW | PAGE_TABLE_PRESENT))
 %assign address address + 4096
 %endrep
 times (PAGE_TABLE_ENTRIES - 768) dd 0
-kernelPageTableEnd:
 
-; temporary page table for identity mapping the kernel
+; This page table serves 2 purposes:
+; 1. temporary page table for identity mapping the kernel
 ; until we jump to the higher half; we only need to
 ; map the first page in the kernel which starts at
 ; physical address 0x100000 (1 MiB)
+; 2. a second page table for the kernel to map in other
+; page tables
+
+global kernelPageTable2
+
 align 4096
-tempPageTableStart:
+kernelPageTable2:
+tempPageTable:
 times 256 dd 0
 dd (0x100000 | (PAGE_TABLE_RW | PAGE_TABLE_PRESENT))
 times (1024 - 256 - 1) dd 0
-tempPageTableEnd:
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ; BSS Section

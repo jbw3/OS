@@ -14,6 +14,14 @@ PageTreeX86_32::PageTreeX86_32(uintptr_t pageDirAddr, bool isKernel) :
     pageTables(isKernel ? KERNEL_PAGE_TABLES : PROCESS_PAGE_TABLES)
 {
     pageDir = reinterpret_cast<Entry*>(pageDirAddr);
+
+    if (isKernel)
+    {
+        // map a page table for the kernel page tables
+        int pageDirIdx = reinterpret_cast<uintptr_t>(KERNEL_PAGE_TABLES) & PAGE_DIR_INDEX_MASK;
+
+        /// @todo map the existing kernel page table
+    }
 }
 
 bool PageTreeX86_32::map(uintptr_t virtualAddr, uintptr_t physicalAddr, unsigned int flags)
