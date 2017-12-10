@@ -18,7 +18,7 @@ public:
         eReadWrite = 0x2,
     };
 
-    typedef unsigned long entry;
+    typedef unsigned long Entry;
 
     /**
      * @brief Map a page at a specified virtual address.

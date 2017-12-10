@@ -21,18 +21,18 @@ public:
 
 private:
     /// The starting virtual address of the kernel's page tables
-    static entry* const KERNEL_PAGE_TABLES;
+    static Entry* const KERNEL_PAGE_TABLES;
 
     /// The starting virtual address of each process's page tables
-    static entry* const PROCESS_PAGE_TABLES;
+    static Entry* const PROCESS_PAGE_TABLES;
 
-    entry* pageDir;
-    entry* const pageTables;
+    Entry* pageDir;
+    Entry* const pageTables;
 
     /**
      * @brief Calculate the virtual page table address.
      */
-    entry* getPageTable(int pageDirIdx) const;
+    Entry* getPageTable(int pageDirIdx) const;
 };
 
 #endif // PAGE_TREE_X86_32_H_
