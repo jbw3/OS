@@ -1,14 +1,10 @@
+#include <string.h>
 #include "paging.h"
 #include "pagetreex86_32.h"
 #include "system.h"
 
 PageTree::Entry* const PageTreeX86_32::KERNEL_PAGE_TABLES = reinterpret_cast<Entry* const>(8_MiB);
 PageTree::Entry* const PageTreeX86_32::PROCESS_PAGE_TABLES = PageTreeX86_32::KERNEL_PAGE_TABLES + (PAGE_DIR_NUM_ENTRIES * PAGE_SIZE);
-
-void PageTreeX86_32::init()
-{
-    /// @todo set up the kernel page tables
-}
 
 PageTreeX86_32::PageTreeX86_32(uintptr_t pageDirAddr, bool isKernel) :
     pageTables(isKernel ? KERNEL_PAGE_TABLES : PROCESS_PAGE_TABLES)
@@ -20,7 +16,23 @@ PageTreeX86_32::PageTreeX86_32(uintptr_t pageDirAddr, bool isKernel) :
         // map a page table for the kernel page tables
         int pageDirIdx = reinterpret_cast<uintptr_t>(KERNEL_PAGE_TABLES) & PAGE_DIR_INDEX_MASK;
 
-        /// @todo map the existing kernel page table
+        // map a page table to let us access the other page tables
+        // (the page table page table)
+        uintptr_t* pageTablePageTable = getKernelPageTable2();
+        memset(pageTablePageTable, 0, PAGE_SIZE); // clear page table
+
+        uintptr_t virtualAddr = reinterpret_cast<uintptr_t>(pageTablePageTable);
+        uintptr_t physicalAddr = virtualAddr - KERNEL_VIRTUAL_BASE;
+        Entry pageDirEntry = 0;
+        pageDirEntry |= physicalAddr & PAGE_TABLE_ADDRESS;
+        pageDirEntry |= PAGE_TABLE_READ_WRITE | PAGE_DIR_PRESENT;
+        pageDir[pageDirIdx] = pageDirEntry;
+
+        // map the existing kernel page table
+        pageDirIdx = KERNEL_VIRTUAL_START & PAGE_DIR_INDEX_MASK;
+        virtualAddr = reinterpret_cast<uintptr_t>(getPageTable(pageDirIdx));
+        physicalAddr = virtualAddr - KERNEL_VIRTUAL_BASE;
+        map(virtualAddr, physicalAddr, eReadWrite);
     }
 }
 

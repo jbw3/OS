@@ -7,8 +7,6 @@
 class PageTreeX86_32 : public PageTree
 {
 public:
-    static void init();
-
     PageTreeX86_32(uintptr_t pageDirAddr, bool isKernel);
 
     bool map(uintptr_t virtualAddr, uintptr_t physicalAddr, unsigned int flags = 0) override;
