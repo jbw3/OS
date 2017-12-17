@@ -7,6 +7,7 @@
 #include "irq.h"
 #include "keyboard.h"
 #include "pageframemgr.h"
+#include "pagetreex86_32.h"
 #include "paging.h"
 #include "processmgr.h"
 #include "screen.h"
@@ -24,6 +25,8 @@ void kernelMain(const uint32_t MULTIBOOT_MAGIC_NUM, const multiboot_info* mbootI
     initIdt();
     initIrq();
     configPaging();
+
+    PageTreeX86_32 kernelPageTree(reinterpret_cast<uintptr_t>(getKernelPageDir()), true);
 
     os::Timer::init(20);
 

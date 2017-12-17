@@ -3,7 +3,7 @@
 #include "pagetreex86_32.h"
 #include "system.h"
 
-PageTree::Entry* const PageTreeX86_32::KERNEL_PAGE_TABLES = reinterpret_cast<Entry* const>(8_MiB);
+PageTree::Entry* const PageTreeX86_32::KERNEL_PAGE_TABLES = reinterpret_cast<Entry* const>(KERNEL_VIRTUAL_BASE + 8_MiB);
 PageTree::Entry* const PageTreeX86_32::PROCESS_PAGE_TABLES = PageTreeX86_32::KERNEL_PAGE_TABLES + (PAGE_DIR_NUM_ENTRIES * PAGE_SIZE);
 
 PageTreeX86_32::PageTreeX86_32(uintptr_t pageDirAddr, bool isKernel) :
@@ -14,7 +14,7 @@ PageTreeX86_32::PageTreeX86_32(uintptr_t pageDirAddr, bool isKernel) :
     if (isKernel)
     {
         // map a page table for the kernel page tables
-        int pageDirIdx = reinterpret_cast<uintptr_t>(KERNEL_PAGE_TABLES) & PAGE_DIR_INDEX_MASK;
+        int pageDirIdx = (reinterpret_cast<uintptr_t>(KERNEL_PAGE_TABLES) >> PAGE_DIR_INDEX_SHIFT) & PAGE_DIR_INDEX_MASK;
 
         // map a page table to let us access the other page tables
         // (the page table page table)
@@ -28,10 +28,18 @@ PageTreeX86_32::PageTreeX86_32(uintptr_t pageDirAddr, bool isKernel) :
         pageDirEntry |= PAGE_TABLE_READ_WRITE | PAGE_DIR_PRESENT;
         pageDir[pageDirIdx] = pageDirEntry;
 
-        // map the existing kernel page table
-        pageDirIdx = KERNEL_VIRTUAL_START & PAGE_DIR_INDEX_MASK;
+        // map the page table page table in itself
         virtualAddr = reinterpret_cast<uintptr_t>(getPageTable(pageDirIdx));
-        physicalAddr = virtualAddr - KERNEL_VIRTUAL_BASE;
+        int pageTableIdx = (reinterpret_cast<uintptr_t>(virtualAddr) >> PAGE_TABLE_INDEX_SHIFT) & PAGE_TABLE_INDEX_MASK;
+        Entry pageTableEntry = 0;
+        pageTableEntry |= physicalAddr & PAGE_TABLE_ADDRESS;
+        pageTableEntry |= PAGE_TABLE_READ_WRITE | PAGE_TABLE_PRESENT;
+        pageTablePageTable[pageTableIdx] = pageTableEntry;
+
+        // map the existing kernel page table
+        pageDirIdx = (KERNEL_VIRTUAL_START >> PAGE_DIR_INDEX_SHIFT) & PAGE_DIR_INDEX_MASK;
+        virtualAddr = reinterpret_cast<uintptr_t>(getPageTable(pageDirIdx));
+        physicalAddr = reinterpret_cast<uintptr_t>(getKernelPageTable1()) - KERNEL_VIRTUAL_BASE;
         map(virtualAddr, physicalAddr, eReadWrite);
     }
 }
@@ -39,7 +47,7 @@ PageTreeX86_32::PageTreeX86_32(uintptr_t pageDirAddr, bool isKernel) :
 bool PageTreeX86_32::map(uintptr_t virtualAddr, uintptr_t physicalAddr, unsigned int flags)
 {
     // calculate the page dir index
-    int pageDirIdx = virtualAddr & PAGE_DIR_INDEX_MASK;
+    int pageDirIdx = (virtualAddr >> PAGE_DIR_INDEX_SHIFT) & PAGE_DIR_INDEX_MASK;
 
     // get the page dir entry
     Entry pageDirEntry = pageDir[pageDirIdx];
@@ -91,7 +99,7 @@ bool PageTreeX86_32::mapOnOrBefore(uintptr_t startAddr, uintptr_t& virtualAddr, 
 void PageTreeX86_32::unmap(uintptr_t virtualAddr)
 {
     // calculate the page dir index
-    int pageDirIdx = virtualAddr & PAGE_DIR_INDEX_MASK;
+    int pageDirIdx = (virtualAddr >> PAGE_DIR_INDEX_SHIFT) & PAGE_DIR_INDEX_MASK;
 
     // get the page dir entry
     Entry pageDirEntry = pageDir[pageDirIdx];
@@ -115,5 +123,5 @@ void PageTreeX86_32::unmap(uintptr_t virtualAddr)
 
 PageTree::Entry* PageTreeX86_32::getPageTable(int pageDirIdx) const
 {
-    return pageTables + (pageDirIdx * PAGE_SIZE);
+    return pageTables + (pageDirIdx * PAGE_SIZE / sizeof(Entry));
 }
