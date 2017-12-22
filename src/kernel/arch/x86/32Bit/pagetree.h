@@ -8,6 +8,9 @@
  */
 class PageTree
 {
+protected:
+    static PageTree* kernelPageTree;
+
 public:
     enum EFlags
     {
@@ -19,6 +22,11 @@ public:
     };
 
     typedef unsigned long Entry;
+
+    static PageTree& getKernelPageTree()
+    {
+        return *kernelPageTree;
+    }
 
     /**
      * @brief Map a page at a specified virtual address.

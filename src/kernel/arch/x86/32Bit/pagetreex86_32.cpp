@@ -6,6 +6,8 @@
 PageTree::Entry* const PageTreeX86_32::KERNEL_PAGE_TABLES = reinterpret_cast<Entry* const>(KERNEL_VIRTUAL_BASE + 8_MiB);
 PageTree::Entry* const PageTreeX86_32::PROCESS_PAGE_TABLES = PageTreeX86_32::KERNEL_PAGE_TABLES + (PAGE_DIR_NUM_ENTRIES * PAGE_SIZE);
 
+PageTree* PageTree::kernelPageTree = nullptr;
+
 PageTreeX86_32::PageTreeX86_32(uintptr_t pageDirAddr, bool isKernel) :
     pageTables(isKernel ? KERNEL_PAGE_TABLES : PROCESS_PAGE_TABLES)
 {
@@ -13,6 +15,8 @@ PageTreeX86_32::PageTreeX86_32(uintptr_t pageDirAddr, bool isKernel) :
 
     if (isKernel)
     {
+        kernelPageTree = this;
+
         // map a page table for the kernel page tables
         int pageDirIdx = (reinterpret_cast<uintptr_t>(KERNEL_PAGE_TABLES) >> PAGE_DIR_INDEX_SHIFT) & PAGE_DIR_INDEX_MASK;
 
