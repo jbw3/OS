@@ -51,9 +51,8 @@ void kernelMain(const uint32_t MULTIBOOT_MAGIC_NUM, const multiboot_info* mbootI
     // map multiboot module pages
     mapModules(mbootInfo);
 
-    PageFrameMgr pageFrameMgr(mbootInfo);
+    pageFrameMgr.init(mbootInfo);
 
-    processMgr.setPageFrameMgr(&pageFrameMgr);
     processMgr.setMultibootInfo(mbootInfo);
 
     processMgr.mainloop();

@@ -101,14 +101,8 @@ ProcessMgr::ProcessInfo::EStatus ProcessMgr::ProcessInfo::getStatus() const
 ProcessMgr::ProcessMgr() :
     currentProcIdx(0),
     intSwitchEnabled(false),
-    pageFrameMgr(nullptr),
     mbootInfo(nullptr)
 {
-}
-
-void ProcessMgr::setPageFrameMgr(PageFrameMgr* pageFrameMgrPtr)
-{
-    pageFrameMgr = pageFrameMgrPtr;
 }
 
 void ProcessMgr::setMultibootInfo(const multiboot_info* multibootInfo)
@@ -298,7 +292,7 @@ bool ProcessMgr::switchCurrentProcessExecutable(const char* path, const char* co
         // if we don't have enough memory for code, allocate more
         while (allocMem < exeSize)
         {
-            uintptr_t phyAddr = pageFrameMgr->allocPageFrame();
+            uintptr_t phyAddr = pageFrameMgr.allocPageFrame();
             if (phyAddr == 0)
             {
                 logError("Could not allocate page frame");
@@ -569,7 +563,7 @@ bool ProcessMgr::initPaging(ProcessInfo* procInfo, uintptr_t* pageTable)
     {
         // get page frames for the process's page dir and page tables
         // (these are physical addresses)
-        uintptr_t phyAddr = pageFrameMgr->allocPageFrame();
+        uintptr_t phyAddr = pageFrameMgr.allocPageFrame();
 
         // log an error if we could not get a page frame
         if (phyAddr == 0)
@@ -679,7 +673,7 @@ bool ProcessMgr::setUpProgram(const multiboot_mod_list* module, ProcessInfo* new
     uintptr_t virAddr = ProcessInfo::CODE_VIRTUAL_START;
     for (unsigned int ptr = module->mod_start; ptr < module->mod_end; ptr += PAGE_SIZE)
     {
-        uintptr_t phyAddr = pageFrameMgr->allocPageFrame();
+        uintptr_t phyAddr = pageFrameMgr.allocPageFrame();
         if (phyAddr == 0)
         {
             logError("Could not allocate page frame.");
@@ -699,7 +693,7 @@ bool ProcessMgr::setUpProgram(const multiboot_mod_list* module, ProcessInfo* new
            codeSize);
 
     // allocate and map a page for the kernel stack
-    uintptr_t kernelStackPhyAddr = pageFrameMgr->allocPageFrame();
+    uintptr_t kernelStackPhyAddr = pageFrameMgr.allocPageFrame();
     if (kernelStackPhyAddr == 0)
     {
         logError("Could not allocate a page frame for the kernel stack.");
@@ -709,7 +703,7 @@ bool ProcessMgr::setUpProgram(const multiboot_mod_list* module, ProcessInfo* new
     mapPage(upperPageTable, ProcessInfo::KERNEL_STACK_PAGE, kernelStackPhyAddr);
 
     // allocate and map a page for the user stack
-    uintptr_t userStackPhyAddr = pageFrameMgr->allocPageFrame();
+    uintptr_t userStackPhyAddr = pageFrameMgr.allocPageFrame();
     if (userStackPhyAddr == 0)
     {
         logError("Could not allocate a page frame for the user stack.");
@@ -728,7 +722,7 @@ bool ProcessMgr::copyProcessPages(ProcessInfo* dstProc, ProcessInfo* srcProc)
         ProcessInfo::PageFrameInfo srcPageInfo = srcProc->getPage(i);
 
         // allocate a page
-        uintptr_t dstPhyAddr = pageFrameMgr->allocPageFrame();
+        uintptr_t dstPhyAddr = pageFrameMgr.allocPageFrame();
         if (dstPhyAddr == 0)
         {
             logError("Could not allocate a page frame for the new process.");
@@ -865,15 +859,15 @@ void ProcessMgr::switchToProcessFromKernel(ProcessInfo* procInfo)
 void ProcessMgr::cleanUpProcess(ProcessInfo* procInfo)
 {
     // free paging structures
-    pageFrameMgr->freePageFrame(procInfo->pageDir.physicalAddr);
-    pageFrameMgr->freePageFrame(procInfo->kernelPageTable.physicalAddr);
-    pageFrameMgr->freePageFrame(procInfo->lowerPageTable.physicalAddr);
-    pageFrameMgr->freePageFrame(procInfo->upperPageTable.physicalAddr);
+    pageFrameMgr.freePageFrame(procInfo->pageDir.physicalAddr);
+    pageFrameMgr.freePageFrame(procInfo->kernelPageTable.physicalAddr);
+    pageFrameMgr.freePageFrame(procInfo->lowerPageTable.physicalAddr);
+    pageFrameMgr.freePageFrame(procInfo->upperPageTable.physicalAddr);
 
     // free pages
     for (int i = 0; i < procInfo->getNumPages(); ++i)
     {
-        pageFrameMgr->freePageFrame(procInfo->getPage(i).physicalAddr);
+        pageFrameMgr.freePageFrame(procInfo->getPage(i).physicalAddr);
     }
 
     // reset ProcessInfo

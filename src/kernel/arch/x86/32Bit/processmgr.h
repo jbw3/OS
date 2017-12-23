@@ -12,7 +12,6 @@
 #include "set.hpp"
 
 struct multiboot_mod_list;
-class PageFrameMgr;
 
 /**
  * @brief Process manager
@@ -131,8 +130,6 @@ public:
      */
     ProcessMgr();
 
-    void setPageFrameMgr(PageFrameMgr* pageFrameMgrPtr);
-
     void setMultibootInfo(const multiboot_info* multibootInfo);
 
     void mainloop();
@@ -189,9 +186,6 @@ private:
         /// exit a process
         eExit,
     };
-
-    /// the page frame manager
-    PageFrameMgr* pageFrameMgr;
 
     /// the multiboot info
     const multiboot_info* mbootInfo;

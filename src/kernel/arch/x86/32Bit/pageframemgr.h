@@ -17,7 +17,7 @@ struct multiboot_info;
 class PageFrameMgr
 {
 public:
-    PageFrameMgr(const multiboot_info* mbootInfo);
+    void init(const multiboot_info* mbootInfo);
 
     /**
      * @brief Allocate a page frame
@@ -89,5 +89,7 @@ private:
 
     unsigned int getIsAllocSize(const PageFrameBlock& pfBlock) const;
 };
+
+extern PageFrameMgr pageFrameMgr;
 
 #endif // PAGE_FRAME_MGR_H_

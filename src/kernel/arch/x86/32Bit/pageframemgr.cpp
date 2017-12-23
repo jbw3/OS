@@ -12,7 +12,7 @@
 
 typedef unsigned int uint;
 
-PageFrameMgr::PageFrameMgr(const multiboot_info* mbootInfo)
+void PageFrameMgr::init(const multiboot_info* mbootInfo)
 {
     constexpr unsigned int MAX_MEM_BLOCKS = 32;
     MemBlock memBlocks[MAX_MEM_BLOCKS];
@@ -391,3 +391,6 @@ void PageFrameMgr::printBlocks() const
     }
 #endif
 }
+
+// create PageFrameMgr instance
+PageFrameMgr pageFrameMgr;
