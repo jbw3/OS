@@ -4,6 +4,7 @@
 
 #include "multiboot.h"
 #include "pageframemgr.h"
+#include "pagetree.h"
 #include "paging.h"
 #include "string.h"
 #include "system.h"
@@ -134,7 +135,7 @@ void PageFrameMgr::initDataStruct(const multiboot_info* mbootInfo, const MemBloc
         blocksEnd += sizeof(PageFrameBlock);
         if (blocksEnd >= pageEnd)
         {
-            mapPage(getKernelPageTable1(), pageEnd + KERNEL_VIRTUAL_BASE, pageEnd);
+            PageTree::getKernelPageTree().map(pageEnd + KERNEL_VIRTUAL_BASE, pageEnd, PageTree::eReadWrite);
             pageEnd += PAGE_SIZE;
         }
 
@@ -172,7 +173,7 @@ void PageFrameMgr::initDataStruct(const multiboot_info* mbootInfo, const MemBloc
     // map pages containing the isAlloc arrays
     for (unsigned int i = 0; i < pagesNeeded; ++i)
     {
-        mapPage(getKernelPageTable1(), pageEnd + KERNEL_VIRTUAL_BASE, pageEnd);
+        PageTree::getKernelPageTree().map(pageEnd + KERNEL_VIRTUAL_BASE, pageEnd, PageTree::eReadWrite);
         pageEnd += PAGE_SIZE;
     }
 
