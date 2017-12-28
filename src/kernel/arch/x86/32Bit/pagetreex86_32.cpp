@@ -1,6 +1,7 @@
 #include <string.h>
-#include "paging.h"
+#include "pageframemgr.h"
 #include "pagetreex86_32.h"
+#include "paging.h"
 #include "system.h"
 
 PageTree::Entry* const PageTreeX86_32::KERNEL_PAGE_TABLES = reinterpret_cast<Entry* const>(KERNEL_VIRTUAL_BASE + 8_MiB);
@@ -28,8 +29,8 @@ PageTreeX86_32::PageTreeX86_32(uintptr_t pageDirAddr, bool isKernel) :
         uintptr_t virtualAddr = reinterpret_cast<uintptr_t>(pageTablePageTable);
         uintptr_t physicalAddr = virtualAddr - KERNEL_VIRTUAL_BASE;
         Entry pageDirEntry = 0;
-        pageDirEntry |= physicalAddr & PAGE_TABLE_ADDRESS;
-        pageDirEntry |= PAGE_TABLE_READ_WRITE | PAGE_DIR_PRESENT;
+        pageDirEntry |= physicalAddr & PAGE_DIR_ADDRESS;
+        pageDirEntry |= PAGE_DIR_READ_WRITE | PAGE_DIR_PRESENT;
         pageDir[pageDirIdx] = pageDirEntry;
 
         // map the page table page table in itself
@@ -56,11 +57,31 @@ bool PageTreeX86_32::map(uintptr_t virtualAddr, uintptr_t physicalAddr, unsigned
     // get the page dir entry
     Entry pageDirEntry = pageDir[pageDirIdx];
 
-    // make sure the page table is present
+    // check if the page table is present
     if ( (pageDirEntry & PAGE_DIR_PRESENT) == 0 )
     {
-        PANIC("TODO: Map page table.");
-        return false;
+        // create a new page table
+
+        // allocate a page frame for the new page table
+        uintptr_t ptPhyAddr = pageFrameMgr.allocPageFrame();
+        if (ptPhyAddr == 0)
+        {
+            return false;
+        }
+
+        // add a new page directory entry
+        pageDirEntry = 0;
+        pageDirEntry |= ptPhyAddr & PAGE_DIR_ADDRESS;
+        pageDirEntry |= PAGE_DIR_READ_WRITE | PAGE_DIR_PRESENT;
+        pageDir[pageDirIdx] = pageDirEntry;
+
+        // map the new page table
+        Entry* pt = getPageTable(pageDirIdx);
+        uintptr_t ptVirAddr = reinterpret_cast<uintptr_t>(pt);
+        map(ptVirAddr, ptPhyAddr, eReadWrite);
+
+        // clear the new page table
+        memset(pt, 0, PAGE_SIZE);
     }
 
     // get the page table
