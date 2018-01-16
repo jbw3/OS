@@ -146,6 +146,39 @@ void PageTreeX86_32::unmap(uintptr_t virtualAddr)
     }
 }
 
+bool PageTreeX86_32::getPhysicalAddress(uintptr_t virtualAddr, uintptr_t& physicalAddr) const
+{
+    // calculate the page dir index
+    int pageDirIdx = (virtualAddr >> PAGE_DIR_INDEX_SHIFT) & PAGE_DIR_INDEX_MASK;
+
+    // get the page dir entry
+    Entry pageDirEntry = pageDir[pageDirIdx];
+
+    // make sure the page table is present
+    if ( (pageDirEntry & PAGE_DIR_PRESENT) == 0 )
+    {
+        return false;
+    }
+
+    // get the page table
+    Entry* pageTable = getPageTable(pageDirIdx);
+
+    // calculate the page table index
+    int pageTableIdx = (virtualAddr >> PAGE_TABLE_INDEX_SHIFT) & PAGE_TABLE_INDEX_MASK;
+
+    Entry pageTableEntry = pageTable[pageTableIdx];
+
+    // make sure the page is mapped
+    if ( (pageTableEntry & PAGE_TABLE_PRESENT) == 0 )
+    {
+        return false;
+    }
+
+    physicalAddr = (pageTableEntry & PAGE_TABLE_ADDRESS) | (virtualAddr & ~PAGE_TABLE_ADDRESS);
+
+    return true;
+}
+
 PageTree::Entry* PageTreeX86_32::getPageTable(int pageDirIdx) const
 {
     return pageTables + (pageDirIdx * PAGE_SIZE / sizeof(Entry));

@@ -38,6 +38,11 @@ public:
     virtual bool mapOnOrBefore(uintptr_t startAddr, uintptr_t& virtualAddr, uintptr_t physicalAddr, unsigned int flags = 0) = 0;
 
     virtual void unmap(uintptr_t virtualAddr) = 0;
+
+    /**
+     * @brief Get the physical address mapped to the given virtual address.
+     */
+    virtual bool getPhysicalAddress(uintptr_t virtualAddr, uintptr_t& physicalAddr) const = 0;
 };
 
 #endif // PAGE_TREE_H_

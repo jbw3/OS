@@ -17,6 +17,8 @@ public:
 
     void unmap(uintptr_t virtualAddr) override;
 
+    bool getPhysicalAddress(uintptr_t virtualAddr, uintptr_t& physicalAddr) const override;
+
 private:
     /// The starting virtual address of the kernel's page tables
     static Entry* const KERNEL_PAGE_TABLES;

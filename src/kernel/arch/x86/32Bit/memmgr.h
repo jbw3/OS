@@ -18,8 +18,6 @@ public:
      */
     MemMgr(PageFrameMgr* pageFrameManager, uintptr_t heapStartAddr);
 
-    void setHeapStart(uintptr_t heapStartAddr = 0);
-
     void* alloc(size_t size);
 
     void free(void* ptr);
