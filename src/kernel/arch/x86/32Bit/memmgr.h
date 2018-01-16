@@ -50,6 +50,8 @@ private:
 
     /// virtual end address of heap
     uintptr_t heapEnd;
+
+    bool allocPages(size_t memSize);
 };
 
 #endif // MEM_MGR_H_
