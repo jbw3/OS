@@ -2,11 +2,11 @@
 #include "pageframemgr.h"
 #include "pagetree.h"
 #include "paging.h"
+#include "screen.h"
 
-MemMgr::MemMgr(PageFrameMgr* pageFrameManager, uintptr_t heapStartAddr)
+MemMgr::MemMgr(uintptr_t heapStartAddr)
 {
     head = nullptr;
-    pageFrameMgr = pageFrameManager;
 
     /// @todo verify this is page aligned
     heapStart = heapEnd = heapStartAddr;
@@ -22,13 +22,11 @@ void* MemMgr::alloc(size_t size)
     MemBlockInfo* nextNode = nullptr;
     if (prevNode != nullptr)
     {
-        nextNode = head->nextNode;
+        nextNode = prevNode->nextNode;
         while (nextNode != nullptr)
         {
-            newNodeAddr = prevNode->startAddr + prevNode->size;
-
             // check if a new node can be added between 2 existing nodes
-            if (newNodeAddr + totalSize <= reinterpret_cast<uintptr_t>(nextNode))
+            if (prevNode->startAddr + prevNode->size + totalSize <= reinterpret_cast<uintptr_t>(nextNode))
             {
                 break;
             }
@@ -36,6 +34,9 @@ void* MemMgr::alloc(size_t size)
             prevNode = nextNode;
             nextNode = nextNode->nextNode;
         }
+
+        /// @todo align on 4-byte boundary
+        newNodeAddr = prevNode->startAddr + prevNode->size;
     }
 
     // determine if we need to allocate pages
@@ -93,7 +94,8 @@ bool MemMgr::allocPages(size_t memSize)
     size_t numPagesAllocated = 0;
     while (numPagesAllocated < numPages && ok)
     {
-        uintptr_t phyPageAddr = pageFrameMgr->allocPageFrame();
+        /// @todo How do we get access to the pageFrameMgr in a process? Need a system call.
+        uintptr_t phyPageAddr = pageFrameMgr.allocPageFrame();
 
         if (phyPageAddr == 0)
         {
@@ -119,11 +121,34 @@ bool MemMgr::allocPages(size_t memSize)
             bool found = PageTree::getKernelPageTree().getPhysicalAddress(heapEnd, phyPageAddr);
             if (found)
             {
-                pageFrameMgr->freePageFrame(phyPageAddr);
+                pageFrameMgr.freePageFrame(phyPageAddr);
             }
             heapEnd -= PAGE_SIZE;
         }
     }
 
     return ok;
+}
+
+void MemMgr::printBlocks()
+{
+    if (head == nullptr)
+    {
+        screen << "<No memory allocated>\n";
+    }
+    else
+    {
+        MemBlockInfo* node = head;
+        while (node != nullptr)
+        {
+            screen << os::Screen::hex << os::Screen::setfill('0')
+                << os::Screen::setw(8) << node->startAddr
+                << " - "
+                << os::Screen::setw(8) << (node->startAddr + node->size)
+                << os::Screen::dec << os::Screen::setfill(' ')
+                << " (" << node->size << ")\n";
+
+            node = node->nextNode;
+        }
+    }
 }
