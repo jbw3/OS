@@ -17,6 +17,8 @@ void* MemMgr::alloc(size_t size)
     // calculate total size of allocated memory and info block
     size_t totalSize = size + sizeof(MemBlockInfo);
 
+    /// @todo look for space before the head node
+
     uintptr_t newNodeAddr = heapStart;
     MemBlockInfo* prevNode = head;
     MemBlockInfo* nextNode = nullptr;
@@ -78,7 +80,30 @@ void MemMgr::free(void* ptr)
         return;
     }
 
-    /// @todo remove memory from linked list
+    // remove memory from linked list
+    MemBlockInfo* prevNode = nullptr;
+    MemBlockInfo* node = head;
+    while (node != nullptr)
+    {
+        if (node->startAddr == reinterpret_cast<uintptr_t>(ptr))
+        {
+            if (prevNode == nullptr)
+            {
+                head = node->nextNode;
+            }
+            else
+            {
+                prevNode->nextNode = node->nextNode;
+            }
+
+            break;
+        }
+
+        prevNode = node;
+        node = node->nextNode;
+    }
+
+    /// @todo free page frames if able
 }
 
 bool MemMgr::allocPages(size_t memSize)
