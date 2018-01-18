@@ -6,6 +6,7 @@
 #include "paging.h"
 #include "screen.h"
 
+/// @todo pass in PageTree pointer
 MemMgr::MemMgr(uintptr_t heapStartAddr)
 {
     head = nullptr;
@@ -46,7 +47,8 @@ void* MemMgr::alloc(size_t size)
     // determine if we need to allocate pages
     if (newNodeAddr + totalSize > heapEnd)
     {
-        bool ok = allocPages(totalSize);
+        size_t pageAllocSize = totalSize - (heapEnd - newNodeAddr);
+        bool ok = allocPages(pageAllocSize);
 
         // return null if we could not allocated enough pages
         if (!ok)
@@ -145,19 +147,29 @@ bool MemMgr::allocPages(size_t memSize)
     // if something went wrong, deallocate the pages just allocated
     if (!ok)
     {
-        for (size_t i = 0; i < numPagesAllocated; ++i)
-        {
-            uintptr_t phyPageAddr = 0;
-            bool found = PageTree::getKernelPageTree().getPhysicalAddress(heapEnd, phyPageAddr);
-            if (found)
-            {
-                pageFrameMgr.freePageFrame(phyPageAddr);
-            }
-            heapEnd -= PAGE_SIZE;
-        }
+        freePages(numPagesAllocated);
     }
 
     return ok;
+}
+
+void MemMgr::freePages(size_t numPages)
+{
+    for (size_t i = 0; i < numPages; ++i)
+    {
+        heapEnd -= PAGE_SIZE;
+
+        uintptr_t phyPageAddr = 0;
+        bool found = PageTree::getKernelPageTree().getPhysicalAddress(heapEnd, phyPageAddr);
+        if (found)
+        {
+            // unmap the page
+            PageTree::getKernelPageTree().unmap(heapEnd);
+
+            // free the page
+            pageFrameMgr.freePageFrame(phyPageAddr);
+        }
+    }
 }
 
 void MemMgr::printBlocks()

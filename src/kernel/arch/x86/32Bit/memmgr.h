@@ -48,7 +48,15 @@ private:
     /// virtual end address of heap
     uintptr_t heapEnd;
 
+    /**
+     * @brief Allocated pages and map them at the end of the heap.
+     */
     bool allocPages(size_t memSize);
+
+    /**
+     * @brief Free pages from the end of the heap.
+     */
+    void freePages(size_t numPages);
 };
 
 #endif // MEM_MGR_H_
