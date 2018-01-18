@@ -1,3 +1,5 @@
+#include <string.h>
+
 #include "memmgr.h"
 #include "pageframemgr.h"
 #include "pagetree.h"
@@ -132,12 +134,15 @@ bool MemMgr::allocPages(size_t memSize)
 
             // map new page in heap
             ok = PageTree::getKernelPageTree().map(heapEnd, phyPageAddr, PageTree::eReadWrite);
+
+            // clear memory
+            memset(reinterpret_cast<void*>(heapEnd), 0, PAGE_SIZE);
+
             heapEnd += PAGE_SIZE;
         }
     }
 
     // if something went wrong, deallocate the pages just allocated
-    // and return null
     if (!ok)
     {
         for (size_t i = 0; i < numPagesAllocated; ++i)
