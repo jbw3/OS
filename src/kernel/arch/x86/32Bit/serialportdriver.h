@@ -52,7 +52,10 @@ public:
     /// Data can be transmitted
     static constexpr uint8_t EMPTY_TRANS_HOLD_REG = 0x20;
 
-    SerialPortDriver(uint16_t portAddr);
+    /// UART clock rate
+    static constexpr unsigned int CLOCK_RATE = 115'200;
+
+    SerialPortDriver(uint16_t portAddr, unsigned int baudRate);
 
     void read(char* buff, size_t nbyte);
 
