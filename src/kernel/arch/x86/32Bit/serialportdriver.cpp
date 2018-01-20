@@ -4,8 +4,6 @@
 
 SerialPortDriver::SerialPortDriver(uint16_t portAddr)
 {
-    screen << "----- start serial init -----\n" << os::Screen::hex;
-
     port = portAddr;
 
     outb(port + LCR, 0);    // disable DLAB
@@ -16,12 +14,26 @@ SerialPortDriver::SerialPortDriver(uint16_t portAddr)
     outb(port + LCR, 0x03); // 8 bits, no parity, 1 stop bit
     outb(port + FCR, 0x87); // enable FIFOs, clear them, 8-byte trigger threshold
     outb(port + MCR, 0x0b); // enable IRQs, set RTS/DTR
+}
 
-    screen << "----- end serial init -----\n" << os::Screen::dec;
-
-    for (int i = 0; i < 10; ++i)
+void SerialPortDriver::read(char* buff, size_t nbyte)
+{
+    for (size_t i = 0; i < nbyte; ++i)
     {
-        while ( (inb(port + 5) & 0x20) == 0 );
-        outb(port, '0' + i);
+        // wait until data is ready to be read
+        while ( (inb(port + LSR) & DATA_READY) == 0 );
+
+        buff[i] = inb(port + RBR);
+    }
+}
+
+void SerialPortDriver::write(const char* buff, size_t nbyte)
+{
+    for (size_t i = 0; i < nbyte; ++i)
+    {
+        // wait until data is ready to be transmitted
+        while ( (inb(port + LSR) & EMPTY_TRANS_HOLD_REG) == 0 );
+
+        outb(port + THR, buff[i]);
     }
 }

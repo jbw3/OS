@@ -1,6 +1,7 @@
 #ifndef SERIAL_PORT_DRIVER_H_
 #define SERIAL_PORT_DRIVER_H_
 
+#include <unistd.h>
 #include <stdint.h>
 
 class SerialPortDriver
@@ -33,10 +34,29 @@ public:
     /// Modem control register offset
     static constexpr uint8_t MCR = 4;
 
+    /// Line status register offset
+    static constexpr uint8_t LSR = 5;
+
+    /// Modem status register offset
+    static constexpr uint8_t MSR = 6;
+
+    /// Scratch register offset
+    static constexpr uint8_t SR  = 7;
+
     /// Divisor Latch Access Bit
     static constexpr uint8_t DLAB = 0x80;
 
+    /// Data is ready to be read
+    static constexpr uint8_t DATA_READY = 0x01;
+
+    /// Data can be transmitted
+    static constexpr uint8_t EMPTY_TRANS_HOLD_REG = 0x20;
+
     SerialPortDriver(uint16_t portAddr);
+
+    void read(char* buff, size_t nbyte);
+
+    void write(const char* buff, size_t nbyte);
 
 private:
     uint16_t port;
