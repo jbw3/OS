@@ -5,14 +5,15 @@
 #include "pagetree.h"
 #include "paging.h"
 #include "screen.h"
+#include "utils.h"
 
 /// @todo pass in PageTree pointer
 MemMgr::MemMgr(uintptr_t heapStartAddr)
 {
     head = nullptr;
 
-    /// @todo verify this is page aligned
-    heapStart = heapEnd = heapStartAddr;
+    // page align the heap starting address
+    heapStart = heapEnd = align(heapStartAddr, PAGE_SIZE);
 }
 
 void* MemMgr::alloc(size_t size)
@@ -30,8 +31,10 @@ void* MemMgr::alloc(size_t size)
         nextNode = prevNode->nextNode;
         while (nextNode != nullptr)
         {
+            uintptr_t addr = align(prevNode->startAddr + prevNode->size, sizeof(uintptr_t));
+
             // check if a new node can be added between 2 existing nodes
-            if (prevNode->startAddr + prevNode->size + totalSize <= reinterpret_cast<uintptr_t>(nextNode))
+            if (addr + totalSize <= reinterpret_cast<uintptr_t>(nextNode))
             {
                 break;
             }
@@ -40,8 +43,11 @@ void* MemMgr::alloc(size_t size)
             nextNode = nextNode->nextNode;
         }
 
-        /// @todo align on 4-byte boundary
+        // calculate new node address
         newNodeAddr = prevNode->startAddr + prevNode->size;
+
+        // align address on word boundary
+        newNodeAddr = align(newNodeAddr, sizeof(uintptr_t));
     }
 
     // determine if we need to allocate pages
