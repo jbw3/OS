@@ -22,6 +22,8 @@
 
 #define IRQ_TIMER      IRQ0
 #define IRQ_KEYBOARD   IRQ1
+#define IRQ_COM2       IRQ3
+#define IRQ_COM1       IRQ4
 
 #ifdef __cplusplus
 extern "C"

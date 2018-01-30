@@ -4,6 +4,8 @@
 #include <unistd.h>
 #include <stdint.h>
 
+struct registers;
+
 class SerialPortDriver
 {
 public:
@@ -52,6 +54,9 @@ public:
     /// Data can be transmitted
     static constexpr uint8_t EMPTY_TRANS_HOLD_REG = 0x20;
 
+    /// No interrupt is pending
+    static constexpr uint8_t NO_PENDING_INT = 0x01;
+
     /// UART clock rate
     static constexpr unsigned int CLOCK_RATE = 115'200;
 
@@ -62,7 +67,19 @@ public:
     void write(const char* buff, size_t nbyte);
 
 private:
+    static constexpr unsigned int MAX_NUM_INSTANCES = 4;
+    static SerialPortDriver* instances[MAX_NUM_INSTANCES];
+    static unsigned int numInstances;
+
     uint16_t port;
+
+    static void init();
+
+    static void interruptHandler(const registers* regs);
+
+    bool isInterruptPending() const;
+
+    void processInterrupt();
 };
 
 #endif // SERIAL_PORT_DRIVER_H_
