@@ -4,6 +4,8 @@
 #include <unistd.h>
 #include <stdint.h>
 
+#include "queue.hpp"
+
 struct registers;
 
 class SerialPortDriver
@@ -54,6 +56,24 @@ public:
     /// Data can be transmitted
     static constexpr uint8_t EMPTY_TRANS_HOLD_REG = 0x20;
 
+    /// Interrupt identification register interrupt type mask
+    static constexpr uint8_t INT_TYPE_MASK = 0xE;
+
+    /// Modem status interrupt
+    static constexpr uint8_t INT_MODEM_STATUS = 0x0;
+
+    /// Transmitter holding register empty interrupt
+    static constexpr uint8_t INT_TRANS_EMPTY = 0x2;
+
+    /// Received data available interrupt
+    static constexpr uint8_t INT_RECEIVE_AVAIL = 0x4;
+
+    /// receiver line status interrupt
+    static constexpr uint8_t INT_RECEIVER_LINE_STAT = 0x7;
+
+    /// Time-out interrupt pending
+    static constexpr uint8_t INT_TIME_OUT_PENDING = 0xC;
+
     /// No interrupt is pending
     static constexpr uint8_t NO_PENDING_INT = 0x01;
 
@@ -72,6 +92,7 @@ private:
     static unsigned int numInstances;
 
     uint16_t port;
+    Queue<uint8_t, 64> inQ;
 
     static void init();
 

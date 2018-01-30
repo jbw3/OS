@@ -15,8 +15,10 @@ SerialPortDriver::SerialPortDriver(uint16_t portAddr, unsigned int baudRate)
     }
     instances[numInstances++] = this;
 
+    // save port
     port = portAddr;
 
+    // calculate baud divisor
     unsigned int baudDivisor = 1;
     if (baudRate > 0)
     {
@@ -48,12 +50,11 @@ SerialPortDriver::SerialPortDriver(uint16_t portAddr, unsigned int baudRate)
 
 void SerialPortDriver::read(char* buff, size_t nbyte)
 {
-    for (size_t i = 0; i < nbyte; ++i)
+    size_t index = 0;
+    while (index < nbyte)
     {
-        // wait until data is ready to be read
-        while ( (inb(port + LSR) & DATA_READY) == 0 );
-
-        buff[i] = inb(port + RBR);
+        uint8_t* ptr = reinterpret_cast<uint8_t*>(buff + index);
+        index += inQ.dequeue(ptr, nbyte);
     }
 }
 
@@ -83,7 +84,6 @@ void SerialPortDriver::init()
 
 void SerialPortDriver::interruptHandler(const registers* /*regs*/)
 {
-    screen << __func__ << ":";
     for (unsigned int i = 0; i < MAX_NUM_INSTANCES; ++i)
     {
         SerialPortDriver* instance = instances[i];
@@ -101,7 +101,12 @@ bool SerialPortDriver::isInterruptPending() const
 
 void SerialPortDriver::processInterrupt()
 {
-    screen << "port: " << port << "\n";
+    uint8_t iirVal = inb(port + IIR);
+    uint8_t intType = iirVal & INT_TYPE_MASK;
 
-    screen << char(inb(port + RBR)) << '\n';
+    if (intType == INT_RECEIVE_AVAIL || intType == INT_TIME_OUT_PENDING)
+    {
+        uint8_t value = inb(port + RBR);
+        inQ.enqueue(value);
+    }
 }
