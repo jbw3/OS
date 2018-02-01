@@ -3,7 +3,7 @@
 #include "serialportdriver.h"
 #include "system.h"
 
-SerialPortDriver* SerialPortDriver::instances[];
+SerialPortDriver* SerialPortDriver::instances[] = {nullptr, nullptr, nullptr, nullptr};
 unsigned int SerialPortDriver::numInstances = 0;
 
 SerialPortDriver::SerialPortDriver(uint16_t portAddr, unsigned int baudRate)
@@ -46,6 +46,11 @@ SerialPortDriver::SerialPortDriver(uint16_t portAddr, unsigned int baudRate)
     outb(port + FCR, 0x87); // enable FIFOs, clear them, 8-byte trigger threshold
     outb(port + MCR, 0x0b); // enable IRQs, set RTS/DTR
     outb(port + IER, 0x03); // enable interrupts
+}
+
+SerialPortDriver::~SerialPortDriver()
+{
+    instances[--numInstances] = nullptr;
 }
 
 void SerialPortDriver::read(char* buff, size_t nbyte)

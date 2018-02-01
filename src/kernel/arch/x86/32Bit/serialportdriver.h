@@ -82,6 +82,8 @@ public:
 
     SerialPortDriver(uint16_t portAddr, unsigned int baudRate);
 
+    ~SerialPortDriver();
+
     void read(char* buff, size_t nbyte);
 
     void write(const char* buff, size_t nbyte);
