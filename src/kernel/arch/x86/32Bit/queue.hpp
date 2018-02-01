@@ -162,9 +162,16 @@ void Queue<T, MAX_SIZE>::print()
     }
     else
     {
+        size_t idx = head;
         for (size_t i = 0; i < size; ++i)
         {
-            screen << array[i] << ' ';
+            screen << (char)array[idx] << ' ';
+
+            ++idx;
+            if (idx >= MAX_SIZE)
+            {
+                idx = 0;
+            }
         }
         screen << '\n';
     }

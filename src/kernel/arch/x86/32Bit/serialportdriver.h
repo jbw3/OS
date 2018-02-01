@@ -93,12 +93,11 @@ private:
 
     uint16_t port;
     Queue<uint8_t, 64> inQ;
+    Queue<uint8_t, 64> outQ;
 
     static void init();
 
     static void interruptHandler(const registers* regs);
-
-    bool isInterruptPending() const;
 
     void processInterrupt();
 };
