@@ -50,7 +50,16 @@ SerialPortDriver::SerialPortDriver(uint16_t portAddr, unsigned int baudRate)
 
 SerialPortDriver::~SerialPortDriver()
 {
-    instances[--numInstances] = nullptr;
+    for (unsigned int i = 0; i < numInstances; ++i)
+    {
+        if (instances[i] == this)
+        {
+            instances[i] = instances[numInstances - 1];
+            instances[numInstances - 1] = nullptr;
+            --numInstances;
+            break;
+        }
+    }
 }
 
 void SerialPortDriver::read(char* buff, size_t nbyte)
