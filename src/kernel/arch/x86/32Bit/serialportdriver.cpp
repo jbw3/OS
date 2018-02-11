@@ -1,5 +1,4 @@
 #include "irq.h"
-#include "screen.h"
 #include "serialportdriver.h"
 #include "system.h"
 
@@ -72,6 +71,13 @@ void SerialPortDriver::read(char* buff, size_t nbyte)
         size_t num = inQ.dequeue(ptr, numToRead);
         index += num;
         numToRead -= num;
+
+        if ( num == 0 && (inb(port + LSR) & 1) != 0 )
+        {
+            ptr[0] = inb(port + RBR);
+            ++index;
+            --numToRead;
+        }
     }
 }
 
