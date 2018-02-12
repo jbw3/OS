@@ -5,10 +5,11 @@
 #include <stdint.h>
 
 #include "queue.hpp"
+#include "stream.h"
 
 struct registers;
 
-class SerialPortDriver
+class SerialPortDriver : public Stream
 {
 public:
     /// Transmit holding buffer offset
@@ -84,9 +85,19 @@ public:
 
     ~SerialPortDriver();
 
-    void read(char* buff, size_t nbyte);
+    bool canRead() const override
+    {
+        return true;
+    }
 
-    void write(const char* buff, size_t nbyte);
+    bool canWrite() const override
+    {
+        return true;
+    }
+
+    ssize_t read(uint8_t* buff, size_t nbyte) override;
+
+    ssize_t write(const uint8_t* buff, size_t nbyte) override;
 
 private:
     static constexpr unsigned int MAX_NUM_INSTANCES = 4;
