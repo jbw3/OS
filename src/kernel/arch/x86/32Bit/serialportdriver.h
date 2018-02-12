@@ -5,12 +5,25 @@
 #include <stdint.h>
 
 #include "queue.hpp"
+#include "stream.h"
 
 struct registers;
 
-class SerialPortDriver
+class SerialPortDriver : public Stream
 {
 public:
+    /// COM1 port address
+    static constexpr uint16_t COM1_PORT = 0x3F8;
+
+    /// COM2 port address
+    static constexpr uint16_t COM2_PORT = 0x2F8;
+
+    /// COM3 port address
+    static constexpr uint16_t COM3_PORT = 0x3E8;
+
+    /// COM4 port address
+    static constexpr uint16_t COM4_PORT = 0x2E8;
+
     /// Transmit holding buffer offset
     static constexpr uint8_t THR = 0;
 
@@ -84,9 +97,19 @@ public:
 
     ~SerialPortDriver();
 
-    void read(char* buff, size_t nbyte);
+    bool canRead() const override
+    {
+        return true;
+    }
 
-    void write(const char* buff, size_t nbyte);
+    bool canWrite() const override
+    {
+        return true;
+    }
+
+    ssize_t read(uint8_t* buff, size_t nbyte) override;
+
+    ssize_t write(const uint8_t* buff, size_t nbyte) override;
 
 private:
     static constexpr unsigned int MAX_NUM_INSTANCES = 4;

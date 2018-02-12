@@ -5,10 +5,25 @@
 #include "sys/wait.h"
 #include "unistd.h"
 
-pid_t startShell();
+struct ShellInfo
+{
+    pid_t pid;
+    int stdin;
+    int stdout;
+    int stderr;
+};
+
+pid_t startShell(int in, int out, int err);
 
 int main()
 {
+    constexpr int SHELL_INFO_SIZE = 2;
+    ShellInfo shellInfo[SHELL_INFO_SIZE] =
+    {
+        {-1, 0, 1, 2},
+        {-1, 3, 3, 3}
+    };
+
     // don't do anything if this process gets kicked
     // off more than once
     if (getpid() != 1)
@@ -16,24 +31,30 @@ int main()
         exit(1);
     }
 
-    pid_t shellPid = startShell();
+    for (int i = 0; i < SHELL_INFO_SIZE; ++i)
+    {
+        shellInfo[i].pid = startShell(shellInfo[i].stdin, shellInfo[i].stdout, shellInfo[i].stderr);
+    }
 
     // clean up child processes
     while (true)
     {
         pid_t pid = wait(nullptr);
 
-        // if the shell exited, start another one
-        if (pid == shellPid)
+        // if a shell exited, start another one
+        for (int i = 0; i < SHELL_INFO_SIZE; ++i)
         {
-            shellPid = startShell();
+            if (pid == shellInfo[i].pid)
+            {
+                shellInfo[i].pid = startShell(shellInfo[i].stdin, shellInfo[i].stdout, shellInfo[i].stderr);
+            }
         }
     }
 
     return 0;
 }
 
-pid_t startShell()
+pid_t startShell(int in, int out, int err)
 {
     pid_t pid = fork();
     if (pid < 0)
@@ -42,6 +63,11 @@ pid_t startShell()
     }
     else if (pid == 0)
     {
+        // redirect stdin, stdout, and stderr
+        dup2(in, STDIN_FILENO);
+        dup2(out, STDOUT_FILENO);
+        dup2(err, STDERR_FILENO);
+
         execl("sh", "sh", nullptr);
 
         // we shouldn't get here

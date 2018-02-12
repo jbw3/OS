@@ -139,7 +139,7 @@ set fg <0-15>
                 }
                 else
                 {
-                    screen.setBackgroundColor(static_cast<os::Screen::EColor>(color));
+                    screen.setBackgroundColor(static_cast<VgaDriver::EColor>(color));
                 }
             }
         }
@@ -159,7 +159,7 @@ set fg <0-15>
                 }
                 else
                 {
-                    screen.setForegroundColor(static_cast<os::Screen::EColor>(color));
+                    screen.setForegroundColor(static_cast<VgaDriver::EColor>(color));
                 }
             }
         }
@@ -568,7 +568,7 @@ bool Shell::findProgram(const char* name, const multiboot_mod_list*& module)
 
 void Shell::runProgram(const multiboot_mod_list* module)
 {
-    processMgr.createProcess(module);
+    processMgr.createProcess(module, 0, 0, 0);
 }
 
 void Shell::displayHelp()

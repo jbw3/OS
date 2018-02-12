@@ -3,8 +3,8 @@
 extern "C"
 void panic(const char* file, unsigned long line, const char* function, const char* message)
 {
-    screen.setBackgroundColor(os::Screen::EColor::eRed);
-    screen.setForegroundColor(os::Screen::EColor::eWhite);
+    screen.setBackgroundColor(VgaDriver::EColor::eRed);
+    screen.setForegroundColor(VgaDriver::EColor::eWhite);
 
     screen << "Kernel panic!!!\n"
            << file << ", line " << line << '\n'

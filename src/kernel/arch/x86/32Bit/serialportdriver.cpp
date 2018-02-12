@@ -61,48 +61,35 @@ SerialPortDriver::~SerialPortDriver()
     }
 }
 
-void SerialPortDriver::read(char* buff, size_t nbyte)
+ssize_t SerialPortDriver::read(uint8_t* buff, size_t nbyte)
 {
-    size_t index = 0;
-    size_t numToRead = nbyte;
-    while (index < nbyte)
-    {
-        uint8_t* ptr = reinterpret_cast<uint8_t*>(buff + index);
-        size_t num = inQ.dequeue(ptr, numToRead);
-        index += num;
-        numToRead -= num;
+    size_t num = inQ.dequeue(buff, nbyte);
 
-        if ( num == 0 && (inb(port + LSR) & 1) != 0 )
-        {
-            ptr[0] = inb(port + RBR);
-            ++index;
-            --numToRead;
-        }
+    if ( num == 0 && (inb(port + LSR) & 1) != 0 )
+    {
+        buff[0] = inb(port + RBR);
+        num = 1;
     }
+
+    return static_cast<ssize_t>(num);
 }
 
-void SerialPortDriver::write(const char* buff, size_t nbyte)
+ssize_t SerialPortDriver::write(const uint8_t* buff, size_t nbyte)
 {
-    size_t index = 0;
-    size_t numToWrite = nbyte;
-    while (index < nbyte)
-    {
-        const uint8_t* ptr = reinterpret_cast<const uint8_t*>(buff + index);
-        size_t num = outQ.enqueue(ptr, numToWrite);
-        index += num;
-        numToWrite -= num;
+    size_t num = outQ.enqueue(buff, nbyte);
 
-        // if the output reg is empty, write a byte
-        if ( (inb(port + LSR) & EMPTY_TRANS_HOLD_REG) != 0 )
+    // if the output reg is empty, write a byte
+    if ( (inb(port + LSR) & EMPTY_TRANS_HOLD_REG) != 0 )
+    {
+        uint8_t value = 0;
+        bool avail = outQ.dequeue(value);
+        if (avail)
         {
-            uint8_t value = 0;
-            bool avail = outQ.dequeue(value);
-            if (avail)
-            {
-                outb(port + THR, value);
-            }
+            outb(port + THR, value);
         }
     }
+
+    return static_cast<ssize_t>(num);
 }
 
 void SerialPortDriver::init()

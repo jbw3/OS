@@ -7,13 +7,13 @@
 extern "C"
 void pageFault(const registers* regs)
 {
-    os::Screen::EColor bgColor = screen.getBackgroundColor();
-    os::Screen::EColor fgColor = screen.getForegroundColor();
+    VgaDriver::EColor bgColor = screen.getBackgroundColor();
+    VgaDriver::EColor fgColor = screen.getForegroundColor();
 
     screen << '\n';
 
-    screen.setBackgroundColor(os::Screen::EColor::eRed);
-    screen.setForegroundColor(os::Screen::EColor::eWhite);
+    screen.setBackgroundColor(VgaDriver::EColor::eRed);
+    screen.setForegroundColor(VgaDriver::EColor::eWhite);
 
     screen << "Page fault!\n"
            << "Error code: " << regs->errCode << '\n';

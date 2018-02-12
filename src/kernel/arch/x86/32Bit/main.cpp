@@ -10,7 +10,9 @@
 #include "paging.h"
 #include "processmgr.h"
 #include "screen.h"
+#include "serialportdriver.h"
 #include "shell.h"
+#include "streamtable.h"
 #include "system.h"
 #include "timer.h"
 
@@ -32,9 +34,19 @@ void kernelMain(const uint32_t MULTIBOOT_MAGIC_NUM, const multiboot_info* mbootI
     // enable interrupts
     asm volatile ("sti");
 
-    screen.setBackgroundColor(os::Screen::EColor::eBlack);
-    screen.setForegroundColor(os::Screen::EColor::eLightGreen);
-    screen.clear();
+    // create stream drivers
+    os::Keyboard keyboardDriver;
+    VgaDriver vgaDriver;
+    SerialPortDriver serial1(SerialPortDriver::COM1_PORT, 115'200);
+    SerialPortDriver serial2(SerialPortDriver::COM2_PORT, 115'200);
+
+    streamTable.addStream(&keyboardDriver);
+    streamTable.addStream(&vgaDriver);
+    streamTable.addStream(&serial1);
+    streamTable.addStream(&serial2);
+
+    /// @todo temporary
+    screen.setStream(&vgaDriver);
 
     // ensure we were booted by a Multiboot-compliant boot loader
     if (MULTIBOOT_MAGIC_NUM != MULTIBOOT_BOOTLOADER_MAGIC)
