@@ -4,6 +4,8 @@
 #include <stddef.h>
 #include <stdint.h>
 
+#include "vgadriver.h"
+
 namespace os
 {
 
@@ -54,37 +56,17 @@ public:
 
     static Manip<size_t> setw(size_t width);
 
-    enum class EColor
-    {
-        eBlack        =  0,
-        eBlue         =  1,
-        eGreen        =  2,
-        eCyan         =  3,
-        eRed          =  4,
-        eMagenta      =  5,
-        eBrown        =  6,
-        eLightGray    =  7,
-        eDarkGray     =  8,
-        eLightBlue    =  9,
-        eLightGreen   = 10,
-        eLightCyan    = 11,
-        eLightRed     = 12,
-        eLightMagenta = 13,
-        eLightBrown   = 14,
-        eWhite        = 15,
-    };
-
     Screen();
 
-    EColor getForegroundColor() const;
+    void setStream(VgaDriver* streamPtr);
 
-    void setForegroundColor(EColor color);
+    VgaDriver::EColor getForegroundColor() const;
 
-    EColor getBackgroundColor() const;
+    void setForegroundColor(VgaDriver::EColor color);
 
-    void setBackgroundColor(EColor color);
+    VgaDriver::EColor getBackgroundColor() const;
 
-    void setBlinking(bool enabled);
+    void setBackgroundColor(VgaDriver::EColor color);
 
     void write(char ch);
 
@@ -136,9 +118,6 @@ public:
     }
 
 private:
-    static const int SCREEN_WIDTH;
-    static const int SCREEN_HEIGHT;
-    static const int TAB_SIZE;
     static const unsigned int IN_QUEUE_SIZE = 32;
 
     static const uint8_t BOOL_ALPHA;
@@ -148,10 +127,7 @@ private:
 
     static void setWidth(os::Screen& s, size_t width);
 
-    uint16_t* textMem;
-    uint16_t attrib;
-    int csrX;
-    int csrY;
+    VgaDriver* stream;
 
     unsigned int qHead;
     unsigned int qTail;
@@ -162,14 +138,6 @@ private:
     size_t width;
     char fill;
     unsigned int precision;
-
-    void outputChar(char ch);
-
-    void updateCursor();
-
-    void scroll();
-
-    void rawWrite(char ch);
 
     void justify(size_t strLen);
 };

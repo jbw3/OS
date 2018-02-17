@@ -139,7 +139,7 @@ set fg <0-15>
                 }
                 else
                 {
-                    screen.setBackgroundColor(static_cast<os::Screen::EColor>(color));
+                    screen.setBackgroundColor(static_cast<VgaDriver::EColor>(color));
                 }
             }
         }
@@ -159,7 +159,7 @@ set fg <0-15>
                 }
                 else
                 {
-                    screen.setForegroundColor(static_cast<os::Screen::EColor>(color));
+                    screen.setForegroundColor(static_cast<VgaDriver::EColor>(color));
                 }
             }
         }

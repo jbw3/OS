@@ -32,8 +32,11 @@ void kernelMain(const uint32_t MULTIBOOT_MAGIC_NUM, const multiboot_info* mbootI
     // enable interrupts
     asm volatile ("sti");
 
-    screen.setBackgroundColor(os::Screen::EColor::eBlack);
-    screen.setForegroundColor(os::Screen::EColor::eLightGreen);
+    VgaDriver vgaDriver;
+    screen.setStream(&vgaDriver);
+
+    screen.setBackgroundColor(VgaDriver::EColor::eBlack);
+    screen.setForegroundColor(VgaDriver::EColor::eLightGreen);
     screen.clear();
 
     // ensure we were booted by a Multiboot-compliant boot loader

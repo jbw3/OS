@@ -1,0 +1,211 @@
+#include <string.h>
+
+#include "vgadriver.h"
+#include "system.h"
+
+VgaDriver::VgaDriver()
+{
+    textMem = reinterpret_cast<uint16_t*>(0xB8000 + KERNEL_VIRTUAL_BASE);
+    csrX = 0;
+    csrY = 0;
+
+    // disable blinking
+    setBlinking(false);
+
+    // sets attrib
+    setBackgroundColor(EColor::eBlack);
+    setForegroundColor(EColor::eWhite);
+}
+
+VgaDriver::EColor VgaDriver::getForegroundColor() const
+{
+    uint16_t color = 0x0F00 & attrib;
+    color >>= 8;
+    return static_cast<EColor>(color);
+}
+
+void VgaDriver::setForegroundColor(EColor color)
+{
+    uint16_t temp = static_cast<uint16_t>(color);
+    temp <<= 8;
+    attrib &= 0xF000; // clear all but background color
+    attrib |= temp; // set new foreground color
+}
+
+VgaDriver::EColor VgaDriver::getBackgroundColor() const
+{
+    uint16_t color = 0xF000 & attrib;
+    color >>= 12;
+    return static_cast<EColor>(color);
+}
+
+void VgaDriver::setBackgroundColor(EColor color)
+{
+    uint16_t temp = static_cast<uint16_t>(color);
+    temp <<= 12;
+    attrib &= 0x0F00; // clear all but foreground color
+    attrib |= temp; // set new background color
+}
+
+void VgaDriver::setBlinking(bool enabled)
+{
+    constexpr uint16_t ADDR_REG = 0x3C0; // attribute address/data register
+    constexpr uint16_t DATA_REG = 0x3C1; // attribute data read register
+
+    constexpr uint8_t ATT_MODE_CTRL_REG = 0x10; // attribute mode control register
+
+    constexpr uint8_t PAS_BIT = 0x20; // palette address source
+    constexpr uint8_t BLINK_BIT = 0x08; // blink bit: 0 - disabled, 1 - enabled
+
+    // disable interrupts
+    clearInt();
+
+    // reset flip-flop
+    inb(0x3DA);
+
+    // save previous value
+    uint8_t prevAddr = inb(ADDR_REG);
+
+    outb(ADDR_REG, ATT_MODE_CTRL_REG | PAS_BIT);
+    uint8_t val = inb(DATA_REG);
+    val = enabled ? (val | BLINK_BIT) : (val & ~BLINK_BIT);
+    outb(DATA_REG, val);
+
+    // restore previous value
+    outb(ADDR_REG, prevAddr | PAS_BIT);
+
+    // re-enable interrupts
+    setInt();
+}
+
+void VgaDriver::setCursorX(int x)
+{
+    csrX = x;
+
+    if (x < 0)
+    {
+        csrX = 0;
+    }
+    else if (x >= SCREEN_WIDTH)
+    {
+        csrX = SCREEN_WIDTH - 1;
+    }
+
+    updateCursor();
+}
+
+void VgaDriver::setCursorY(int y)
+{
+    csrY = y;
+
+    if (y < 0)
+    {
+        csrY = 0;
+    }
+    else if (y >= SCREEN_HEIGHT)
+    {
+        csrY = SCREEN_HEIGHT - 1;
+    }
+
+    updateCursor();
+}
+
+ssize_t VgaDriver::write(const uint8_t* buff, size_t nbyte)
+{
+    size_t i = 0;
+    for (; i < nbyte; ++i)
+    {
+        writeChar(buff[i]);
+    }
+
+    return static_cast<ssize_t>(i);
+}
+
+void VgaDriver::writeChar(char ch)
+{
+    outputChar(ch);
+    scroll();
+    updateCursor();
+}
+
+void VgaDriver::outputChar(char ch)
+{
+    if (ch == '\n')
+    {
+        ++csrY;
+        csrX = 0;
+    }
+    else if (ch == '\r')
+    {
+        csrX = 0;
+    }
+    else if (ch == '\t')
+    {
+        int spaces = TAB_SIZE - (csrX % TAB_SIZE);
+        csrX += spaces;
+        if (csrX >= SCREEN_WIDTH)
+        {
+            ++csrY;
+            csrX = 0;
+        }
+    }
+    else if (ch == '\b')
+    {
+        if (csrX > 0)
+        {
+            --csrX;
+        }
+    }
+    else
+    {
+        uint16_t val = attrib | ch;
+
+        int offset = csrY * SCREEN_WIDTH + csrX;
+        *(textMem + offset) = val;
+
+        ++csrX;
+        if (csrX >= SCREEN_WIDTH)
+        {
+            ++csrY;
+            csrX = 0;
+        }
+    }
+}
+
+void VgaDriver::scroll()
+{
+    if (csrY >= SCREEN_HEIGHT)
+    {
+        // move all lines up by 1
+        for (int line = 1; line < SCREEN_HEIGHT; ++line)
+        {
+            int dstIdx = (line - 1) * SCREEN_WIDTH;
+            int srcIdx = line * SCREEN_WIDTH;
+            memcpy(textMem + dstIdx, textMem + srcIdx, SCREEN_WIDTH * sizeof(uint16_t));
+        }
+
+        // clear bottom line
+        csrX = 0;
+        csrY = SCREEN_HEIGHT - 1;
+        for (int x = 0; x < SCREEN_WIDTH; ++x)
+        {
+            outputChar(' ');
+        }
+
+        // reset cursor to the bottom left corner of the screen
+        csrX = 0;
+        csrY = SCREEN_HEIGHT - 1;
+    }
+}
+
+void VgaDriver::updateCursor()
+{
+    int pos = csrY * SCREEN_WIDTH + csrX;
+
+    // set the upper and lower bytes of the
+    // blinking cursor index
+    outb(0x3D4, 14);
+    outb(0x3D5, static_cast<uint8_t>(pos >> 8));
+    outb(0x3D4, 15);
+    outb(0x3D5, static_cast<uint8_t>(pos));
+}

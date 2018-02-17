@@ -14,7 +14,6 @@ namespace
 template<typename T>
 const T FLOAT_MAX_ORDER = 1;
 
-
 /// @todo temporary max order
 template<>
 const float FLOAT_MAX_ORDER<float> = 1e20f;
@@ -92,10 +91,6 @@ void writeFixedFloat(T num, char* str, unsigned int precision)
 namespace os
 {
 
-const int Screen::SCREEN_WIDTH = 80;
-const int Screen::SCREEN_HEIGHT = 25;
-const int Screen::TAB_SIZE = 4;
-
 const uint8_t Screen::BOOL_ALPHA = 0x01;
 const uint8_t Screen::UPPERCASE  = 0x02;
 
@@ -159,9 +154,7 @@ Screen::Manip<size_t> Screen::setw(size_t width)
 
 Screen::Screen()
 {
-    textMem = (uint16_t*)(0xB8000 + KERNEL_VIRTUAL_BASE);
-    csrX = 0;
-    csrY = 0;
+    stream = nullptr;
 
     qHead = 0;
     qTail = 0;
@@ -171,73 +164,31 @@ Screen::Screen()
     width = 0;
     fill = ' ';
     precision = 10;
-
-    // disable blinking
-    setBlinking(false);
-
-    setBackgroundColor(EColor::eBlack);
-    setForegroundColor(EColor::eWhite);
 }
 
-Screen::EColor Screen::getForegroundColor() const
+void Screen::setStream(VgaDriver* streamPtr)
 {
-    uint16_t color = 0x0F00 & attrib;
-    color >>= 8;
-    return static_cast<EColor>(color);
+    stream = streamPtr;
 }
 
-void Screen::setForegroundColor(EColor color)
+VgaDriver::EColor Screen::getForegroundColor() const
 {
-    uint16_t temp = static_cast<uint16_t>(color);
-    temp <<= 8;
-    attrib &= 0xF000; // clear all but background color
-    attrib |= temp; // set new foreground color
+    return stream->getForegroundColor();
 }
 
-Screen::EColor Screen::getBackgroundColor() const
+void Screen::setForegroundColor(VgaDriver::EColor color)
 {
-    uint16_t color = 0xF000 & attrib;
-    color >>= 12;
-    return static_cast<EColor>(color);
+    stream->setForegroundColor(color);
 }
 
-void Screen::setBackgroundColor(EColor color)
+VgaDriver::EColor Screen::getBackgroundColor() const
 {
-    uint16_t temp = static_cast<uint16_t>(color);
-    temp <<= 12;
-    attrib &= 0x0F00; // clear all but foreground color
-    attrib |= temp; // set new background color
+    return stream->getBackgroundColor();
 }
 
-void Screen::setBlinking(bool enabled)
+void Screen::setBackgroundColor(VgaDriver::EColor color)
 {
-    constexpr uint16_t ADDR_REG = 0x3C0; // attribute address/data register
-    constexpr uint16_t DATA_REG = 0x3C1; // attribute data read register
-
-    constexpr uint8_t ATT_MODE_CTRL_REG = 0x10; // attribute mode control register
-
-    constexpr uint8_t PAS_BIT = 0x20; // palette address source
-    constexpr uint8_t BLINK_BIT = 0x08; // blink bit: 0 - disabled, 1 - enabled
-
-    // disable interrupts
-    clearInt();
-
-    // reset flip-flop
-    inb(0x3DA);
-
-    // save previous value
-    uint8_t prevAddr = inb(ADDR_REG);
-
-    outb(ADDR_REG, ATT_MODE_CTRL_REG | PAS_BIT);
-    uint8_t val = inb(DATA_REG);
-    val = enabled ? (val | BLINK_BIT) : (val & ~BLINK_BIT);
-    outb(DATA_REG, val);
-
-    // restore previous value
-    outb(ADDR_REG, prevAddr | PAS_BIT);
-
-    // re-enable interrupts
-    setInt();
+    stream->setBackgroundColor(color);
 }
 
 void Screen::write(char ch)
@@ -246,41 +197,38 @@ void Screen::write(char ch)
     {
         justify(1);
     }
-    rawWrite(ch);
+    stream->write(reinterpret_cast<const uint8_t*>(&ch), 1);
 }
 
 void Screen::write(const char* str)
 {
+    size_t len = strlen(str);
+
     if (width > 0)
     {
-        justify(strlen(str));
+        justify(len);
     }
 
-    size_t idx = 0;
-    char ch = str[idx];
-    while (ch != '\0')
-    {
-        rawWrite(ch);
-        ++idx;
-        ch = str[idx];
-    }
+    stream->write(reinterpret_cast<const uint8_t*>(str), len);
 }
 
 void Screen::clear()
 {
+    int width = 80;
+    int height = 25;
+
     // clear the screen by filling it with spaces
-    csrX = 0;
-    csrY = 0;
-    for (int i = 0; i < SCREEN_WIDTH * SCREEN_HEIGHT; ++i)
+    stream->setCursorX(0);
+    stream->setCursorY(0);
+    uint8_t ch = ' ';
+    for (int i = 0; i < width * height; ++i)
     {
-        outputChar(' ');
+        stream->write(&ch, 1);
     }
 
     // reset cursor to the top left corner of the screen
-    csrX = 0;
-    csrY = 0;
-
-    updateCursor();
+    stream->setCursorX(0);
+    stream->setCursorY(0);
 }
 
 Screen& Screen::operator <<(char ch)
@@ -438,100 +386,11 @@ void Screen::setWidth(Screen& s, size_t width)
     s.width = width;
 }
 
-void Screen::outputChar(char ch)
-{
-    if (ch == '\n')
-    {
-        ++csrY;
-        csrX = 0;
-    }
-    else if (ch == '\r')
-    {
-        csrX = 0;
-    }
-    else if (ch == '\t')
-    {
-        int spaces = TAB_SIZE - (csrX % TAB_SIZE);
-        csrX += spaces;
-        if (csrX >= SCREEN_WIDTH)
-        {
-            ++csrY;
-            csrX = 0;
-        }
-    }
-    else if (ch == '\b')
-    {
-        if (csrX > 0)
-        {
-            --csrX;
-        }
-    }
-    else
-    {
-        uint16_t val = attrib | ch;
-
-        int offset = csrY * SCREEN_WIDTH + csrX;
-        *(textMem + offset) = val;
-
-        ++csrX;
-        if (csrX >= SCREEN_WIDTH)
-        {
-            ++csrY;
-            csrX = 0;
-        }
-    }
-}
-
-void Screen::updateCursor()
-{
-    int pos = csrY * SCREEN_WIDTH + csrX;
-
-    // set the upper and lower bytes of the
-    // blinking cursor index
-    outb(0x3D4, 14);
-    outb(0x3D5, (uint8_t)(pos >> 8));
-    outb(0x3D4, 15);
-    outb(0x3D5, (uint8_t)(pos));
-}
-
-void Screen::scroll()
-{
-    if (csrY >= SCREEN_HEIGHT)
-    {
-        // move all lines up by 1
-        for (int line = 1; line < SCREEN_HEIGHT; ++line)
-        {
-            int dstIdx = (line - 1) * SCREEN_WIDTH;
-            int srcIdx = line * SCREEN_WIDTH;
-            memcpy(textMem + dstIdx, textMem + srcIdx, SCREEN_WIDTH * sizeof(uint16_t));
-        }
-
-        // clear bottom line
-        csrX = 0;
-        csrY = SCREEN_HEIGHT - 1;
-        for (int x = 0; x < SCREEN_WIDTH; ++x)
-        {
-            outputChar(' ');
-        }
-
-        // reset cursor to the bottom left corner of the screen
-        csrX = 0;
-        csrY = SCREEN_HEIGHT - 1;
-    }
-}
-
-void Screen::rawWrite(char ch)
-{
-    outputChar(ch);
-    scroll();
-    updateCursor();
-}
-
 void Screen::justify(size_t strLen)
 {
     for (size_t i = strLen; i < width; ++i)
     {
-        rawWrite(fill);
+        stream->write(reinterpret_cast<const uint8_t*>(&fill), 1);
     }
 
     width = 0;

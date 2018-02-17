@@ -112,11 +112,11 @@ void isrHandler(const struct registers* regs)
     }
     else // print an error message and hang
     {
-        os::Screen::EColor bgColor = screen.getBackgroundColor();
-        os::Screen::EColor fgColor = screen.getForegroundColor();
+        VgaDriver::EColor bgColor = screen.getBackgroundColor();
+        VgaDriver::EColor fgColor = screen.getForegroundColor();
 
-        screen.setBackgroundColor(os::Screen::EColor::eRed);
-        screen.setForegroundColor(os::Screen::EColor::eWhite);
+        screen.setBackgroundColor(VgaDriver::EColor::eRed);
+        screen.setForegroundColor(VgaDriver::EColor::eWhite);
 
         if (regs->intNo < 32)
         {

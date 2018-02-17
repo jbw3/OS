@@ -18,12 +18,12 @@ void configTerminal(int background, int foreground)
 {
     if (background >= 0 && background <= 15)
     {
-        screen.setBackgroundColor(static_cast<os::Screen::EColor>(background));
+        screen.setBackgroundColor(static_cast<VgaDriver::EColor>(background));
     }
 
     if (foreground >= 0 && foreground <= 15)
     {
-        screen.setForegroundColor(static_cast<os::Screen::EColor>(foreground));
+        screen.setForegroundColor(static_cast<VgaDriver::EColor>(foreground));
     }
 }
 
