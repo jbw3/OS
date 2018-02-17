@@ -12,6 +12,18 @@ struct registers;
 class SerialPortDriver : public Stream
 {
 public:
+    /// COM1 port address
+    static constexpr uint16_t COM1_PORT = 0x3F8;
+
+    /// COM2 port address
+    static constexpr uint16_t COM2_PORT = 0x2F8;
+
+    /// COM3 port address
+    static constexpr uint16_t COM3_PORT = 0x3E8;
+
+    /// COM4 port address
+    static constexpr uint16_t COM4_PORT = 0x2E8;
+
     /// Transmit holding buffer offset
     static constexpr uint8_t THR = 0;
 

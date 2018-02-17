@@ -10,7 +10,9 @@
 #include "paging.h"
 #include "processmgr.h"
 #include "screen.h"
+#include "serialportdriver.h"
 #include "shell.h"
+#include "streamtable.h"
 #include "system.h"
 #include "timer.h"
 
@@ -32,7 +34,16 @@ void kernelMain(const uint32_t MULTIBOOT_MAGIC_NUM, const multiboot_info* mbootI
     // enable interrupts
     asm volatile ("sti");
 
+    // create stream drivers
     VgaDriver vgaDriver;
+    SerialPortDriver serial1(SerialPortDriver::COM1_PORT, 115'200);
+    SerialPortDriver serial2(SerialPortDriver::COM2_PORT, 115'200);
+
+    streamTable.addStream(&vgaDriver);
+    streamTable.addStream(&serial1);
+    streamTable.addStream(&serial2);
+
+    /// @todo temporary
     screen.setStream(&vgaDriver);
 
     screen.setBackgroundColor(VgaDriver::EColor::eBlack);
