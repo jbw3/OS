@@ -36,6 +36,11 @@ void ProcessMgr::ProcessInfo::reset()
     upperPageTable = {0, 0, PageFrameInfo::eOther};
     numPages = 0;
     status = eTerminated;
+
+    for (int i = 0; i < MAX_NUM_STREAM_INDICES; ++i)
+    {
+        streamIndices[i] = -1;
+    }
 }
 
 void ProcessMgr::ProcessInfo::start(pid_t pid)
@@ -98,6 +103,43 @@ ProcessMgr::ProcessInfo::EStatus ProcessMgr::ProcessInfo::getStatus() const
     return status;
 }
 
+int ProcessMgr::ProcessInfo::addStreamIndex(int masterStreamIdx)
+{
+    for (int i = 0; i < MAX_NUM_STREAM_INDICES; ++i)
+    {
+        if (streamIndices[i] == -1)
+        {
+            streamIndices[i] = masterStreamIdx;
+            return i;
+        }
+    }
+
+    return -1;
+}
+
+void ProcessMgr::ProcessInfo::removeStreamIndex(int procStreamIdx)
+{
+    if (procStreamIdx >= 0 && procStreamIdx < MAX_NUM_STREAM_INDICES)
+    {
+        streamIndices[procStreamIdx] = -1;
+    }
+}
+
+int ProcessMgr::ProcessInfo::getStreamIndex(int procStreamIdx) const
+{
+    if (procStreamIdx >= 0 && procStreamIdx < MAX_NUM_STREAM_INDICES)
+    {
+        return streamIndices[procStreamIdx];
+    }
+
+    return -1;
+}
+
+void ProcessMgr::ProcessInfo::copyStreamIndices(ProcessInfo* procInfo)
+{
+    memcpy(streamIndices, procInfo->streamIndices, MAX_NUM_STREAM_INDICES * sizeof(int));
+}
+
 ProcessMgr::ProcessMgr() :
     currentProcIdx(0),
     intSwitchEnabled(false),
@@ -128,7 +170,8 @@ void ProcessMgr::mainloop()
     }
 
     // kick off init process
-    createProcess(initModule);
+    /// @todo stdin should be the keyboard
+    createProcess(initModule, 0, 0, 0);
     proc = ProcessInfo::initProcess = runningProcs[currentProcIdx];
 
     while (true)
@@ -189,7 +232,7 @@ void ProcessMgr::mainloop()
     }
 }
 
-void ProcessMgr::createProcess(const multiboot_mod_list* module)
+void ProcessMgr::createProcess(const multiboot_mod_list* module, int stdinStreamIdx, int stdoutStreamIdx, int stderrStreamIdx)
 {
     bool ok = true;
 
@@ -222,6 +265,11 @@ void ProcessMgr::createProcess(const multiboot_mod_list* module)
 
     if (ok)
     {
+        // add stream for stdin, stdout, and stderr
+        newProcInfo->addStreamIndex(stdinStreamIdx);
+        newProcInfo->addStreamIndex(stdoutStreamIdx);
+        newProcInfo->addStreamIndex(stderrStreamIdx);
+
         // allocate a process ID and start the process
         newProcInfo->start(getNewId());
 
@@ -439,6 +487,9 @@ ProcessMgr::ProcessInfo* ProcessMgr::forkProcess(ProcessInfo* procInfo)
 
         // copy process's pages
         ok = copyProcessPages(newProcInfo, procInfo);
+
+        // copy process's streams
+        newProcInfo->copyStreamIndices(procInfo);
     }
 
     // unmap process pages from kernel page table

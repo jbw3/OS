@@ -568,7 +568,7 @@ bool Shell::findProgram(const char* name, const multiboot_mod_list*& module)
 
 void Shell::runProgram(const multiboot_mod_list* module)
 {
-    processMgr.createProcess(module);
+    processMgr.createProcess(module, 0, 0, 0);
 }
 
 void Shell::displayHelp()

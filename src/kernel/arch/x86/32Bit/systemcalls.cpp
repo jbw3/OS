@@ -1,6 +1,7 @@
 #include "keyboard.h"
 #include "processmgr.h"
 #include "screen.h"
+#include "streamtable.h"
 #include "sys/wait.h"
 #include "system.h"
 #include "systemcalls.h"
@@ -174,19 +175,24 @@ pid_t waitpid(pid_t pid, int* stat_loc, int options)
 
 ssize_t write(int fildes, const void* buf, size_t nbyte)
 {
-    // only support stdout right now
-    if (fildes != STDOUT_FILENO)
+    // convert the local stream index to the master stream table index
+    int masterStreamIdx = processMgr.getCurrentProcessInfo()->getStreamIndex(fildes);
+    if (masterStreamIdx < 0)
     {
         return -1;
     }
 
-    const char* charPtr = reinterpret_cast<const char*>(buf);
-    for (size_t i = 0; i < nbyte; ++i)
+    // look up the stream in the master stream table
+    Stream* stream = streamTable.getStream(masterStreamIdx);
+    if (stream == nullptr)
     {
-        screen.write(charPtr[i]);
+        return -1;
     }
 
-    return 0;
+    // write to the stream
+    ssize_t rv = stream->write(reinterpret_cast<const uint8_t*>(buf), nbyte);
+
+    return rv;
 }
 
 } // namespace systemcall
