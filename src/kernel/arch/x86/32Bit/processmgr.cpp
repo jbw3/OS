@@ -170,8 +170,7 @@ void ProcessMgr::mainloop()
     }
 
     // kick off init process
-    /// @todo stdin should be the keyboard
-    createProcess(initModule, 0, 0, 0);
+    createProcess(initModule, 0, 1, 1);
     proc = ProcessInfo::initProcess = runningProcs[currentProcIdx];
 
     while (true)

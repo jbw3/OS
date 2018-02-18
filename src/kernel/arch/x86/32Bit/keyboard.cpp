@@ -2,6 +2,7 @@
 
 #include "keyboard.h"
 #include "os.h"
+#include "processmgr.h"
 #include "system.h"
 
 #define CONTROL_KEYS_START 0x0100
@@ -215,6 +216,26 @@ void Keyboard::processQueue()
             keyPress(LAYOUT_US[scanCode]);
         }
     }
+}
+
+ssize_t Keyboard::read(uint8_t* buff, size_t nbyte)
+{
+    size_t idx = 0;
+    while (idx < nbyte)
+    {
+        char ch = '\0';
+        bool found = getChar(ch);
+        while (!found)
+        {
+            processMgr.yieldCurrentProcess();
+            found = getChar(ch);
+        }
+
+        reinterpret_cast<char*>(buff)[idx] = ch;
+        ++idx;
+    }
+
+    return static_cast<ssize_t>(idx);
 }
 
 void Keyboard::keyRelease(uint16_t key)

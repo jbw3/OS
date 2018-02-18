@@ -35,10 +35,12 @@ void kernelMain(const uint32_t MULTIBOOT_MAGIC_NUM, const multiboot_info* mbootI
     asm volatile ("sti");
 
     // create stream drivers
+    os::Keyboard keyboardDriver;
     VgaDriver vgaDriver;
     SerialPortDriver serial1(SerialPortDriver::COM1_PORT, 115'200);
     SerialPortDriver serial2(SerialPortDriver::COM2_PORT, 115'200);
 
+    streamTable.addStream(&keyboardDriver);
     streamTable.addStream(&vgaDriver);
     streamTable.addStream(&serial1);
     streamTable.addStream(&serial2);

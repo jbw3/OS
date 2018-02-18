@@ -2,12 +2,13 @@
 #define KEYBOARD_H_
 
 #include "irq.h"
+#include "stream.h"
 
 namespace os
 {
 
 /// @todo some of the code in this class needs an interrupt guard
-class Keyboard
+class Keyboard : public Stream
 {
 public:
     static void init();
@@ -28,6 +29,23 @@ public:
     static bool getChar(char& ch);
 
     static void processQueue();
+
+    bool canRead() const override
+    {
+        return true;
+    }
+
+    bool canWrite() const override
+    {
+        return false;
+    }
+
+    ssize_t read(uint8_t* buff, size_t nbyte) override;
+
+    ssize_t write(const uint8_t*, size_t) override
+    {
+        return -1;
+    }
 
 private:
     /// US keyboard layout

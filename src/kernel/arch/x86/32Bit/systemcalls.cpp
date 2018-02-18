@@ -84,21 +84,24 @@ pid_t getppid()
 
 ssize_t read(int fildes, void* buf, size_t nbyte)
 {
-    // only support stdin right now
-    if (fildes != STDIN_FILENO)
+    // convert the local stream index to the master stream table index
+    int masterStreamIdx = processMgr.getCurrentProcessInfo()->getStreamIndex(fildes);
+    if (masterStreamIdx < 0)
     {
         return -1;
     }
 
-    char ch;
-    size_t idx = 0;
-    while (idx < nbyte && os::Keyboard::getChar(ch))
+    // look up the stream in the master stream table
+    Stream* stream = streamTable.getStream(masterStreamIdx);
+    if (stream == nullptr)
     {
-        reinterpret_cast<char*>(buf)[idx] = ch;
-        ++idx;
+        return -1;
     }
 
-    return static_cast<ssize_t>(idx);
+    // read from the stream
+    ssize_t rv = stream->read(reinterpret_cast<uint8_t*>(buf), nbyte);
+
+    return rv;
 }
 
 int sched_yield()
