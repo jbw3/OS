@@ -180,8 +180,8 @@ void Shell::getCommand()
 
     int cmdSize = 0;
     cmd[0] = '\0';
-    uint16_t key = getKey();
-    while (key != '\n')
+    char key = getchar();
+    while (key != '\r')
     {
         if (key == '\b')
         {
@@ -195,41 +195,41 @@ void Shell::getCommand()
         {
             cmdSize = complete();
         }
-        else if (key == KEY_UP)
-        {
-            if (historyIdx < historySize - 1)
-            {
-                if (historyIdx == 0)
-                {
-                    strcpy(history[0], cmd);
-                }
+        /// @todo add support back for up and down keys
+        // else if (key == KEY_UP)
+        // {
+        //     if (historyIdx < historySize - 1)
+        //     {
+        //         if (historyIdx == 0)
+        //         {
+        //             strcpy(history[0], cmd);
+        //         }
 
-                ++historyIdx;
-                const char* newCmd = history[historyIdx];
-                setCommand(newCmd);
-                cmdSize = strlen(newCmd);
-            }
-        }
-        else if (key == KEY_DOWN)
-        {
-            if (historyIdx > 0)
-            {
-                --historyIdx;
-                const char* newCmd = history[historyIdx];
-                setCommand(newCmd);
-                cmdSize = strlen(newCmd);
-            }
-        }
+        //         ++historyIdx;
+        //         const char* newCmd = history[historyIdx];
+        //         setCommand(newCmd);
+        //         cmdSize = strlen(newCmd);
+        //     }
+        // }
+        // else if (key == KEY_DOWN)
+        // {
+        //     if (historyIdx > 0)
+        //     {
+        //         --historyIdx;
+        //         const char* newCmd = history[historyIdx];
+        //         setCommand(newCmd);
+        //         cmdSize = strlen(newCmd);
+        //     }
+        // }
         else if ( isprint(key) && cmdSize < MAX_CMD_SIZE - 1 )
         {
-            char ch = static_cast<char>(key);
-            cmd[cmdSize++] = ch;
-            putchar(ch);
+            cmd[cmdSize++] = key;
+            putchar(key);
         }
 
         cmd[cmdSize] = '\0';
 
-        key = getKey();
+        key = getchar();
     }
 
     putchar('\n');

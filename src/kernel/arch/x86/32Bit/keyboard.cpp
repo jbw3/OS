@@ -50,7 +50,7 @@ const uint16_t Keyboard::LAYOUT_US[128] =
     'p',
     '[',
     ']',
-    '\n', // enter
+    '\r', // enter
     KEY_CONTROL, // control
     'a',
     's',
@@ -184,7 +184,7 @@ bool Keyboard::getChar(char& ch)
         ch = static_cast<char>(key & 0x7F);
 
         isAscii = (key & 0x7F) == key;
-        isPrintable = isprint(ch) || ch == '\t' || ch == '\n';
+        isPrintable = isprint(ch) || ch == '\t' || ch == '\r';
     } while (found && !(isAscii && isPrintable));
 
     return found;

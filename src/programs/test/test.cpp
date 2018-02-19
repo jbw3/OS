@@ -85,6 +85,8 @@ void preemptTest()
     {
         wait(nullptr);
     }
+
+    putchar('\n');
 }
 
 void printCharLoop(int num)
@@ -121,8 +123,9 @@ int getNumber(const char* prompt)
         ch = getchar();
         putchar(ch);
 
-        if (ch == '\n')
+        if (ch == '\r')
         {
+            putchar('\n');
             break;
         }
         else
