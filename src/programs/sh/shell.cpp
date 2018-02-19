@@ -178,12 +178,50 @@ void Shell::getCommand()
     // reset history index
     historyIdx = 0;
 
+    char escapeSeq[3];
+    int escapeSize = 0;
     int cmdSize = 0;
     cmd[0] = '\0';
     char key = getchar();
     while (key != '\r')
     {
-        if (key == '\b')
+        if (key == 27 || escapeSize > 0)
+        {
+            escapeSeq[escapeSize++] = key;
+
+            if (escapeSize >= 3)
+            {
+                if (escapeSeq[1] == 91 && escapeSeq[2] == 65)
+                {
+                    if (historyIdx < historySize - 1)
+                    {
+                        if (historyIdx == 0)
+                        {
+                            strcpy(history[0], cmd);
+                        }
+
+                        ++historyIdx;
+                        const char* newCmd = history[historyIdx];
+                        setCommand(newCmd);
+                        cmdSize = strlen(newCmd);
+                    }
+                }
+                else if (escapeSeq[1] == 91 && escapeSeq[2] == 66)
+                {
+                    if (historyIdx > 0)
+                    {
+                        --historyIdx;
+                        const char* newCmd = history[historyIdx];
+                        setCommand(newCmd);
+                        cmdSize = strlen(newCmd);
+                    }
+                }
+
+                // reset size
+                escapeSize = 0;
+            }
+        }
+        else if (key == '\b')
         {
             if (cmdSize > 0)
             {
@@ -195,32 +233,6 @@ void Shell::getCommand()
         {
             cmdSize = complete();
         }
-        /// @todo add support back for up and down keys
-        // else if (key == KEY_UP)
-        // {
-        //     if (historyIdx < historySize - 1)
-        //     {
-        //         if (historyIdx == 0)
-        //         {
-        //             strcpy(history[0], cmd);
-        //         }
-
-        //         ++historyIdx;
-        //         const char* newCmd = history[historyIdx];
-        //         setCommand(newCmd);
-        //         cmdSize = strlen(newCmd);
-        //     }
-        // }
-        // else if (key == KEY_DOWN)
-        // {
-        //     if (historyIdx > 0)
-        //     {
-        //         --historyIdx;
-        //         const char* newCmd = history[historyIdx];
-        //         setCommand(newCmd);
-        //         cmdSize = strlen(newCmd);
-        //     }
-        // }
         else if ( isprint(key) && cmdSize < MAX_CMD_SIZE - 1 )
         {
             cmd[cmdSize++] = key;
