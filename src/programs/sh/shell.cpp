@@ -8,6 +8,9 @@
 
 #include "shell.h"
 
+const char ESCAPE = '\x1b';
+const char DELETE = '\x7f';
+
 Shell::Commands::iterator::iterator(int builtInIndex, int moduleIndex)
 {
     builtInIdx = builtInIndex;
@@ -185,7 +188,7 @@ void Shell::getCommand()
     char key = getchar();
     while (key != '\r')
     {
-        if (key == 27 || escapeSize > 0)
+        if (key == ESCAPE || escapeSize > 0)
         {
             escapeSeq[escapeSize++] = key;
 
@@ -221,7 +224,7 @@ void Shell::getCommand()
                 escapeSize = 0;
             }
         }
-        else if (key == '\b')
+        else if (key == '\b' || key == DELETE)
         {
             if (cmdSize > 0)
             {
