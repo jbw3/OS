@@ -42,7 +42,11 @@ public:
 
     void setBlinking(bool enabled);
 
+    int getCursorX() const;
+
     void setCursorX(int x);
+
+    int getCursorY() const;
 
     void setCursorY(int y);
 
@@ -64,10 +68,34 @@ public:
     ssize_t write(const uint8_t* buff, size_t nbyte) override;
 
 private:
+    static constexpr char ESCAPE = '\x1B';
+    static constexpr char CSI    = '[';
+    static constexpr char CSI_START_PARAMETER_BYTE    = '\x30';
+    static constexpr char CSI_END_PARAMETER_BYTE      = '\x3F';
+    static constexpr char CSI_START_INTERMEDIATE_BYTE = '\x20';
+    static constexpr char CSI_END_INTERMEDIATE_BYTE   = '\x2F';
+    static constexpr char CSI_START_FINAL_BYTE        = '\x40';
+    static constexpr char CSI_END_FINAL_BYTE          = '\x7E';
+
     uint16_t* textMem;
     uint16_t attrib;
     int csrX;
     int csrY;
+    bool inEscSequence;
+    char escSequenceChar;
+    enum ECsiState
+    {
+        eParameter,
+        eIntermediate,
+        eFinal
+    } csiState;
+    static constexpr size_t MAX_PARAMETER_BYTES_SIZE = 32;
+    size_t parameterBytesSize;
+    char parameterBytes[MAX_PARAMETER_BYTES_SIZE];
+    static constexpr size_t MAX_INTERMEDIATE_BYTES_SIZE = 32;
+    size_t intermediateBytesSize;
+    char intermediateBytes[MAX_INTERMEDIATE_BYTES_SIZE];
+    char finalByte;
 
     void writeChar(char ch);
 
@@ -76,6 +104,16 @@ private:
     void scroll();
 
     void updateCursor();
+
+    /**
+     * @brief Parse a character in an escape sequence.
+     * @param ch the character to parse.
+     */
+    void parseEscSequence(char ch);
+
+    void parseCsi(char ch);
+
+    void evalCsi();
 };
 
 #endif // VGA_DRIVER_H_

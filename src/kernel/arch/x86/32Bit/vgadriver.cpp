@@ -8,6 +8,11 @@ VgaDriver::VgaDriver()
     textMem = reinterpret_cast<uint16_t*>(0xB8000 + KERNEL_VIRTUAL_BASE);
     csrX = 0;
     csrY = 0;
+    inEscSequence = false;
+    escSequenceChar = '\0';
+    csiState = eParameter;
+    parameterBytesSize = 0;
+    intermediateBytesSize = 0;
 
     // disable blinking
     setBlinking(false);
@@ -78,6 +83,11 @@ void VgaDriver::setBlinking(bool enabled)
     setInt();
 }
 
+int VgaDriver::getCursorX() const
+{
+    return csrX;
+}
+
 void VgaDriver::setCursorX(int x)
 {
     csrX = x;
@@ -92,6 +102,11 @@ void VgaDriver::setCursorX(int x)
     }
 
     updateCursor();
+}
+
+int VgaDriver::getCursorY() const
+{
+    return csrY;
 }
 
 void VgaDriver::setCursorY(int y)
@@ -123,9 +138,20 @@ ssize_t VgaDriver::write(const uint8_t* buff, size_t nbyte)
 
 void VgaDriver::writeChar(char ch)
 {
-    outputChar(ch);
-    scroll();
-    updateCursor();
+    if (inEscSequence)
+    {
+        parseEscSequence(ch);
+    }
+    else if (ch == ESCAPE)
+    {
+        inEscSequence = true;
+    }
+    else
+    {
+        outputChar(ch);
+        scroll();
+        updateCursor();
+    }
 }
 
 void VgaDriver::outputChar(char ch)
@@ -208,4 +234,98 @@ void VgaDriver::updateCursor()
     outb(0x3D5, static_cast<uint8_t>(pos >> 8));
     outb(0x3D4, 15);
     outb(0x3D5, static_cast<uint8_t>(pos));
+}
+
+void VgaDriver::parseEscSequence(char ch)
+{
+    if (escSequenceChar == '\0')
+    {
+        escSequenceChar = ch;
+    }
+    else if (escSequenceChar == CSI)
+    {
+        parseCsi(ch);
+    }
+}
+
+void VgaDriver::parseCsi(char ch)
+{
+    bool reset = false;
+
+    if (ch >= CSI_START_PARAMETER_BYTE && ch <= CSI_END_PARAMETER_BYTE)
+    {
+        if (csiState == eParameter)
+        {
+            if (parameterBytesSize < MAX_PARAMETER_BYTES_SIZE)
+            {
+                parameterBytes[parameterBytesSize++] = ch;
+            }
+            else
+            {
+                // error: ran out of buffer space
+                reset = true;
+            }
+        }
+        else
+        {
+            // error: got a parameter character while not in parameter state
+            reset = true;
+        }
+    }
+    else if (ch >= CSI_START_INTERMEDIATE_BYTE && ch <= CSI_END_INTERMEDIATE_BYTE)
+    {
+        if (csiState == eParameter)
+        {
+            // go to next state
+            csiState = eIntermediate;
+        }
+
+        if (csiState == eIntermediate)
+        {
+            if (intermediateBytesSize < MAX_INTERMEDIATE_BYTES_SIZE)
+            {
+                intermediateBytes[intermediateBytesSize++] = ch;
+            }
+            else
+            {
+                // error: ran out of buffer space
+                reset = true;
+            }
+        }
+        else
+        {
+            // error: got an intermidiate character while not in intermidiate state
+            reset = true;
+        }
+    }
+    else if (ch >= CSI_START_FINAL_BYTE && ch <= CSI_END_FINAL_BYTE)
+    {
+        finalByte = ch;
+
+        evalCsi();
+
+        // done with sequence, reset state
+        reset = true;
+    }
+
+    if (reset)
+    {
+        inEscSequence = false;
+        escSequenceChar = '\0';
+        csiState = eParameter;
+        parameterBytesSize = 0;
+        intermediateBytesSize = 0;
+    }
+}
+
+void VgaDriver::evalCsi()
+{
+    if (finalByte == 'A')
+    {
+        setCursorY(csrY - 1);
+    }
+    else if (finalByte == 'B')
+    {
+        setCursorY(csrY + 1);
+    }
 }
