@@ -17,6 +17,8 @@
 #define KEY_SCROLL_LOCK 0x4000
 #define KEY_LOCKS       (KEY_CAPS_LOCK | KEY_NUM_LOCK | KEY_SCROLL_LOCK)
 
+constexpr char ESCAPE = '\x1b';
+
 namespace os
 {
 
@@ -173,19 +175,66 @@ bool Keyboard::getKey(uint16_t& key)
 
 bool Keyboard::getChar(char& ch)
 {
-    uint16_t key = 0;
+    static char buff[4];
+    static size_t buffSize = 0;
 
     bool found = false;
-    bool isAscii = false;
-    bool isPrintable = false;
-    do
+    if (buffSize > 0)
     {
-        found = getKey(key);
-        ch = static_cast<char>(key & 0x7F);
-
-        isAscii = (key & 0x7F) == key;
-        isPrintable = isprint(ch) || ch == '\t' || ch == '\r';
-    } while (found && !(isAscii && isPrintable));
+        ch = buff[--buffSize];
+        found = true;
+    }
+    else
+    {
+        uint16_t key = 0;
+        bool isValid = false;
+        do
+        {
+            found = getKey(key);
+            if (found)
+            {
+                if (key == KEY_UP)
+                {
+                    ch = ESCAPE;
+                    buff[0] = 'A';
+                    buff[1] = '[';
+                    buffSize = 2;
+                    isValid = true;
+                }
+                else if (key == KEY_DOWN)
+                {
+                    ch = ESCAPE;
+                    buff[0] = 'B';
+                    buff[1] = '[';
+                    buffSize = 2;
+                    isValid = true;
+                }
+                else if (key == KEY_LEFT)
+                {
+                    ch = ESCAPE;
+                    buff[0] = 'C';
+                    buff[1] = '[';
+                    buffSize = 2;
+                    isValid = true;
+                }
+                else if (key == KEY_RIGHT)
+                {
+                    ch = ESCAPE;
+                    buff[0] = 'D';
+                    buff[1] = '[';
+                    buffSize = 2;
+                    isValid = true;
+                }
+                else
+                {
+                    ch = static_cast<char>(key & 0x7F);
+                    bool isAscii = (key & 0x7F) == key;
+                    bool isPrintable = isprint(ch) || ch == '\t' || ch == '\r' || ch == '\b';
+                    isValid = isAscii && isPrintable;
+                }
+            }
+        } while (found && !isValid);
+    }
 
     return found;
 }
