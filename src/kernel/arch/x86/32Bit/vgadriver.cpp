@@ -1,3 +1,4 @@
+#include <ctype.h>
 #include <string.h>
 
 #include "vgadriver.h"
@@ -256,7 +257,7 @@ void VgaDriver::parseCsi(char ch)
     {
         if (csiState == eParameter)
         {
-            if (parameterBytesSize < MAX_PARAMETER_BYTES_SIZE)
+            if (parameterBytesSize < MAX_PARAMETER_BYTES_SIZE - 1)
             {
                 parameterBytes[parameterBytesSize++] = ch;
             }
@@ -282,7 +283,7 @@ void VgaDriver::parseCsi(char ch)
 
         if (csiState == eIntermediate)
         {
-            if (intermediateBytesSize < MAX_INTERMEDIATE_BYTES_SIZE)
+            if (intermediateBytesSize < MAX_INTERMEDIATE_BYTES_SIZE - 1)
             {
                 intermediateBytes[intermediateBytesSize++] = ch;
             }
@@ -300,6 +301,8 @@ void VgaDriver::parseCsi(char ch)
     }
     else if (ch >= CSI_START_FINAL_BYTE && ch <= CSI_END_FINAL_BYTE)
     {
+        parameterBytes[parameterBytesSize] = '\0';
+        intermediateBytes[intermediateBytesSize] = '\0';
         finalByte = ch;
 
         evalCsi();
@@ -320,12 +323,74 @@ void VgaDriver::parseCsi(char ch)
 
 void VgaDriver::evalCsi()
 {
+    const char* ptr = nullptr;
+    bool error = false;
+
     if (finalByte == 'A')
     {
-        setCursorY(csrY - 1);
+        int y = 0;
+        bool done = getNumParam(y, 1, error, ptr);
+        if (done && !error)
+        {
+            setCursorY(csrY - y);
+        }
     }
     else if (finalByte == 'B')
     {
-        setCursorY(csrY + 1);
+        int y = 0;
+        bool done = getNumParam(y, 1, error, ptr);
+        if (done && !error)
+        {
+            setCursorY(csrY + y);
+        }
     }
+}
+
+bool VgaDriver::getNumParam(int& num, int def, bool& error, const char*& ptr)
+{
+    // if this is the first time this function is called,
+    // start at the beginning of the paramter string
+    if (ptr == nullptr)
+    {
+        ptr = parameterBytes;
+    }
+
+    // if there is no number before the delimiter, use the
+    // default value
+    if (*ptr == ';' || *ptr == '\0')
+    {
+        num = def;
+        error = false;
+        // we're done if this is the end of the string
+        return (*ptr == '\0');
+    }
+
+    num = 0;
+    while (*ptr != '\0')
+    {
+        if (isdigit(*ptr))
+        {
+            num *= 10;
+            num += *ptr - '0';
+        }
+        else if (*ptr == ';')
+        {
+            // increment the pointer for the next time this function is called
+            ++ptr;
+            error = false;
+            return false;
+        }
+        else // invalid character
+        {
+            num = 0;
+            error = true;
+            return true;
+        }
+
+        ++ptr;
+    }
+
+    error = false;
+    // when we get here, we're done parsing the string
+    return true;
 }

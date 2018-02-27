@@ -114,6 +114,8 @@ private:
     void parseCsi(char ch);
 
     void evalCsi();
+
+    bool getNumParam(int& num, int def, bool& error, const char*& ptr);
 };
 
 #endif // VGA_DRIVER_H_
