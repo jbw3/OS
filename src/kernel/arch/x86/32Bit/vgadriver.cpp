@@ -344,6 +344,24 @@ void VgaDriver::evalCsi()
             setCursorY(csrY + y);
         }
     }
+    else if (finalByte == 'C')
+    {
+        int x = 0;
+        bool done = getNumParam(x, 1, error, ptr);
+        if (done && !error)
+        {
+            setCursorX(csrX + x);
+        }
+    }
+    else if (finalByte == 'D')
+    {
+        int x = 0;
+        bool done = getNumParam(x, 1, error, ptr);
+        if (done && !error)
+        {
+            setCursorX(csrX - x);
+        }
+    }
 }
 
 bool VgaDriver::getNumParam(int& num, int def, bool& error, const char*& ptr)
