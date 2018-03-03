@@ -85,7 +85,7 @@ iso:
 
 .PHONY: run
 run: release iso
-	qemu-system-i386 -cdrom $(BINDIR)/SandboxOS-x86.iso
+	qemu-system-i386 -serial stdio -cdrom $(BINDIR)/SandboxOS-x86.iso
 
 .PHONY: debugger
 debugger: debug iso
