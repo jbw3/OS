@@ -6,9 +6,9 @@
 class VgaDriver : public Stream
 {
 public:
-    static constexpr int SCREEN_WIDTH = 80;
-    static constexpr int SCREEN_HEIGHT = 25;
-    static constexpr int TAB_SIZE = 4;
+    static constexpr unsigned int SCREEN_WIDTH = 80;
+    static constexpr unsigned int SCREEN_HEIGHT = 25;
+    static constexpr unsigned int TAB_SIZE = 4;
 
     enum class EColor
     {
@@ -42,13 +42,13 @@ public:
 
     void setBlinking(bool enabled);
 
-    int getCursorX() const;
+    unsigned int getCursorX() const;
 
-    void setCursorX(int x);
+    void setCursorX(unsigned int x);
 
-    int getCursorY() const;
+    unsigned int getCursorY() const;
 
-    void setCursorY(int y);
+    void setCursorY(unsigned int y);
 
     bool canRead() const override
     {
@@ -79,8 +79,8 @@ private:
 
     uint16_t* textMem;
     uint16_t attrib;
-    int csrX;
-    int csrY;
+    unsigned int csrX;
+    unsigned int csrY;
     bool inEscSequence;
     char escSequenceChar;
     enum ECsiState
@@ -115,7 +115,7 @@ private:
 
     void evalCsi();
 
-    bool getNumParam(int& num, int def, bool& error, const char*& ptr);
+    bool getNumParam(unsigned int& num, unsigned int def, bool& error, const char*& ptr);
 };
 
 #endif // VGA_DRIVER_H_

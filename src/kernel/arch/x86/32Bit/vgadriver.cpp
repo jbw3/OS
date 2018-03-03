@@ -84,20 +84,16 @@ void VgaDriver::setBlinking(bool enabled)
     setInt();
 }
 
-int VgaDriver::getCursorX() const
+unsigned int VgaDriver::getCursorX() const
 {
     return csrX;
 }
 
-void VgaDriver::setCursorX(int x)
+void VgaDriver::setCursorX(unsigned int x)
 {
     csrX = x;
 
-    if (x < 0)
-    {
-        csrX = 0;
-    }
-    else if (x >= SCREEN_WIDTH)
+    if (x >= SCREEN_WIDTH)
     {
         csrX = SCREEN_WIDTH - 1;
     }
@@ -105,20 +101,16 @@ void VgaDriver::setCursorX(int x)
     updateCursor();
 }
 
-int VgaDriver::getCursorY() const
+unsigned int VgaDriver::getCursorY() const
 {
     return csrY;
 }
 
-void VgaDriver::setCursorY(int y)
+void VgaDriver::setCursorY(unsigned int y)
 {
     csrY = y;
 
-    if (y < 0)
-    {
-        csrY = 0;
-    }
-    else if (y >= SCREEN_HEIGHT)
+    if (y >= SCREEN_HEIGHT)
     {
         csrY = SCREEN_HEIGHT - 1;
     }
@@ -168,7 +160,7 @@ void VgaDriver::outputChar(char ch)
     }
     else if (ch == '\t')
     {
-        int spaces = TAB_SIZE - (csrX % TAB_SIZE);
+        unsigned int spaces = TAB_SIZE - (csrX % TAB_SIZE);
         csrX += spaces;
         if (csrX >= SCREEN_WIDTH)
         {
@@ -187,7 +179,7 @@ void VgaDriver::outputChar(char ch)
     {
         uint16_t val = attrib | ch;
 
-        int offset = csrY * SCREEN_WIDTH + csrX;
+        unsigned int offset = csrY * SCREEN_WIDTH + csrX;
         *(textMem + offset) = val;
 
         ++csrX;
@@ -204,17 +196,17 @@ void VgaDriver::scroll()
     if (csrY >= SCREEN_HEIGHT)
     {
         // move all lines up by 1
-        for (int line = 1; line < SCREEN_HEIGHT; ++line)
+        for (unsigned int line = 1; line < SCREEN_HEIGHT; ++line)
         {
-            int dstIdx = (line - 1) * SCREEN_WIDTH;
-            int srcIdx = line * SCREEN_WIDTH;
+            unsigned int dstIdx = (line - 1) * SCREEN_WIDTH;
+            unsigned int srcIdx = line * SCREEN_WIDTH;
             memcpy(textMem + dstIdx, textMem + srcIdx, SCREEN_WIDTH * sizeof(uint16_t));
         }
 
         // clear bottom line
         csrX = 0;
         csrY = SCREEN_HEIGHT - 1;
-        for (int x = 0; x < SCREEN_WIDTH; ++x)
+        for (unsigned int x = 0; x < SCREEN_WIDTH; ++x)
         {
             outputChar(' ');
         }
@@ -227,7 +219,7 @@ void VgaDriver::scroll()
 
 void VgaDriver::updateCursor()
 {
-    int pos = csrY * SCREEN_WIDTH + csrX;
+    unsigned int pos = csrY * SCREEN_WIDTH + csrX;
 
     // set the upper and lower bytes of the
     // blinking cursor index
@@ -328,7 +320,7 @@ void VgaDriver::evalCsi()
 
     if (finalByte == 'A')
     {
-        int y = 0;
+        unsigned int y = 0;
         bool done = getNumParam(y, 1, error, ptr);
         if (done && !error)
         {
@@ -337,7 +329,7 @@ void VgaDriver::evalCsi()
     }
     else if (finalByte == 'B')
     {
-        int y = 0;
+        unsigned int y = 0;
         bool done = getNumParam(y, 1, error, ptr);
         if (done && !error)
         {
@@ -346,7 +338,7 @@ void VgaDriver::evalCsi()
     }
     else if (finalByte == 'C')
     {
-        int x = 0;
+        unsigned int x = 0;
         bool done = getNumParam(x, 1, error, ptr);
         if (done && !error)
         {
@@ -355,7 +347,7 @@ void VgaDriver::evalCsi()
     }
     else if (finalByte == 'D')
     {
-        int x = 0;
+        unsigned int x = 0;
         bool done = getNumParam(x, 1, error, ptr);
         if (done && !error)
         {
@@ -364,8 +356,12 @@ void VgaDriver::evalCsi()
     }
 }
 
-bool VgaDriver::getNumParam(int& num, int def, bool& error, const char*& ptr)
+bool VgaDriver::getNumParam(unsigned int& num, unsigned int def, bool& error, const char*& ptr)
 {
+    // (MAX_PARAM * 10) must fit in an unsigned int (32-bits) for
+    // the check below to work
+    constexpr unsigned int MAX_PARAM = 100'000'000;
+
     // if this is the first time this function is called,
     // start at the beginning of the paramter string
     if (ptr == nullptr)
@@ -389,6 +385,12 @@ bool VgaDriver::getNumParam(int& num, int def, bool& error, const char*& ptr)
         if (isdigit(*ptr))
         {
             num *= 10;
+            if (num > MAX_PARAM)
+            {
+                error = true;
+                return true;
+            }
+
             num += *ptr - '0';
         }
         else if (*ptr == ';')
