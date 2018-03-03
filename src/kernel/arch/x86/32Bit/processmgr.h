@@ -107,6 +107,8 @@ public:
 
         int duplicateStreamIndex(int procStreamIdx);
 
+        int duplicateStreamIndex(int procStreamIdx, int dupProcStreamIdx);
+
         PageFrameInfo pageDir;
 
         PageFrameInfo kernelPageTable;

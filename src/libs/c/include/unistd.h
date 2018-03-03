@@ -16,6 +16,8 @@ extern "C"
 
 int dup(int fildes);
 
+int dup2(int fildes, int fildes2);
+
 int execl(const char* path, const char* arg0, ...);
 
 int execv(const char* path, char* const argv[]);

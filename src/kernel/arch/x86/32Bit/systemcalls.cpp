@@ -36,8 +36,8 @@ int dup(int fildes)
 
 int dup2(int fildes, int fildes2)
 {
-    /// @todo implement
-    return -1;
+    int rv = processMgr.getCurrentProcessInfo()->duplicateStreamIndex(fildes, fildes2);
+    return rv;
 }
 
 int execv(const char* path, char* const argv[])

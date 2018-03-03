@@ -11,6 +11,11 @@ int dup(int fildes)
     return systemCall(SYSTEM_CALL_DUP, fildes);
 }
 
+int dup2(int fildes, int fildes2)
+{
+    return systemCall(SYSTEM_CALL_DUP2, fildes, fildes2);
+}
+
 int execl(const char* path, const char* arg0, ...)
 {
     constexpr size_t MAX_ARGS = 32;

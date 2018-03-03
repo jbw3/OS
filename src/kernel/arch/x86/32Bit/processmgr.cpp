@@ -157,6 +157,29 @@ int ProcessMgr::ProcessInfo::duplicateStreamIndex(int procStreamIdx)
     return dupStreamIdx;
 }
 
+int ProcessMgr::ProcessInfo::duplicateStreamIndex(int procStreamIdx, int dupProcStreamIdx)
+{
+    if (procStreamIdx < 0 || procStreamIdx >= MAX_NUM_STREAM_INDICES || dupProcStreamIdx < 0 || dupProcStreamIdx >= MAX_NUM_STREAM_INDICES)
+    {
+        return -1;
+    }
+
+    int masterStreamIdx = streamIndices[procStreamIdx];
+    if (procStreamIdx < 0)
+    {
+        return -1;
+    }
+
+    int oldMasterStreamIdx = streamIndices[dupProcStreamIdx];
+    if (oldMasterStreamIdx >= 0 && procStreamIdx != dupProcStreamIdx)
+    {
+        /// @todo close the stream when closing is implemented
+    }
+
+    streamIndices[dupProcStreamIdx] = masterStreamIdx;
+    return dupProcStreamIdx;
+}
+
 ProcessMgr::ProcessMgr() :
     currentProcIdx(0),
     intSwitchEnabled(false),
