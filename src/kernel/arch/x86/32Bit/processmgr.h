@@ -105,6 +105,8 @@ public:
 
         void copyStreamIndices(ProcessInfo* procInfo);
 
+        int duplicateStreamIndex(int procStreamIdx);
+
         PageFrameInfo pageDir;
 
         PageFrameInfo kernelPageTable;

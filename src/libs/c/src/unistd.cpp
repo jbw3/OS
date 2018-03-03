@@ -6,14 +6,9 @@
 extern "C"
 {
 
-pid_t getpid()
+int dup(int fildes)
 {
-    return systemCall(SYSTEM_CALL_GETPID);
-}
-
-pid_t getppid()
-{
-    return systemCall(SYSTEM_CALL_GETPPID);
+    return systemCall(SYSTEM_CALL_DUP, fildes);
 }
 
 int execl(const char* path, const char* arg0, ...)
@@ -55,6 +50,16 @@ int execv(const char* path, char* const argv[])
 pid_t fork()
 {
     return systemCall(SYSTEM_CALL_FORK);
+}
+
+pid_t getpid()
+{
+    return systemCall(SYSTEM_CALL_GETPID);
+}
+
+pid_t getppid()
+{
+    return systemCall(SYSTEM_CALL_GETPPID);
 }
 
 ssize_t read(int fildes, void* buf, size_t nbyte)

@@ -28,6 +28,18 @@ void configTerminal(int background, int foreground)
     }
 }
 
+int dup(int fildes)
+{
+    int rv = processMgr.getCurrentProcessInfo()->duplicateStreamIndex(fildes);
+    return rv;
+}
+
+int dup2(int fildes, int fildes2)
+{
+    /// @todo implement
+    return -1;
+}
+
 int execv(const char* path, char* const argv[])
 {
     processMgr.switchCurrentProcessExecutable(path, argv);
@@ -216,8 +228,8 @@ const void* SYSTEM_CALLS[SYSTEM_CALLS_SIZE] = {
     reinterpret_cast<const void*>(systemcall::configTerminal),
     reinterpret_cast<const void*>(systemcall::clearTerminal),
     reinterpret_cast<const void*>(systemcall::getKey),
-    nullptr,
-    nullptr,
+    reinterpret_cast<const void*>(systemcall::dup),
+    reinterpret_cast<const void*>(systemcall::dup2),
 };
 
 extern "C"

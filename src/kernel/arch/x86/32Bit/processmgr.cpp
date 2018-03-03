@@ -140,6 +140,23 @@ void ProcessMgr::ProcessInfo::copyStreamIndices(ProcessInfo* procInfo)
     memcpy(streamIndices, procInfo->streamIndices, MAX_NUM_STREAM_INDICES * sizeof(int));
 }
 
+int ProcessMgr::ProcessInfo::duplicateStreamIndex(int procStreamIdx)
+{
+    if (procStreamIdx < 0 || procStreamIdx >= MAX_NUM_STREAM_INDICES)
+    {
+        return -1;
+    }
+
+    int masterStreamIdx = streamIndices[procStreamIdx];
+    if (masterStreamIdx < 0)
+    {
+        return -1;
+    }
+
+    int dupStreamIdx = addStreamIndex(masterStreamIdx);
+    return dupStreamIdx;
+}
+
 ProcessMgr::ProcessMgr() :
     currentProcIdx(0),
     intSwitchEnabled(false),
@@ -268,6 +285,9 @@ void ProcessMgr::createProcess(const multiboot_mod_list* module, int stdinStream
         newProcInfo->addStreamIndex(stdinStreamIdx);
         newProcInfo->addStreamIndex(stdoutStreamIdx);
         newProcInfo->addStreamIndex(stderrStreamIdx);
+
+        /// @todo temp hardcode
+        newProcInfo->addStreamIndex(2);
 
         // allocate a process ID and start the process
         newProcInfo->start(getNewId());
