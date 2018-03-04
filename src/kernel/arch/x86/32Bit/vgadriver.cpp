@@ -374,6 +374,21 @@ void VgaDriver::evalCsi()
             setCursorY(csrY - y);
         }
     }
+    else if (finalByte == 'G')
+    {
+        unsigned int x = 0;
+        bool done = getNumParam(x, 1, error, ptr);
+        if (done && !error)
+        {
+            if (x > 0)
+            {
+                // convert the escape sequence's 1-based index
+                // to a 0-based index
+                --x;
+            }
+            setCursorX(x);
+        }
+    }
 }
 
 bool VgaDriver::getNumParam(unsigned int& num, unsigned int def, bool& error, const char*& ptr)
