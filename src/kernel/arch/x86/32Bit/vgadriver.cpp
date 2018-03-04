@@ -389,6 +389,35 @@ void VgaDriver::evalCsi()
             setCursorX(x);
         }
     }
+    else if (finalByte == 'H')
+    {
+        unsigned int x = 1;
+        unsigned int y = 1;
+        bool done = getNumParam(x, 1, error, ptr);
+        if (!error && !done)
+        {
+            done = getNumParam(y, 1, error, ptr);
+        }
+
+        if (done && !error)
+        {
+            if (x > 0)
+            {
+                // convert the escape sequence's 1-based index
+                // to a 0-based index
+                --x;
+            }
+            if (y > 0)
+            {
+                // convert the escape sequence's 1-based index
+                // to a 0-based index
+                --y;
+            }
+
+            setCursorX(x);
+            setCursorY(y);
+        }
+    }
 }
 
 bool VgaDriver::getNumParam(unsigned int& num, unsigned int def, bool& error, const char*& ptr)
