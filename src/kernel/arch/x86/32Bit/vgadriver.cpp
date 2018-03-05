@@ -177,7 +177,7 @@ void VgaDriver::outputChar(char ch)
     }
     else
     {
-        uint16_t val = attrib | ch;
+        uint16_t val = attrib | static_cast<uint16_t>(ch);
 
         unsigned int offset = csrY * SCREEN_WIDTH + csrX;
         *(textMem + offset) = val;
@@ -227,6 +227,19 @@ void VgaDriver::updateCursor()
     outb(0x3D5, static_cast<uint8_t>(pos >> 8));
     outb(0x3D4, 15);
     outb(0x3D5, static_cast<uint8_t>(pos));
+}
+
+void VgaDriver::clear(unsigned int startX, unsigned int startY, unsigned int endX, unsigned int endY)
+{
+    unsigned int startPos = startY * SCREEN_WIDTH + startX;
+    unsigned int endPos = endY * SCREEN_WIDTH + endX;
+    uint16_t* startPtr = textMem + startPos;
+    uint16_t* endPtr = textMem + endPos;
+
+    for (uint16_t* ptr = startPtr; ptr <= endPtr; ++ptr)
+    {
+        *ptr = attrib | static_cast<uint16_t>(' ');
+    }
 }
 
 void VgaDriver::parseEscSequence(char ch)
@@ -394,7 +407,7 @@ void VgaDriver::evalCsi()
         unsigned int x = 1;
         unsigned int y = 1;
         bool done = getNumParam(x, 1, error, ptr);
-        if (!error && !done)
+        if (!done && !error)
         {
             done = getNumParam(y, 1, error, ptr);
         }
@@ -416,6 +429,32 @@ void VgaDriver::evalCsi()
 
             setCursorX(x);
             setCursorY(y);
+        }
+    }
+    else if (finalByte == 'J')
+    {
+        unsigned int n = 0;
+        bool done = getNumParam(n, 0, error, ptr);
+        if (done && !error)
+        {
+            if (n == 0)
+            {
+                // clear from cursor to end of screen
+                clear(csrX, csrY, SCREEN_WIDTH - 1, SCREEN_HEIGHT - 1);
+            }
+            else if (n == 1)
+            {
+                // clear from cursor to beginning of screen
+                clear(0, 0, csrX, csrY);
+            }
+            else if (n == 2 || n == 3)
+            {
+                // clear entire screen
+                clear(0, 0, SCREEN_WIDTH - 1, SCREEN_HEIGHT - 1);
+
+                // Note: If n == 3, the scroll buffer should be cleared as well,
+                // but we don't have a scroll buffer right now.
+            }
         }
     }
 }

@@ -105,6 +105,8 @@ private:
 
     void updateCursor();
 
+    void clear(unsigned int startX, unsigned int startY, unsigned int endX, unsigned int endY);
+
     /**
      * @brief Parse a character in an escape sequence.
      * @param ch the character to parse.
