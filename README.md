@@ -1,18 +1,24 @@
 # OS
 
+
 ## Quick Start
 
-Install and build cross-compiler:
+```sh
+# clone the repo
+git clone git@github.com:jbw3/OS.git
+cd OS
 
-`./tools/build-gcc.py`
+# install dependencies
+sudo apt install -y nasm xorriso grub-pc-bin
+./tools/build-gcc.py
 
-Build OS (as iso image)
+# build OS (as ISO image)
+make release iso
 
-`make iso`
+# run in QEMU
+qemu-system-i386 -cdrom bin/SandboxOS-x86.iso
+```
 
-Run in QEMU!
-
-`qemu-system-i386 bin/SandboxOS-x86.iso`
 
 ## Requirements
 
@@ -20,7 +26,7 @@ Run in QEMU!
 
 To build the OS kernel you will need a cross-compiler.
 GCC 7.2.0 is the compiler currently being used.
-Some other compilers or GCC versions will probably work, but note that support for the C11 and C++14 standards is required.
+Some other compilers or GCC versions will probably work, but note that support for the C11 and C++17 standards is required.
 A script to build a GCC cross-compiler can be found in the tools directory: `build-gcc.py`.
 A tutorial can also be found at [OSDev](http://wiki.osdev.org/GCC_Cross-Compiler).
 Run `build-gcc.py -h` for help and command line options.
@@ -28,7 +34,7 @@ Run `build-gcc.py -h` for help and command line options.
 ### Assembler
 
 This project uses the NASM assembler.
-On Ubuntu, they can be installed as follows:
+On Ubuntu, it can be installed as follows:
 ```
 sudo apt install nasm
 ```
@@ -48,17 +54,10 @@ sudo apt install grub-pc-bin
 
 ## Running
 
-### Bochs
-
-A Bochs configuration file to boot the ISO image can be found in the top-level directory.
-The command is `bochs -f bochsrc-linux.txt`.
-
 ### QEMU
 
-QEMU can be used to run either the kernel binary or the ISO image. The respective commands are
-`qemu-system-i386 -kernel bin/kernel-x86`
-and
-`qemu-system-i386 -cdrom bin/SandboxOS-x86.iso`.
+Use the following command to run the OS in QEMU:
+`qemu-system-i386 -cdrom bin/SandboxOS-x86.iso`
 
 ### Bare Metal
 
