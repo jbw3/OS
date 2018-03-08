@@ -48,10 +48,6 @@ void kernelMain(const uint32_t MULTIBOOT_MAGIC_NUM, const multiboot_info* mbootI
     /// @todo temporary
     screen.setStream(&vgaDriver);
 
-    screen.setBackgroundColor(VgaDriver::EColor::eBlack);
-    screen.setForegroundColor(VgaDriver::EColor::eLightGreen);
-    screen.clear();
-
     // ensure we were booted by a Multiboot-compliant boot loader
     if (MULTIBOOT_MAGIC_NUM != MULTIBOOT_BOOTLOADER_MAGIC)
     {

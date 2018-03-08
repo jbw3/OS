@@ -1,14 +1,28 @@
 #include <ctype.h>
 #include <string.h>
 
-#include "vgadriver.h"
 #include "system.h"
+#include "vgadriver.h"
+
+const VgaDriver::EColor VgaDriver::SGR_COLOR_TO_ENUM[] =
+{
+    EColor::eBlack,
+    EColor::eRed,
+    EColor::eGreen,
+    EColor::eBrown,
+    EColor::eBlue,
+    EColor::eMagenta,
+    EColor::eCyan,
+    EColor::eWhite
+};
 
 VgaDriver::VgaDriver()
 {
     textMem = reinterpret_cast<uint16_t*>(0xB8000 + KERNEL_VIRTUAL_BASE);
     csrX = 0;
     csrY = 0;
+    defaultBackground = EColor::eBlack;
+    defaultForeground = EColor::eWhite;
     inEscSequence = false;
     escSequenceChar = '\0';
     csiState = eParameter;
@@ -19,8 +33,10 @@ VgaDriver::VgaDriver()
     setBlinking(false);
 
     // sets attrib
-    setBackgroundColor(EColor::eBlack);
-    setForegroundColor(EColor::eWhite);
+    setBackgroundColor(defaultBackground);
+    setForegroundColor(defaultForeground);
+
+    clear(0, 0, SCREEN_WIDTH - 1, SCREEN_HEIGHT - 1);
 }
 
 VgaDriver::EColor VgaDriver::getForegroundColor() const
@@ -457,6 +473,10 @@ void VgaDriver::evalCsi()
             }
         }
     }
+    else if (finalByte == 'm')
+    {
+        evalCsiSgr();
+    }
 }
 
 bool VgaDriver::getNumParam(unsigned int& num, unsigned int def, bool& error, const char*& ptr)
@@ -516,4 +536,34 @@ bool VgaDriver::getNumParam(unsigned int& num, unsigned int def, bool& error, co
     error = false;
     // when we get here, we're done parsing the string
     return true;
+}
+
+void VgaDriver::evalCsiSgr()
+{
+    const char* ptr = nullptr;
+    bool error = false;
+    unsigned int n = 0;
+    bool done = getNumParam(n, 0, error, ptr);
+    if (done && !error)
+    {
+        if (n == 0)
+        {
+            setBackgroundColor(defaultBackground);
+            setForegroundColor(defaultForeground);
+        }
+        else if (n >= 30 && n <= 37)
+        {
+            // set foreground color
+            unsigned int colorIdx = n - 30;
+            EColor color = SGR_COLOR_TO_ENUM[colorIdx];
+            setForegroundColor(color);
+        }
+        else if (n >= 40 && n <= 47)
+        {
+            // set background color
+            unsigned int colorIdx = n - 40;
+            EColor color = SGR_COLOR_TO_ENUM[colorIdx];
+            setBackgroundColor(color);
+        }
+    }
 }

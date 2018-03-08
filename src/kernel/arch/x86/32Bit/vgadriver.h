@@ -77,10 +77,14 @@ private:
     static constexpr char CSI_START_FINAL_BYTE        = '\x40';
     static constexpr char CSI_END_FINAL_BYTE          = '\x7E';
 
+    static const EColor SGR_COLOR_TO_ENUM[8];
+
     uint16_t* textMem;
     uint16_t attrib;
     unsigned int csrX;
     unsigned int csrY;
+    EColor defaultBackground;
+    EColor defaultForeground;
     bool inEscSequence;
     char escSequenceChar;
     enum ECsiState
@@ -118,6 +122,8 @@ private:
     void evalCsi();
 
     bool getNumParam(unsigned int& num, unsigned int def, bool& error, const char*& ptr);
+
+    void evalCsiSgr();
 };
 
 #endif // VGA_DRIVER_H_
