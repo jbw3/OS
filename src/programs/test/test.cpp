@@ -14,14 +14,17 @@ void printCharYield(int num);
 
 void preemptTest();
 
+void ioTest(int argc, const char* argv[]);
+
 void printCharLoop(int num);
 
 void echoChar();
 
-int main()
+int main(int argc, const char* argv[])
 {
     // forkTest();
-    preemptTest();
+    // preemptTest();
+    ioTest(argc, argv);
 
     return 0;
 }
@@ -87,6 +90,19 @@ void preemptTest()
     }
 
     putchar('\n');
+}
+
+void ioTest(int argc, const char* argv[])
+{
+    if (argc <= 1)
+    {
+        return;
+    }
+
+    const char* paramBytes = argv[1];
+    const char* finalByte = (argc >= 3) ? argv[2] : "m";
+
+    printf("\x1b[%s%s", paramBytes, finalByte);
 }
 
 void printCharLoop(int num)
