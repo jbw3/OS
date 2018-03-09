@@ -9,7 +9,7 @@ if [[ $# -ne 1 ]]; then
 fi
 
 ARCH_NAME=$1
-IMG_NAME=bin/SandboxOS-$ARCH_NAME.img
+IMG_NAME=bin/OS-$ARCH_NAME.img
 
 # create new disk image
 dd if=/dev/zero of=$IMG_NAME bs=512 count=131072

@@ -16,7 +16,7 @@ sudo apt install -y nasm xorriso grub-pc-bin
 make release iso
 
 # run in QEMU
-qemu-system-i386 -cdrom bin/SandboxOS-x86.iso
+qemu-system-i386 -cdrom bin/OS-x86.iso
 ```
 
 
@@ -57,14 +57,14 @@ sudo apt install grub-pc-bin
 ### QEMU
 
 Use the following command to run the OS in QEMU:
-`qemu-system-i386 -cdrom bin/SandboxOS-x86.iso`
+`qemu-system-i386 -cdrom bin/OS-x86.iso`
 
 ### Bare Metal
 
 The ISO image can be copied to a USB drive using the following command replacing `sdx` with the USB drive:
 
 ```
-sudo dd if=bin/SandboxOS-x86.iso of=/dev/sdx
+sudo dd if=bin/OS-x86.iso of=/dev/sdx
 ```
 
 **IMPORTANT**: The `dd` command will wipe the contents of your USB drive. Also, if you accidentally point it to another drive (say, your hard drive), it may wipe that too!

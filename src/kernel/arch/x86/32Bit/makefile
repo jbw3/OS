@@ -41,6 +41,8 @@ LDFLAGS = -T $(SRCDIR)/link.ld -ffreestanding -nostdlib $(LIBS)
 # file.
 POSTCOMPILE = @mv -f $(DEPDIR)/$<.Td $(DEPDIR)/$<.d && touch $@
 
+ISO_NAME = OS-x86.iso
+
 release: CFLAGS += -O2
 release: CXXFLAGS += -O2
 release: CONFIG = release
@@ -85,11 +87,11 @@ iso:
 
 .PHONY: run
 run: release iso
-	qemu-system-i386 -serial stdio -cdrom $(BINDIR)/SandboxOS-x86.iso
+	qemu-system-i386 -serial stdio -cdrom $(BINDIR)/$(ISO_NAME)
 
 .PHONY: debugger
 debugger: debug iso
-	qemu-system-i386 -s -S -cdrom $(BINDIR)/SandboxOS-x86.iso &
+	qemu-system-i386 -s -S -cdrom $(BINDIR)/$(ISO_NAME) &
 	gdb -x $(TOOLSDIR)/x86.gdb
 
 $(TARGET): $(BUILD_OBJ)
