@@ -7,6 +7,11 @@
 namespace os
 {
 
+constexpr uint16_t KEY_UP    = 0x80;
+constexpr uint16_t KEY_DOWN  = 0x81;
+constexpr uint16_t KEY_LEFT  = 0x82;
+constexpr uint16_t KEY_RIGHT = 0x83;
+
 /// @todo some of the code in this class needs an interrupt guard
 class Keyboard : public Stream
 {
