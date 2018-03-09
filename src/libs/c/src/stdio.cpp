@@ -5,6 +5,9 @@
 
 #include "stringutils.h"
 
+extern "C"
+{
+
 int getchar()
 {
     char ch;
@@ -25,7 +28,7 @@ int getchar()
 
 int putchar(int ch)
 {
-    unsigned char uChar = (unsigned char)(ch);
+    unsigned char uChar = static_cast<unsigned char>(ch);
     ssize_t status = write(STDOUT_FILENO, &uChar, 1);
 
     return (status < 0) ? EOF : ch;
@@ -100,22 +103,22 @@ int vsprintf(char* buff, const char* fmt, va_list args)
         {
             switch (fmt[1])
             {
-            /* output a literal % */
+            // output a literal %
             case '%':
                 *buff = '%';
                 ++buff;
                 fmt += 2;
                 break;
 
-            /* char */
+            // char
             case 'c':
                 i = va_arg(args, int);
-                *buff = (char)(i);
+                *buff = static_cast<char>(i);
                 ++buff;
                 fmt += 2;
                 break;
 
-            /* C-string */
+            // C-string
             case 's':
                 s = va_arg(args, char*);
                 while (*s != '\0')
@@ -127,44 +130,44 @@ int vsprintf(char* buff, const char* fmt, va_list args)
                 fmt += 2;
                 break;
 
-            /* signed int */
+            // signed int
             case 'd':
             case 'i':
                 i = va_arg(args, int);
-                buff += writeSignedNum(i, buff, 10, 0);
+                buff += signedIntToString(i, buff, 10, false);
                 fmt += 2;
                 break;
 
-            /* octal */
+            // octal
             case 'o':
                 ui = va_arg(args, unsigned int);
-                buff += writeUnsignedNum(ui, buff, 8, 0);
+                buff += unsignedIntToString(ui, buff, 8, false);
                 fmt += 2;
                 break;
 
-            /* lowercase hexadecimal */
+            // lowercase hexadecimal
             case 'x':
                 ui = va_arg(args, unsigned int);
-                buff += writeUnsignedNum(ui, buff, 16, 0);
+                buff += unsignedIntToString(ui, buff, 16, false);
                 fmt += 2;
                 break;
 
-            /* uppercase hexadecimal */
+            // uppercase hexadecimal
             case 'X':
                 ui = va_arg(args, unsigned int);
-                buff += writeUnsignedNum(ui, buff, 16, 1);
+                buff += unsignedIntToString(ui, buff, 16, true);
                 fmt += 2;
                 break;
 
-            /* unsigned int */
+            // unsigned int
             case 'u':
                 ui = va_arg(args, unsigned int);
-                buff += writeUnsignedNum(ui, buff, 10, 0);
+                buff += unsignedIntToString(ui, buff, 10, false);
                 fmt += 2;
                 break;
 
-            /* if this is not a format sequence,
-            simply output a % */
+            // if this is not a format sequence,
+            // simply output a %
             default:
                 *buff = ch;
                 ++buff;
@@ -184,3 +187,5 @@ int vsprintf(char* buff, const char* fmt, va_list args)
 
     return buff - buffStart;
 }
+
+} // extern "C"
