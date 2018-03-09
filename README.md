@@ -57,7 +57,16 @@ sudo apt install grub-pc-bin
 ### QEMU
 
 Use the following command to run the OS in QEMU:
-`qemu-system-i386 -cdrom bin/OS-x86.iso`
+```
+qemu-system-i386 -cdrom bin/OS-x86.iso
+```
+
+The `-serial stdio` option may also be added to redirect a serial port to the
+terminal. The OS runs a shell with IO redirected to this serial port
+giving you an OS shell in your terminal:
+```
+qemu-system-i386 -serial stdio -cdrom bin/OS-x86.iso
+```
 
 ### Bare Metal
 
