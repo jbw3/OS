@@ -544,7 +544,7 @@ void VgaDriver::evalCsiSgr()
     bool error = false;
     unsigned int n = 0;
     bool done = getNumParam(n, 0, error, ptr);
-    if (done && !error)
+    while (!error)
     {
         if (n == 0)
         {
@@ -565,5 +565,12 @@ void VgaDriver::evalCsiSgr()
             EColor color = SGR_COLOR_TO_ENUM[colorIdx];
             setBackgroundColor(color);
         }
+
+        if (done)
+        {
+            break;
+        }
+
+        done = getNumParam(n, 0, error, ptr);
     }
 }
