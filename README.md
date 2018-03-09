@@ -83,4 +83,4 @@ sudo dd if=bin/OS-x86.iso of=/dev/sdx
 
 The OS has a simple shell for debugging purposes. Type `help` to list the available commands.
 
-![help command](./doc/screenShots/shell-help.png "help command")
+![help command](./doc/screen-shots/shell-help.png "help command")
