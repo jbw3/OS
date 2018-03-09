@@ -558,12 +558,20 @@ void VgaDriver::evalCsiSgr()
             EColor color = SGR_COLOR_TO_ENUM[colorIdx];
             setForegroundColor(color);
         }
+        else if (n == 39)
+        {
+            setForegroundColor(defaultForeground);
+        }
         else if (n >= 40 && n <= 47)
         {
             // set background color
             unsigned int colorIdx = n - 40;
             EColor color = SGR_COLOR_TO_ENUM[colorIdx];
             setBackgroundColor(color);
+        }
+        else if (n == 49)
+        {
+            setBackgroundColor(defaultBackground);
         }
 
         if (done)
