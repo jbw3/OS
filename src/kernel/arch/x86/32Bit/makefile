@@ -83,7 +83,7 @@ libs:
 
 .PHONY: iso
 iso:
-	$(TOOLSDIR)/createIso.sh x86
+	$(TOOLSDIR)/create-iso x86
 
 .PHONY: run
 run: release iso
