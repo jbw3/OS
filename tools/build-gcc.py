@@ -32,8 +32,7 @@ def downloadFile(url, filename):
         return True
 
 class Builder:
-    CONFIG_DIRECTORY = os.path.expanduser(os.path.join('~', '.build-gcc'))
-    CACHE_DIRECTORY = os.path.join(CONFIG_DIRECTORY, 'cache')
+    CACHE_DIRECTORY = os.path.expanduser(os.path.join('~', '.cache', 'build-gcc'))
     ARCHIVE_EXTENSIONS = ('.tar.xz', '.tar.bz2', '.tar.gz')
 
     def __init__(self, args):
