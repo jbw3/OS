@@ -1,17 +1,21 @@
-#include "screen.h"
+#include "kernellogger.h"
+#include "userlogger.h"
 
 extern "C"
 void panic(const char* file, unsigned long line, const char* function, const char* message)
 {
-    screen.setBackgroundColor(VgaDriver::EColor::eRed);
-    screen.setForegroundColor(VgaDriver::EColor::eWhite);
+    klog.logError("Panic", "Kernel panic!!!");
+    klog.logError("Panic", "{}, line {}", file, line);
+    klog.logError("Panic", function);
+    klog.logError("Panic", message);
 
-    screen << "Kernel panic!!!\n"
-           << file << ", line " << line << '\n'
-           << function << '\n'
-           << message;
+    ulog.log("\x1b[37;41mKernel panic!!!\n"
+             "{}, line {}\n"
+             "{}\n"
+             "{}\x1b[0m\n",
+             file, line, function, message);
 
     /// @todo What should we do here? Maybe hang in debug
     /// mode and reboot in release mode.
-    while (1);
+    while (true);
 }

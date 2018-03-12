@@ -92,6 +92,23 @@ ssize_t SerialPortDriver::write(const uint8_t* buff, size_t nbyte)
     return static_cast<ssize_t>(num);
 }
 
+void SerialPortDriver::flush()
+{
+    while (outQ.getSize() > 0)
+    {
+        // if the output reg is empty, write a byte
+        if ( (inb(port + LSR) & EMPTY_TRANS_HOLD_REG) != 0 )
+        {
+            uint8_t value = 0;
+            bool avail = outQ.dequeue(value);
+            if (avail)
+            {
+                outb(port + THR, value);
+            }
+        }
+    }
+}
+
 void SerialPortDriver::init()
 {
     static bool doneInit = false;

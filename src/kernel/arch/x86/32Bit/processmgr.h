@@ -143,6 +143,9 @@ public:
         EStatus status;
     };
 
+    /// The tag used in the kernel log
+    static const char* LOG_TAG;
+
     /**
      * @brief Constructor
      */

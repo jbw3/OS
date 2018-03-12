@@ -3,5 +3,5 @@ bin/
 lib/
 obj/
 .DS_Store
-bochsout.txt
+kernel-*.log
 *.vdi

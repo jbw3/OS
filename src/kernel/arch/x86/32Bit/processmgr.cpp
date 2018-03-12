@@ -1,11 +1,12 @@
 #include "gdt.h"
 #include "irq.h"
+#include "kernellogger.h"
 #include "multiboot.h"
 #include "pageframemgr.h"
 #include "processmgr.h"
-#include "screen.h"
 #include "string.h"
 #include "system.h"
+#include "userlogger.h"
 #include "utils.h"
 
 const uintptr_t ProcessMgr::ProcessInfo::KERNEL_STACK_PAGE = KERNEL_VIRTUAL_BASE - PAGE_SIZE;
@@ -180,6 +181,8 @@ int ProcessMgr::ProcessInfo::duplicateStreamIndex(int procStreamIdx, int dupProc
     return dupProcStreamIdx;
 }
 
+const char* ProcessMgr::LOG_TAG = "Processes";
+
 ProcessMgr::ProcessMgr() :
     currentProcIdx(0),
     intSwitchEnabled(false),
@@ -200,6 +203,8 @@ void ProcessMgr::setMultibootInfo(const multiboot_info* multibootInfo)
 
 void ProcessMgr::mainloop()
 {
+    klog.logInfo(LOG_TAG, "Starting mainloop");
+
     ProcessInfo* proc = nullptr;
 
     const multiboot_mod_list* initModule = nullptr;
@@ -975,7 +980,8 @@ void ProcessMgr::cleanUpProcess(ProcessInfo* procInfo)
 
 void ProcessMgr::logError(const char* errorMsg)
 {
-    screen << "Could not create process:\n" << errorMsg << '\n';
+    ulog.log("Could not create process:\n{}\n", errorMsg);
+    klog.logError(LOG_TAG, "Could not create process: {}", errorMsg);
 }
 
 // create ProcessMgr instance

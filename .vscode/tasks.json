@@ -19,6 +19,10 @@
             "args": [
                 "-s",
                 "-S",
+                "-serial",
+                "/dev/null",
+                "-serial",
+                "file:kernel-x86.log",
                 "-cdrom",
                 "bin/OS-x86.iso"
             ],

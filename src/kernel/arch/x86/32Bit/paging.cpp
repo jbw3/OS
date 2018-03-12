@@ -1,61 +1,49 @@
+#include <stdio.h>
+
+#include "kernellogger.h"
 #include "multiboot.h"
 #include "paging.h"
-#include "screen.h"
 #include "system.h"
 #include "utils.h"
 
 extern "C"
 void pageFault(const registers* regs)
 {
-    VgaDriver::EColor bgColor = screen.getBackgroundColor();
-    VgaDriver::EColor fgColor = screen.getForegroundColor();
+    klog.logError(PAGING_TAG, "Page fault!");
+    klog.logError(PAGING_TAG, "Error code: {}", regs->errCode);
 
-    screen << '\n';
-
-    screen.setBackgroundColor(VgaDriver::EColor::eRed);
-    screen.setForegroundColor(VgaDriver::EColor::eWhite);
-
-    screen << "Page fault!\n"
-           << "Error code: " << regs->errCode << '\n';
+    char msg[128];
+    int idx = 0;
 
     if ( (regs->errCode & PAGE_ERROR_USER) != 0 )
     {
-        screen << "A user process ";
+        idx += sprintf(msg + idx, "A user process ");
     }
     else
     {
-        screen << "A supervisory process ";
+        idx += sprintf(msg + idx, "A supervisory process ");
     }
 
     if ( (regs->errCode & PAGE_ERROR_WRITE) != 0 )
     {
-        screen << "tried to write to ";
+        idx += sprintf(msg + idx, "tried to write to ");
     }
     else
     {
-        screen << "tried to read from ";
+        idx += sprintf(msg + idx, "tried to read from ");
     }
 
     if ( (regs->errCode & PAGE_ERROR_PRESENT) != 0 )
     {
-        screen << "a page and caused a protection fault.\n";
+        idx += sprintf(msg + idx, "a page and caused a protection fault.");
     }
     else
     {
-        screen << "a non-present page.\n";
+        idx += sprintf(msg + idx, "a non-present page.");
     }
 
-    screen << "Address: "
-           << os::Screen::setw(8)
-           << os::Screen::setfill('0')
-           << os::Screen::hex
-           << getRegCR2()
-           << os::Screen::setfill(' ')
-           << os::Screen::dec
-           << '\n';
-
-    screen.setBackgroundColor(bgColor);
-    screen.setForegroundColor(fgColor);
+    klog.logError(PAGING_TAG, msg);
+    klog.logError(PAGING_TAG, "Address: {0>8}", getRegCR2());
 
     PANIC("Page fault!");
 }

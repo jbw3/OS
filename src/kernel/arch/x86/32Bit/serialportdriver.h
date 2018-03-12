@@ -111,6 +111,8 @@ public:
 
     ssize_t write(const uint8_t* buff, size_t nbyte) override;
 
+    void flush() override;
+
 private:
     static constexpr unsigned int MAX_NUM_INSTANCES = 4;
     static SerialPortDriver* instances[MAX_NUM_INSTANCES];
