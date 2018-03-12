@@ -6,6 +6,7 @@
 #include "idt.h"
 #include "irq.h"
 #include "keyboard.h"
+#include "logger.h"
 #include "pageframemgr.h"
 #include "paging.h"
 #include "processmgr.h"
@@ -44,6 +45,8 @@ void kernelMain(const uint32_t MULTIBOOT_MAGIC_NUM, const multiboot_info* mbootI
     streamTable.addStream(&vgaDriver);
     streamTable.addStream(&serial1);
     streamTable.addStream(&serial2);
+
+    klog.setStream(&serial2);
 
     /// @todo temporary
     screen.setStream(&vgaDriver);
