@@ -1,5 +1,6 @@
 #include "gdt.h"
 #include "irq.h"
+#include "logger.h"
 #include "multiboot.h"
 #include "pageframemgr.h"
 #include "processmgr.h"
@@ -180,6 +181,8 @@ int ProcessMgr::ProcessInfo::duplicateStreamIndex(int procStreamIdx, int dupProc
     return dupProcStreamIdx;
 }
 
+const char* ProcessMgr::LOG_TAG = "processes";
+
 ProcessMgr::ProcessMgr() :
     currentProcIdx(0),
     intSwitchEnabled(false),
@@ -200,6 +203,8 @@ void ProcessMgr::setMultibootInfo(const multiboot_info* multibootInfo)
 
 void ProcessMgr::mainloop()
 {
+    klog.logInfo(LOG_TAG, "Starting mainloop");
+
     ProcessInfo* proc = nullptr;
 
     const multiboot_mod_list* initModule = nullptr;
@@ -975,7 +980,10 @@ void ProcessMgr::cleanUpProcess(ProcessInfo* procInfo)
 
 void ProcessMgr::logError(const char* errorMsg)
 {
+    /// @todo log the error in the user's terminal instead of hardcoding "screen"
     screen << "Could not create process:\n" << errorMsg << '\n';
+
+    klog.logError(LOG_TAG, "Could not create process: {}", errorMsg);
 }
 
 // create ProcessMgr instance
