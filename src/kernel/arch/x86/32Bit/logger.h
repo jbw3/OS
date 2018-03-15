@@ -26,33 +26,33 @@ public:
     void setStream(Stream* streamPtr);
 
     template<typename... Ts>
-    void logTrace(const char* str, Ts... ts)
+    void logTrace(const char* format, Ts... ts)
     {
-        logMessage<eTrace>("TRACE: ", str, ts...);
+        logMessage<eTrace>("TRACE", format, ts...);
     }
 
     template<typename... Ts>
-    void logDebug(const char* str, Ts... ts)
+    void logDebug(const char* format, Ts... ts)
     {
-        logMessage<eDebug>("DEBUG: ", str, ts...);
+        logMessage<eDebug>("DEBUG", format, ts...);
     }
 
     template<typename... Ts>
-    void logInfo(const char* str, Ts... ts)
+    void logInfo(const char* format, Ts... ts)
     {
-        logMessage<eInfo>("INFO: ", str, ts...);
+        logMessage<eInfo>("INFO", format, ts...);
     }
 
     template<typename... Ts>
-    void logWarning(const char* str, Ts... ts)
+    void logWarning(const char* format, Ts... ts)
     {
-        logMessage<eWarning>("WARNING: ", str, ts...);
+        logMessage<eWarning>("WARNING", format, ts...);
     }
 
     template<typename... Ts>
-    void logError(const char* str, Ts... ts)
+    void logError(const char* format, Ts... ts)
     {
-        logMessage<eError>("ERROR: ", str, ts...);
+        logMessage<eError>("ERROR", format, ts...);
     }
 
 private:
@@ -71,36 +71,37 @@ private:
     }
 
     template<ELevel logLevel, typename... Ts>
-    void logMessage([[maybe_unused]] const char* header, [[maybe_unused]] const char* str, Ts... ts)
+    void logMessage([[maybe_unused]] const char* levelStr, [[maybe_unused]] const char* format, Ts... ts)
     {
         if constexpr (LEVEL <= logLevel)
         {
-            write(header);
-            log(str, ts...);
+            write(levelStr);
+            write(": ");
+            log(format, ts...);
         }
     }
 
     // this is the base-case for the recursive log() function
-    void log(const char* str)
+    void log(const char* format)
     {
-        write(str);
+        write(format);
         write('\n');
     }
 
     template<typename T, typename... Ts>
-    void log(const char* str, T t, Ts... ts)
+    void log(const char* format, T t, Ts... ts)
     {
-        for (const char* ptr = str; *ptr != '\0'; ++ptr)
+        for (const char* ptr = format; *ptr != '\0'; ++ptr)
         {
             // check for format field
             if (ptr[0] == '{' && ptr[1] == '}')
             {
-                size_t fmtSize = ptr - str;
+                size_t fmtSize = ptr - format;
 
                 // write the format up to the field
                 if (fmtSize > 0)
                 {
-                    write(str, ptr - str);
+                    write(format, ptr - format);
                 }
 
                 // write the field
@@ -117,7 +118,7 @@ private:
 
         // if we get here, there were no fields in the format string, so
         // just print the string
-        log(str);
+        log(format);
     }
 };
 
