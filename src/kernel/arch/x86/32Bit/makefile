@@ -41,7 +41,9 @@ LDFLAGS = -T $(SRCDIR)/link.ld -ffreestanding -nostdlib $(LIBS)
 # file.
 POSTCOMPILE = @mv -f $(DEPDIR)/$<.Td $(DEPDIR)/$<.d && touch $@
 
-ISO_NAME = OS-x86.iso
+ARCH_NAME=x86
+ISO_NAME = OS-$(ARCH_NAME).iso
+KERNEL_LOG = kernel-$(ARCH_NAME).log
 
 release: CFLAGS += -O2
 release: CXXFLAGS += -O2
@@ -62,7 +64,7 @@ CRTEND_OBJ = $(shell $(CXX) $(CXXFLAGS) -print-file-name=crtend.o)
 BUILD_OBJ = $(patsubst %,$(OBJDIR)/%.o,$(SRC))
 LINK_OBJ = $(OBJDIR)/crti.s.o $(CRTBEGIN_OBJ) $(patsubst %,$(OBJDIR)/%.o,$(NO_CRT_SRC)) $(CRTEND_OBJ) $(OBJDIR)/crtn.s.o
 
-TARGET = $(BINDIR)/kernel-x86
+TARGET = $(BINDIR)/kernel-$(ARCH_NAME)
 
 .PHONY: release
 release: init libs $(TARGET)
@@ -83,16 +85,16 @@ libs:
 
 .PHONY: iso
 iso:
-	$(TOOLSDIR)/create-iso x86
+	$(TOOLSDIR)/create-iso $(ARCH_NAME)
 
 .PHONY: run
-run: release iso
-	qemu-system-i386 -serial stdio -cdrom $(BINDIR)/$(ISO_NAME)
+run: iso
+	qemu-system-i386 -serial stdio -serial file:$(KERNEL_LOG) -cdrom $(BINDIR)/$(ISO_NAME)
 
 .PHONY: debugger
 debugger: debug iso
-	qemu-system-i386 -s -S -cdrom $(BINDIR)/$(ISO_NAME) &
-	gdb -x $(TOOLSDIR)/x86.gdb
+	qemu-system-i386 -s -S -serial /dev/null -serial file:$(KERNEL_LOG) -cdrom $(BINDIR)/$(ISO_NAME) &
+	gdb -x $(TOOLSDIR)/$(ARCH_NAME).gdb
 
 $(TARGET): $(BUILD_OBJ)
 	$(CXX) $(LINK_OBJ) -o $(TARGET) $(LDFLAGS)
