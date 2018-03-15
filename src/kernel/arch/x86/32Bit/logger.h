@@ -26,33 +26,33 @@ public:
     void setStream(Stream* streamPtr);
 
     template<typename... Ts>
-    void logTrace([[maybe_unused]] const char* str, Ts... ts)
+    void logTrace(const char* str, Ts... ts)
     {
-        if constexpr (LEVEL <= eTrace)
-        {
-            write("TRACE: ");
-            log(str, ts...);
-        }
+        logMessage<eTrace>("TRACE: ", str, ts...);
     }
 
     template<typename... Ts>
-    void logDebug([[maybe_unused]] const char* str, Ts... ts)
+    void logDebug(const char* str, Ts... ts)
     {
-        if constexpr (LEVEL <= eDebug)
-        {
-            write("DEBUG: ");
-            log(str, ts...);
-        }
+        logMessage<eDebug>("DEBUG: ", str, ts...);
     }
 
     template<typename... Ts>
-    void logInfo([[maybe_unused]] const char* str, Ts... ts)
+    void logInfo(const char* str, Ts... ts)
     {
-        if constexpr (LEVEL <= eInfo)
-        {
-            write("INFO: ");
-            log(str, ts...);
-        }
+        logMessage<eInfo>("INFO: ", str, ts...);
+    }
+
+    template<typename... Ts>
+    void logWarning(const char* str, Ts... ts)
+    {
+        logMessage<eWarning>("WARNING: ", str, ts...);
+    }
+
+    template<typename... Ts>
+    void logError(const char* str, Ts... ts)
+    {
+        logMessage<eError>("ERROR: ", str, ts...);
     }
 
 private:
@@ -65,10 +65,26 @@ private:
         write(str, strlen(str));
     }
 
+    void write(char ch)
+    {
+        write(&ch, 1);
+    }
+
+    template<ELevel logLevel, typename... Ts>
+    void logMessage([[maybe_unused]] const char* header, [[maybe_unused]] const char* str, Ts... ts)
+    {
+        if constexpr (LEVEL <= logLevel)
+        {
+            write(header);
+            log(str, ts...);
+        }
+    }
+
     // this is the base-case for the recursive log() function
     void log(const char* str)
     {
         write(str);
+        write('\n');
     }
 
     template<typename T, typename... Ts>
@@ -79,8 +95,13 @@ private:
             // check for format field
             if (ptr[0] == '{' && ptr[1] == '}')
             {
+                size_t fmtSize = ptr - str;
+
                 // write the format up to the field
-                write(str, ptr - str);
+                if (fmtSize > 0)
+                {
+                    write(str, ptr - str);
+                }
 
                 // write the field
                 write(t);
@@ -96,7 +117,7 @@ private:
 
         // if we get here, there were no fields in the format string, so
         // just print the string
-        write(str);
+        log(str);
     }
 };
 
