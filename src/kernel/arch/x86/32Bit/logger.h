@@ -26,33 +26,33 @@ public:
     void setStream(Stream* streamPtr);
 
     template<typename... Ts>
-    void logTrace(const char* format, Ts... ts)
+    void logTrace(const char* tag, const char* format, Ts... ts)
     {
-        logMessage<eTrace>("TRACE", format, ts...);
+        logMessage<eTrace>("TRACE", tag, format, ts...);
     }
 
     template<typename... Ts>
-    void logDebug(const char* format, Ts... ts)
+    void logDebug(const char* tag, const char* format, Ts... ts)
     {
-        logMessage<eDebug>("DEBUG", format, ts...);
+        logMessage<eDebug>("DEBUG", tag, format, ts...);
     }
 
     template<typename... Ts>
-    void logInfo(const char* format, Ts... ts)
+    void logInfo(const char* tag, const char* format, Ts... ts)
     {
-        logMessage<eInfo>("INFO", format, ts...);
+        logMessage<eInfo>("INFO", tag, format, ts...);
     }
 
     template<typename... Ts>
-    void logWarning(const char* format, Ts... ts)
+    void logWarning(const char* tag, const char* format, Ts... ts)
     {
-        logMessage<eWarning>("WARNING", format, ts...);
+        logMessage<eWarning>("WARNING", tag, format, ts...);
     }
 
     template<typename... Ts>
-    void logError(const char* format, Ts... ts)
+    void logError(const char* tag, const char* format, Ts... ts)
     {
-        logMessage<eError>("ERROR", format, ts...);
+        logMessage<eError>("ERROR", tag, format, ts...);
     }
 
 private:
@@ -71,11 +71,13 @@ private:
     }
 
     template<ELevel logLevel, typename... Ts>
-    void logMessage([[maybe_unused]] const char* levelStr, [[maybe_unused]] const char* format, Ts... ts)
+    void logMessage([[maybe_unused]] const char* levelStr, [[maybe_unused]] const char* tag, [[maybe_unused]] const char* format, Ts... ts)
     {
         if constexpr (LEVEL <= logLevel)
         {
             write(levelStr);
+            write(": ");
+            write(tag);
             write(": ");
             log(format, ts...);
         }
