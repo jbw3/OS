@@ -70,6 +70,12 @@ private:
         write(&ch, 1);
     }
 
+    void write(bool b);
+
+    void write(int num);
+
+    void write(unsigned int num);
+
     template<ELevel logLevel, typename... Ts>
     void logMessage([[maybe_unused]] const char* levelStr, [[maybe_unused]] const char* tag, [[maybe_unused]] const char* format, Ts... ts)
     {
