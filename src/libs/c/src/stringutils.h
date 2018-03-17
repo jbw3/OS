@@ -3,19 +3,23 @@
 
 #include <string.h>
 
+/// The maximum number of characters needed to represent an integer of
+/// type T. The maximum number of characters are needed when the number
+/// is printed in base 2. In this case, we need one character per bit
+/// which is the integer size * 8. We also need one character for a
+/// possible negative sign and one character for the terminating NULL.
+template<typename T>
+constexpr size_t MAX_INT_CHARS = sizeof(T) * 8 + 2;
+
 char digitToChar(char digit, bool uppercase);
 
 template<typename T>
-int signedIntToString(T num, char* str, int base, bool uppercase)
+size_t signedIntToString(T num, char* str, int base, bool uppercase)
 {
-    // need sizeof(num) * 8 chars for max signed number,
-    // 1 char for possible negative sign,
-    // and 1 char for null
-    constexpr int BUFF_SIZE = sizeof(num) * 8 + 2;
-    char buff[BUFF_SIZE];
-    buff[BUFF_SIZE - 1] = '\0';
+    char buff[MAX_INT_CHARS<T>];
+    buff[MAX_INT_CHARS<T> - 1] = '\0';
 
-    int idx = BUFF_SIZE - 1;
+    size_t idx = MAX_INT_CHARS<T> - 1;
     bool negative = true;
     if (num >= 0)
     {
@@ -38,19 +42,16 @@ int signedIntToString(T num, char* str, int base, bool uppercase)
 
     strcpy(str, buff + idx);
 
-    return (BUFF_SIZE - 1) - idx;
+    return (MAX_INT_CHARS<T> - 1) - idx;
 }
 
 template<typename T>
-int unsignedIntToString(T num, char* str, int base, bool uppercase)
+size_t unsignedIntToString(T num, char* str, int base, bool uppercase)
 {
-    // need sizeof(num) * 8 chars for max signed number
-    // and 1 char for null
-    constexpr int BUFF_SIZE = sizeof(num) * 8 + 1;
-    char buff[BUFF_SIZE];
-    buff[BUFF_SIZE - 1] = '\0';
+    char buff[MAX_INT_CHARS<T>];
+    buff[MAX_INT_CHARS<T> - 1] = '\0';
 
-    int idx = BUFF_SIZE - 1;
+    size_t idx = MAX_INT_CHARS<T> - 1;
     do
     {
         char digit = num % base;
@@ -61,7 +62,7 @@ int unsignedIntToString(T num, char* str, int base, bool uppercase)
 
     strcpy(str, buff + idx);
 
-    return (BUFF_SIZE - 1) - idx;
+    return (MAX_INT_CHARS<T> - 1) - idx;
 }
 
 template<typename T>
