@@ -23,7 +23,7 @@ void Logger::write(const char* msg, size_t len)
     }
 }
 
-void Logger::writeBool(bool b)
+void Logger::write(bool b)
 {
     if (b)
     {
@@ -33,6 +33,61 @@ void Logger::writeBool(bool b)
     {
         write("false", 5);
     }
+}
+
+void Logger::write(signed char num)
+{
+    writeInt(num);
+}
+
+void Logger::write(short num)
+{
+    writeInt(num);
+}
+
+void Logger::write(int num)
+{
+    writeInt(num);
+}
+
+void Logger::write(long num)
+{
+    writeInt(num);
+}
+
+void Logger::write(long long num)
+{
+    writeInt(num);
+}
+
+void Logger::write(unsigned char num)
+{
+    writeInt(num);
+}
+
+void Logger::write(unsigned short num)
+{
+    writeInt(num);
+}
+
+void Logger::write(unsigned int num)
+{
+    writeInt(num);
+}
+
+void Logger::write(unsigned long num)
+{
+    writeInt(num);
+}
+
+void Logger::write(unsigned long long num)
+{
+    writeInt(num);
+}
+
+void Logger::write(const void* ptr)
+{
+    writeInt(reinterpret_cast<uintptr_t>(ptr));
 }
 
 // create kernel logger instance

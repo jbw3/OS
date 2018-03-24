@@ -70,34 +70,48 @@ private:
 
     void write(const char* msg, size_t len);
 
-    void writeBool(bool b);
+    void write(const char* str)
+    {
+        write(str, strlen(str));
+    }
+
+    void write(bool b);
+
+    void write(char c)
+    {
+        write(&c, 1);
+    }
+
+    void write(signed char num);
+
+    void write(short num);
+
+    void write(int num);
+
+    void write(long num);
+
+    void write(long long num);
+
+    void write(unsigned char num);
+
+    void write(unsigned short num);
+
+    void write(unsigned int num);
+
+    void write(unsigned long num);
+
+    void write(unsigned long long num);
+
+    void write(const void* ptr);
 
     template<typename T>
-    void write([[maybe_unused]] T value)
+    void writeInt([[maybe_unused]] T value)
     {
-        if constexpr (std::is_same_v<const char*, T> ||
-                      std::is_same_v<char*, T>)
-        {
-            write(value, strlen(value));
-        }
-        else if constexpr (std::is_same_v<T, bool>)
-        {
-            writeBool(value);
-        }
-        else if constexpr (std::is_same_v<T, char>)
-        {
-            write(&value, 1);
-        }
-        else if constexpr (std::is_integral_v<T>)
-        {
-            char buff[MAX_INT_CHARS<T>];
-            size_t size = intToString(value, buff, 10, true);
-            write(buff, size);
-        }
-        else
-        {
-            static_assert(dependent_false<T>::value, "Cannot log type.");
-        }
+        static_assert(std::is_integral_v<T>, "writeInt() only writes integral values.");
+
+        char buff[MAX_INT_CHARS<T>];
+        size_t size = intToString(value, buff, 10, true);
+        write(buff, size);
     }
 
     template<ELevel logLevel, typename... Ts>
