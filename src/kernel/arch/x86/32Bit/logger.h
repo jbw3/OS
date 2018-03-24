@@ -4,6 +4,9 @@
 #include <stddef.h>
 #include <string.h>
 
+/// @todo Find a better way to reference this
+#include "../../../../libs/c/src/stringutils.h"
+
 class Stream;
 
 class Logger
@@ -56,25 +59,46 @@ public:
     }
 
 private:
+    /**
+     * @brief Used to fail a static_assert().
+     */
+    template<typename T>
+    struct dependent_false : std::false_type
+    {};
+
     Stream* stream;
 
     void write(const char* msg, size_t len);
 
-    void write(const char* str)
+    void writeBool(bool b);
+
+    template<typename T>
+    void write([[maybe_unused]] T value)
     {
-        write(str, strlen(str));
+        if constexpr (std::is_same_v<const char*, T> ||
+                      std::is_same_v<char*, T>)
+        {
+            write(value, strlen(value));
+        }
+        else if constexpr (std::is_same_v<T, bool>)
+        {
+            writeBool(value);
+        }
+        else if constexpr (std::is_same_v<T, char>)
+        {
+            write(&value, 1);
+        }
+        else if constexpr (std::is_integral_v<T>)
+        {
+            char buff[MAX_INT_CHARS<T>];
+            size_t size = intToString(value, buff, 10, true);
+            write(buff, size);
+        }
+        else
+        {
+            static_assert(dependent_false<T>::value, "Cannot log type.");
+        }
     }
-
-    void write(char ch)
-    {
-        write(&ch, 1);
-    }
-
-    void write(bool b);
-
-    void write(int num);
-
-    void write(unsigned int num);
 
     template<ELevel logLevel, typename... Ts>
     void logMessage([[maybe_unused]] const char* levelStr, [[maybe_unused]] const char* tag, [[maybe_unused]] const char* format, Ts... ts)
