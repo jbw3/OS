@@ -2,6 +2,7 @@
 #define _STRINGUTILS_H
 
 #include <string.h>
+#include <type_traits>
 
 /// The maximum number of characters needed to represent an integer of
 /// type T. The maximum number of characters are needed when the number
@@ -63,6 +64,21 @@ size_t unsignedIntToString(T num, char* str, int base, bool uppercase)
     strcpy(str, buff + idx);
 
     return (MAX_INT_CHARS<T> - 1) - idx;
+}
+
+template<typename T>
+size_t intToString(T num, char* str, int base, bool uppercase)
+{
+    static_assert(std::is_integral_v<T>, "intToString() may only be used with an integral type.");
+
+    if constexpr (std::is_signed_v<T>)
+    {
+        return signedIntToString(num, str, base, uppercase);
+    }
+    else
+    {
+        return unsignedIntToString(num, str, base, uppercase);
+    }
 }
 
 template<typename T>
