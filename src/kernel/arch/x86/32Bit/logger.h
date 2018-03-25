@@ -69,15 +69,15 @@ private:
     /**
      * @brief Contains format options.
      */
-    struct Format
+    struct FormatOptions
     {
         int base;
         bool uppercase;
 
-        Format();
+        FormatOptions();
 
         void reset();
-    } currentFormat;
+    } fmtOptions;
 
     Stream* stream;
 
@@ -89,13 +89,13 @@ private:
     void writeHeader(const char* levelStr, const char* tag);
 
     /**
-     * @brief Parse the format parameters.
+     * @brief Parse the format options.
      * @param fmtStart Points to the first character in the format.
      * @param fmtEnd Points to one past the last character in the format.
      * @return true if parsing was successful.
      * @return false if there was an error during parsing.
      */
-    bool parseFormat(const char* fmtStart, const char* fmtEnd);
+    bool parseOptions(const char* fmtStart, const char* fmtEnd);
 
     void write(const char* msg, size_t len);
 
@@ -139,7 +139,7 @@ private:
         static_assert(std::is_integral_v<T>, "writeInt() only writes integral values.");
 
         char buff[MAX_INT_CHARS<T>];
-        size_t size = intToString(value, buff, currentFormat.base, currentFormat.uppercase);
+        size_t size = intToString(value, buff, fmtOptions.base, fmtOptions.uppercase);
         write(buff, size);
     }
 
@@ -172,7 +172,7 @@ private:
             if (fmtEnd != nullptr)
             {
                 // parse format
-                bool parsingOk = parseFormat(fmtStart + 1, fmtEnd);
+                bool parsingOk = parseOptions(fmtStart + 1, fmtEnd);
                 if (parsingOk)
                 {
                     size_t strSize = fmtStart - format;

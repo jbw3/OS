@@ -3,12 +3,12 @@
 #include "logger.h"
 #include "stream.h"
 
-Logger::Format::Format()
+Logger::FormatOptions::FormatOptions()
 {
     reset();
 }
 
-void Logger::Format::reset()
+void Logger::FormatOptions::reset()
 {
     base = 10;
     uppercase = false;
@@ -27,34 +27,35 @@ void Logger::setStream(Stream* streamPtr)
 void Logger::writeHeader(const char* levelStr, const char* tag)
 {
     write(levelStr);
-    write(": ");
+    write(": ", 2);
     write(tag);
-    write(": ");
+    write(": ", 2);
 }
 
-bool Logger::parseFormat(const char* fmtStart, const char* fmtEnd)
+bool Logger::parseOptions(const char* fmtStart, const char* fmtEnd)
 {
     bool ok = true;
 
     // reset format
-    currentFormat.reset();
+    fmtOptions.reset();
 
     if (fmtStart != fmtEnd)
     {
         switch (*fmtStart)
         {
         case 'b':
-            currentFormat.base = 2;
+            fmtOptions.base = 2;
             break;
 
         case 'o':
-            currentFormat.base = 8;
+            fmtOptions.base = 8;
             break;
 
         case 'X':
-            currentFormat.uppercase = true;
+            fmtOptions.uppercase = true;
+            [[fallthrough]];
         case 'x':
-            currentFormat.base = 16;
+            fmtOptions.base = 16;
             break;
 
         default:
