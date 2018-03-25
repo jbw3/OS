@@ -12,6 +12,9 @@ class Stream;
 class Logger
 {
 public:
+    /**
+     * @brief The logging level.
+     */
     enum ELevel
     {
         eTrace,
@@ -88,6 +91,8 @@ private:
      */
     void writeHeader(const char* levelStr, const char* tag);
 
+    bool writeFormatAndParseOptions(const char* format, const char*& nextFormat);
+
     /**
      * @brief Parse the format options.
      * @param fmtStart Points to the first character in the format.
@@ -99,10 +104,7 @@ private:
 
     void write(const char* msg, size_t len);
 
-    void write(const char* str)
-    {
-        write(str, strlen(str));
-    }
+    void write(const char* str);
 
     void write(bool b);
 
@@ -163,42 +165,22 @@ private:
     template<typename T, typename... Ts>
     void log(const char* format, T t, Ts... ts)
     {
-        // find start of format
-        const char* fmtStart = strchr(format, '{');
-        if (fmtStart != nullptr)
+        const char* nextFormat = nullptr;
+        bool foundOptions = writeFormatAndParseOptions(format, nextFormat);
+        if (foundOptions)
         {
-            // find end of format
-            const char* fmtEnd = strchr(fmtStart, '}');
-            if (fmtEnd != nullptr)
-            {
-                // parse format
-                bool parsingOk = parseOptions(fmtStart + 1, fmtEnd);
-                if (parsingOk)
-                {
-                    size_t strSize = fmtStart - format;
+            // write the field
+            write(t);
 
-                    // write the format up to the field
-                    if (strSize > 0)
-                    {
-                        write(format, strSize);
-                    }
-
-                    // write the field
-                    write(t);
-
-                    // recursive call with the remaining format string and arguments
-                    log(fmtEnd + 1, ts...);
-
-                    // the recursive call will print the rest of the string, so
-                    // there is nothing left to do
-                    return;
-                }
-            }
+            // recursive call with the remaining format string and arguments
+            log(nextFormat, ts...);
         }
-
-        // if we get here, there were no fields in the format string, so
-        // just print the string
-        log(format);
+        else
+        {
+            // if we get here, there were no fields in the format string, so
+            // just print the string
+            log(format);
+        }
     }
 };
 

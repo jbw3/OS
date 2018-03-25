@@ -32,6 +32,39 @@ void Logger::writeHeader(const char* levelStr, const char* tag)
     write(": ", 2);
 }
 
+bool Logger::writeFormatAndParseOptions(const char* format, const char*& nextFormat)
+{
+    bool foundOptions = false;
+    nextFormat = nullptr;
+
+    // find start of format
+    const char* fmtStart = strchr(format, '{');
+    if (fmtStart != nullptr)
+    {
+        // find end of format
+        const char* fmtEnd = strchr(fmtStart, '}');
+        if (fmtEnd != nullptr)
+        {
+            // parse format
+            bool parsingOk = parseOptions(fmtStart + 1, fmtEnd);
+            if (parsingOk)
+            {
+                foundOptions = true;
+                nextFormat = fmtEnd + 1;
+
+                // write the format up to the field
+                size_t size = fmtStart - format;
+                if (size > 0)
+                {
+                    write(format, size);
+                }
+            }
+        }
+    }
+
+    return foundOptions;
+}
+
 bool Logger::parseOptions(const char* fmtStart, const char* fmtEnd)
 {
     bool ok = true;
@@ -75,6 +108,11 @@ void Logger::write(const char* msg, size_t len)
 
         stream->write(ptr, len);
     }
+}
+
+void Logger::write(const char* str)
+{
+    write(str, strlen(str));
 }
 
 void Logger::write(bool b)
