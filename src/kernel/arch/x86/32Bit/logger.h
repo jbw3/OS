@@ -68,6 +68,8 @@ private:
 
     Stream* stream;
 
+    void writeHeader(const char* levelStr, const char* tag);
+
     void write(const char* msg, size_t len);
 
     void write(const char* str)
@@ -119,10 +121,7 @@ private:
     {
         if constexpr (LEVEL <= logLevel)
         {
-            write(levelStr);
-            write(": ");
-            write(tag);
-            write(": ");
+            writeHeader(levelStr, tag);
             log(format, ts...);
         }
     }
@@ -137,24 +136,29 @@ private:
     template<typename T, typename... Ts>
     void log(const char* format, T t, Ts... ts)
     {
-        for (const char* ptr = format; *ptr != '\0'; ++ptr)
+        // find start of format
+        const char* fmtStart = strchr(format, '{');
+        if (fmtStart != nullptr)
         {
-            // check for format field
-            if (ptr[0] == '{' && ptr[1] == '}')
+            // find end of format
+            const char* fmtEnd = strchr(fmtStart, '}');
+            if (fmtEnd != nullptr)
             {
-                size_t fmtSize = ptr - format;
+                /// @todo parse format
+
+                size_t strSize = fmtStart - format;
 
                 // write the format up to the field
-                if (fmtSize > 0)
+                if (strSize > 0)
                 {
-                    write(format, ptr - format);
+                    write(format, strSize);
                 }
 
                 // write the field
                 write(t);
 
                 // recursive call with the remaining format string and arguments
-                log(ptr + 2, ts...);
+                log(fmtEnd + 1, ts...);
 
                 // the recursive call will print the rest of the string, so
                 // there is nothing left to do

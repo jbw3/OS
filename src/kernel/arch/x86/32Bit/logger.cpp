@@ -13,6 +13,14 @@ void Logger::setStream(Stream* streamPtr)
     stream = streamPtr;
 }
 
+void Logger::writeHeader(const char* levelStr, const char* tag)
+{
+    write(levelStr);
+    write(": ");
+    write(tag);
+    write(": ");
+}
+
 void Logger::write(const char* msg, size_t len)
 {
     if (stream != nullptr)
