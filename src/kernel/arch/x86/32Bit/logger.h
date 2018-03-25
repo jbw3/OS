@@ -66,9 +66,36 @@ private:
     struct dependent_false : std::false_type
     {};
 
+    /**
+     * @brief Contains format options.
+     */
+    struct Format
+    {
+        int base;
+        bool uppercase;
+
+        Format();
+
+        void reset();
+    } currentFormat;
+
     Stream* stream;
 
+    /**
+     * @brief Write the message header.
+     * @param levelStr The debug level string.
+     * @param tag The message tag.
+     */
     void writeHeader(const char* levelStr, const char* tag);
+
+    /**
+     * @brief Parse the format parameters.
+     * @param fmtStart Points to the first character in the format.
+     * @param fmtEnd Points to one past the last character in the format.
+     * @return true if parsing was successful.
+     * @return false if there was an error during parsing.
+     */
+    bool parseFormat(const char* fmtStart, const char* fmtEnd);
 
     void write(const char* msg, size_t len);
 
@@ -112,7 +139,7 @@ private:
         static_assert(std::is_integral_v<T>, "writeInt() only writes integral values.");
 
         char buff[MAX_INT_CHARS<T>];
-        size_t size = intToString(value, buff, 10, true);
+        size_t size = intToString(value, buff, currentFormat.base, currentFormat.uppercase);
         write(buff, size);
     }
 
@@ -144,25 +171,28 @@ private:
             const char* fmtEnd = strchr(fmtStart, '}');
             if (fmtEnd != nullptr)
             {
-                /// @todo parse format
-
-                size_t strSize = fmtStart - format;
-
-                // write the format up to the field
-                if (strSize > 0)
+                // parse format
+                bool parsingOk = parseFormat(fmtStart + 1, fmtEnd);
+                if (parsingOk)
                 {
-                    write(format, strSize);
+                    size_t strSize = fmtStart - format;
+
+                    // write the format up to the field
+                    if (strSize > 0)
+                    {
+                        write(format, strSize);
+                    }
+
+                    // write the field
+                    write(t);
+
+                    // recursive call with the remaining format string and arguments
+                    log(fmtEnd + 1, ts...);
+
+                    // the recursive call will print the rest of the string, so
+                    // there is nothing left to do
+                    return;
                 }
-
-                // write the field
-                write(t);
-
-                // recursive call with the remaining format string and arguments
-                log(fmtEnd + 1, ts...);
-
-                // the recursive call will print the rest of the string, so
-                // there is nothing left to do
-                return;
             }
         }
 

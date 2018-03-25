@@ -3,6 +3,17 @@
 #include "logger.h"
 #include "stream.h"
 
+Logger::Format::Format()
+{
+    reset();
+}
+
+void Logger::Format::reset()
+{
+    base = 10;
+    uppercase = false;
+}
+
 Logger::Logger()
 {
     stream = nullptr;
@@ -19,6 +30,40 @@ void Logger::writeHeader(const char* levelStr, const char* tag)
     write(": ");
     write(tag);
     write(": ");
+}
+
+bool Logger::parseFormat(const char* fmtStart, const char* fmtEnd)
+{
+    bool ok = true;
+
+    // reset format
+    currentFormat.reset();
+
+    if (fmtStart != fmtEnd)
+    {
+        switch (*fmtStart)
+        {
+        case 'b':
+            currentFormat.base = 2;
+            break;
+
+        case 'o':
+            currentFormat.base = 8;
+            break;
+
+        case 'X':
+            currentFormat.uppercase = true;
+        case 'x':
+            currentFormat.base = 16;
+            break;
+
+        default:
+            ok = false;
+            break;
+        }
+    }
+
+    return ok;
 }
 
 void Logger::write(const char* msg, size_t len)
