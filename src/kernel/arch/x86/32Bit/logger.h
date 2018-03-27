@@ -76,6 +76,14 @@ private:
     {
         int base;
         bool uppercase;
+        size_t width;
+        char fill;
+        enum EAlignment
+        {
+            eLeft,
+            eRight,
+            eCenter,
+        } alignment;
 
         FormatOptions();
 
@@ -91,16 +99,17 @@ private:
      */
     void writeHeader(const char* levelStr, const char* tag);
 
-    bool writeFormatAndParseOptions(const char* format, const char*& nextFormat);
+    bool writeFormatAndParseOptions(const char* format, const char*& nextFormat, FormatOptions& options);
 
     /**
      * @brief Parse the format options.
      * @param fmtStart Points to the first character in the format.
      * @param fmtEnd Points to one past the last character in the format.
+     * @param [out] options The format options parsed from the string.
      * @return true if parsing was successful.
      * @return false if there was an error during parsing.
      */
-    bool parseOptions(const char* fmtStart, const char* fmtEnd);
+    bool parseOptions(const char* fmtStart, const char* fmtEnd, FormatOptions& options);
 
     void write(const char* msg, size_t len);
 
@@ -166,11 +175,18 @@ private:
     void log(const char* format, T t, Ts... ts)
     {
         const char* nextFormat = nullptr;
-        bool foundOptions = writeFormatAndParseOptions(format, nextFormat);
+        FormatOptions options;
+        bool foundOptions = writeFormatAndParseOptions(format, nextFormat, options);
         if (foundOptions)
         {
+            // set the options
+            fmtOptions = options;
+
             // write the field
             write(t);
+
+            // reset the options to default values
+            fmtOptions.reset();
 
             // recursive call with the remaining format string and arguments
             log(nextFormat, ts...);

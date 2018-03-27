@@ -1,5 +1,6 @@
 #include <string.h>
 
+#include "ctype.h"
 #include "logger.h"
 #include "stream.h"
 
@@ -12,6 +13,9 @@ void Logger::FormatOptions::reset()
 {
     base = 10;
     uppercase = false;
+    width = 0;
+    fill = ' ';
+    alignment = eLeft;
 }
 
 Logger::Logger()
@@ -32,7 +36,7 @@ void Logger::writeHeader(const char* levelStr, const char* tag)
     write(": ", 2);
 }
 
-bool Logger::writeFormatAndParseOptions(const char* format, const char*& nextFormat)
+bool Logger::writeFormatAndParseOptions(const char* format, const char*& nextFormat, FormatOptions& options)
 {
     bool foundOptions = false;
     nextFormat = nullptr;
@@ -46,7 +50,7 @@ bool Logger::writeFormatAndParseOptions(const char* format, const char*& nextFor
         if (fmtEnd != nullptr)
         {
             // parse format
-            bool parsingOk = parseOptions(fmtStart + 1, fmtEnd);
+            bool parsingOk = parseOptions(fmtStart + 1, fmtEnd, options);
             if (parsingOk)
             {
                 foundOptions = true;
@@ -65,34 +69,70 @@ bool Logger::writeFormatAndParseOptions(const char* format, const char*& nextFor
     return foundOptions;
 }
 
-bool Logger::parseOptions(const char* fmtStart, const char* fmtEnd)
+bool Logger::parseOptions(const char* fmtStart, const char* fmtEnd, FormatOptions& options)
 {
     bool ok = true;
 
-    // reset format
-    fmtOptions.reset();
-
-    if (fmtStart != fmtEnd)
+    for (const char* ptr = fmtStart; ptr != fmtEnd; ++ptr)
     {
-        switch (*fmtStart)
+        if (ptr + 1 != fmtEnd && (ptr[1] == '<' || ptr[1] == '^' || ptr[1] == '>'))
         {
-        case 'b':
-            fmtOptions.base = 2;
-            break;
+            options.fill = *ptr;
+        }
+        else if (isdigit(*ptr))
+        {
+            options.width = 0;
+            do
+            {
+                options.width *= 10;
+                options.width += *ptr - '0';
+                ++ptr;
+            } while (ptr != fmtEnd && isdigit(*ptr));
+            --ptr;
+        }
+        else
+        {
+            switch (*ptr)
+            {
+            case 'b':
+                options.base = 2;
+                break;
 
-        case 'o':
-            fmtOptions.base = 8;
-            break;
+            case 'o':
+                options.base = 8;
+                break;
 
-        case 'X':
-            fmtOptions.uppercase = true;
-            [[fallthrough]];
-        case 'x':
-            fmtOptions.base = 16;
-            break;
+            case 'd':
+                options.base = 10;
+                break;
 
-        default:
-            ok = false;
+            case 'X':
+                options.uppercase = true;
+                [[fallthrough]];
+            case 'x':
+                options.base = 16;
+                break;
+
+            case '<':
+                options.alignment = FormatOptions::eLeft;
+                break;
+
+            case '^':
+                options.alignment = FormatOptions::eCenter;
+                break;
+
+            case '>':
+                options.alignment = FormatOptions::eRight;
+                break;
+
+            default:
+                ok = false;
+                break;
+            }
+        }
+
+        if (!ok)
+        {
             break;
         }
     }
@@ -104,9 +144,45 @@ void Logger::write(const char* msg, size_t len)
 {
     if (stream != nullptr)
     {
-        const uint8_t* ptr = reinterpret_cast<const uint8_t*>(msg);
+        size_t leftPaddingChars = 0;
+        size_t rightPaddingChars = 0;
 
+        if (fmtOptions.width > len)
+        {
+            size_t totalPaddingChars = fmtOptions.width - len;
+            switch (fmtOptions.alignment)
+            {
+            case FormatOptions::eLeft:
+                rightPaddingChars = totalPaddingChars;
+                break;
+
+            case FormatOptions::eCenter:
+                leftPaddingChars = totalPaddingChars / 2;
+                rightPaddingChars = (totalPaddingChars + 1) / 2;
+                break;
+
+            case FormatOptions::eRight:
+                leftPaddingChars = totalPaddingChars;
+                break;
+            }
+
+            /// @todo make this more efficient
+            for (size_t i = 0; i < leftPaddingChars; ++i)
+            {
+                const uint8_t* fillPtr = reinterpret_cast<const uint8_t*>(&fmtOptions.fill);
+                stream->write(fillPtr, 1);
+            }
+        }
+
+        const uint8_t* ptr = reinterpret_cast<const uint8_t*>(msg);
         stream->write(ptr, len);
+
+        /// @todo make this more efficient
+        for (size_t i = 0; i < rightPaddingChars; ++i)
+        {
+            const uint8_t* fillPtr = reinterpret_cast<const uint8_t*>(&fmtOptions.fill);
+            stream->write(fillPtr, 1);
+        }
     }
 }
 
