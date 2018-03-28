@@ -21,11 +21,23 @@ void Logger::FormatOptions::reset()
 Logger::Logger()
 {
     stream = nullptr;
+    buffSize = 0;
 }
 
 void Logger::setStream(Stream* streamPtr)
 {
     stream = streamPtr;
+}
+
+void Logger::flush()
+{
+    if (buffSize > 0 && stream != nullptr)
+    {
+        const uint8_t* ptr = reinterpret_cast<const uint8_t*>(buff);
+        stream->write(ptr, buffSize);
+    }
+
+    buffSize = 0;
 }
 
 void Logger::writeHeader(const char* levelStr, const char* tag)
@@ -140,50 +152,74 @@ bool Logger::parseOptions(const char* fmtStart, const char* fmtEnd, FormatOption
     return ok;
 }
 
-void Logger::write(const char* msg, size_t len)
+void Logger::buffWrite(const char* msg, size_t len)
 {
-    if (stream != nullptr)
+    size_t totalCopied = 0;
+    while (totalCopied < len)
     {
-        size_t leftPaddingChars = 0;
-        size_t rightPaddingChars = 0;
+        size_t buffAvail = MAX_BUFF_SIZE - buffSize;
+        size_t toCopy = len - totalCopied;
+        size_t copySize = (toCopy <= buffAvail) ? toCopy : buffAvail;
 
-        if (fmtOptions.width > len)
+        memcpy(buff + buffSize, msg + totalCopied, copySize);
+        buffSize += copySize;
+        totalCopied += copySize;
+        if (buffSize >= MAX_BUFF_SIZE)
         {
-            size_t totalPaddingChars = fmtOptions.width - len;
-            switch (fmtOptions.alignment)
-            {
-            case FormatOptions::eLeft:
-                rightPaddingChars = totalPaddingChars;
-                break;
-
-            case FormatOptions::eCenter:
-                leftPaddingChars = totalPaddingChars / 2;
-                rightPaddingChars = (totalPaddingChars + 1) / 2;
-                break;
-
-            case FormatOptions::eRight:
-                leftPaddingChars = totalPaddingChars;
-                break;
-            }
-
-            /// @todo make this more efficient
-            for (size_t i = 0; i < leftPaddingChars; ++i)
-            {
-                const uint8_t* fillPtr = reinterpret_cast<const uint8_t*>(&fmtOptions.fill);
-                stream->write(fillPtr, 1);
-            }
-        }
-
-        const uint8_t* ptr = reinterpret_cast<const uint8_t*>(msg);
-        stream->write(ptr, len);
-
-        /// @todo make this more efficient
-        for (size_t i = 0; i < rightPaddingChars; ++i)
-        {
-            const uint8_t* fillPtr = reinterpret_cast<const uint8_t*>(&fmtOptions.fill);
-            stream->write(fillPtr, 1);
+            flush();
         }
     }
+}
+
+void Logger::buffWrite(char ch, size_t num)
+{
+    size_t totalCopied = 0;
+    while (totalCopied < num)
+    {
+        size_t buffAvail = MAX_BUFF_SIZE - buffSize;
+        size_t toCopy = num - totalCopied;
+        size_t copySize = (toCopy <= buffAvail) ? toCopy : buffAvail;
+
+        memset(buff + buffSize, ch, copySize);
+        buffSize += copySize;
+        totalCopied += copySize;
+        if (buffSize >= MAX_BUFF_SIZE)
+        {
+            flush();
+        }
+    }
+}
+
+void Logger::write(const char* msg, size_t len)
+{
+    size_t leftPaddingChars = 0;
+    size_t rightPaddingChars = 0;
+
+    if (fmtOptions.width > len)
+    {
+        size_t totalPaddingChars = fmtOptions.width - len;
+        switch (fmtOptions.alignment)
+        {
+        case FormatOptions::eLeft:
+            rightPaddingChars = totalPaddingChars;
+            break;
+
+        case FormatOptions::eCenter:
+            leftPaddingChars = totalPaddingChars / 2;
+            rightPaddingChars = (totalPaddingChars + 1) / 2;
+            break;
+
+        case FormatOptions::eRight:
+            leftPaddingChars = totalPaddingChars;
+            break;
+        }
+
+        buffWrite(fmtOptions.fill, leftPaddingChars);
+    }
+
+    buffWrite(msg, len);
+
+    buffWrite(fmtOptions.fill, rightPaddingChars);
 }
 
 void Logger::write(const char* str)

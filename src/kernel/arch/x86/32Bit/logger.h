@@ -61,6 +61,8 @@ public:
         logMessage<eError>("ERROR", tag, format, ts...);
     }
 
+    void flush();
+
 private:
     /**
      * @brief Used to fail a static_assert().
@@ -92,6 +94,10 @@ private:
 
     Stream* stream;
 
+    static constexpr size_t MAX_BUFF_SIZE = 128;
+    char buff[MAX_BUFF_SIZE];
+    size_t buffSize;
+
     /**
      * @brief Write the message header.
      * @param levelStr The debug level string.
@@ -110,6 +116,10 @@ private:
      * @return false if there was an error during parsing.
      */
     bool parseOptions(const char* fmtStart, const char* fmtEnd, FormatOptions& options);
+
+    void buffWrite(const char* msg, size_t len);
+
+    void buffWrite(char ch, size_t num);
 
     void write(const char* msg, size_t len);
 
@@ -169,6 +179,9 @@ private:
     {
         write(format);
         write('\n');
+
+        // flush every message
+        flush();
     }
 
     template<typename T, typename... Ts>
