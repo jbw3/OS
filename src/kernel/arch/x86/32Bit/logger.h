@@ -9,6 +9,9 @@
 
 class Stream;
 
+/**
+ * @brief A class that provides basic message logging capabilities.
+ */
 class Logger
 {
 public:
@@ -17,18 +20,40 @@ public:
      */
     enum ELevel
     {
+        /// Used for verbose messages that should only be logged when debugging.
         eTrace,
+
+        /// Used for messages that should only be logged when debugging.
         eDebug,
+
+        /// Used for normal, informational messages.
         eInfo,
+
+        /// Used to warn that something may have gone wrong.
         eWarning,
+
+        /// Used to indicate that an error occurred.
         eError,
+
+        /// Used to turn off logging.
         eOff
     };
 
-    static constexpr ELevel LEVEL = eInfo;
+    /// Messages at this level and above will be logged.
+    static constexpr ELevel LOG_LEVEL = eInfo;
 
+    /// Messages at this level and above will be flushed immediately after they are logged.
+    static constexpr ELevel FLUSH_LEVEL = eInfo;
+
+    /**
+     * @brief Construct a new Logger object.
+     */
     Logger();
 
+    /**
+     * @brief Set the stream that messages will be written to.
+     * @param streamPtr The stream that messages will be written to.
+     */
     void setStream(Stream* streamPtr);
 
     template<typename... Ts>
@@ -61,16 +86,12 @@ public:
         logMessage<eError>("ERROR", tag, format, ts...);
     }
 
+    /**
+     * @brief Flushes the internal buffer.
+     */
     void flush();
 
 private:
-    /**
-     * @brief Used to fail a static_assert().
-     */
-    template<typename T>
-    struct dependent_false : std::false_type
-    {};
-
     /**
      * @brief Contains format options.
      */
@@ -164,13 +185,19 @@ private:
         write(buff, size);
     }
 
-    template<ELevel logLevel, typename... Ts>
+    template<ELevel level, typename... Ts>
     void logMessage([[maybe_unused]] const char* levelStr, [[maybe_unused]] const char* tag, [[maybe_unused]] const char* format, Ts... ts)
     {
-        if constexpr (LEVEL <= logLevel)
+        if constexpr (level >= LOG_LEVEL)
         {
             writeHeader(levelStr, tag);
             log(format, ts...);
+
+            if constexpr (level >= FLUSH_LEVEL)
+            {
+                // flush the buffer
+                flush();
+            }
         }
     }
 
@@ -179,9 +206,6 @@ private:
     {
         write(format);
         write('\n');
-
-        // flush every message
-        flush();
     }
 
     template<typename T, typename... Ts>
