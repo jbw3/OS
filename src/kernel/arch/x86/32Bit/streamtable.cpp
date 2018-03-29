@@ -5,7 +5,7 @@
 StreamTable::StreamTable()
 {
     // init all stream pointers to null
-    memset(streams, 0, MAX_NUM_STREAMS);
+    memset(streams, 0, sizeof(streams));
 }
 
 int StreamTable::addStream(Stream* stream)
