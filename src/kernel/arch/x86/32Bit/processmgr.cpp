@@ -181,7 +181,7 @@ int ProcessMgr::ProcessInfo::duplicateStreamIndex(int procStreamIdx, int dupProc
     return dupProcStreamIdx;
 }
 
-const char* ProcessMgr::LOG_TAG = "processes";
+const char* ProcessMgr::LOG_TAG = "Processes";
 
 ProcessMgr::ProcessMgr() :
     currentProcIdx(0),
