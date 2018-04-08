@@ -273,7 +273,6 @@ Logger::Logger(bool flushAfterMessage)
 void Logger::log(const char* format)
 {
     write(format);
-    write('\n');
 
     if (flushAfterMsg)
     {

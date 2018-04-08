@@ -57,9 +57,8 @@ void kernelMain(const uint32_t MULTIBOOT_MAGIC_NUM, const multiboot_info* mbootI
     // ensure we were booted by a Multiboot-compliant boot loader
     if (MULTIBOOT_MAGIC_NUM != MULTIBOOT_BOOTLOADER_MAGIC)
     {
-        const char* const ERROR_MSG_FORMAT = "Invalid Multiboot magic number: {x0>8}";
-        klog.logError("Initialization", ERROR_MSG_FORMAT, MULTIBOOT_MAGIC_NUM);
-        ulog.log(ERROR_MSG_FORMAT, MULTIBOOT_MAGIC_NUM);
+        klog.logError("Initialization", "Invalid Multiboot magic number: {x0>8}", MULTIBOOT_MAGIC_NUM);
+        ulog.log("Invalid Multiboot magic number: {x0>8}\n", MULTIBOOT_MAGIC_NUM);
         return;
     }
 

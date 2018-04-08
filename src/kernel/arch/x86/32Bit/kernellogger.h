@@ -104,6 +104,7 @@ private:
         {
             writeHeader(levelStr, tag);
             log(format, ts...);
+            write('\n');
 
             if constexpr (level >= FLUSH_LEVEL)
             {
