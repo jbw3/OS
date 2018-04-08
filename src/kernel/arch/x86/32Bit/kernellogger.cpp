@@ -1,7 +1,7 @@
 #include <string.h>
 
 #include "ctype.h"
-#include "logger.h"
+#include "kernellogger.h"
 #include "stream.h"
 
 Logger::FormatOptions::FormatOptions()

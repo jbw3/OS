@@ -1,6 +1,6 @@
 #include "gdt.h"
 #include "irq.h"
-#include "logger.h"
+#include "kernellogger.h"
 #include "multiboot.h"
 #include "pageframemgr.h"
 #include "processmgr.h"

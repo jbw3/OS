@@ -6,7 +6,7 @@
 #include "idt.h"
 #include "irq.h"
 #include "keyboard.h"
-#include "logger.h"
+#include "kernellogger.h"
 #include "pageframemgr.h"
 #include "paging.h"
 #include "processmgr.h"
