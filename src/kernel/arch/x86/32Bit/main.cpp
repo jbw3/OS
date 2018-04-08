@@ -5,8 +5,8 @@
 #include "gdt.h"
 #include "idt.h"
 #include "irq.h"
-#include "keyboard.h"
 #include "kernellogger.h"
+#include "keyboard.h"
 #include "pageframemgr.h"
 #include "paging.h"
 #include "processmgr.h"
@@ -16,6 +16,7 @@
 #include "streamtable.h"
 #include "system.h"
 #include "timer.h"
+#include "userlogger.h"
 
 /**
  * @brief 32-bit x86 kernel main
@@ -46,6 +47,8 @@ void kernelMain(const uint32_t MULTIBOOT_MAGIC_NUM, const multiboot_info* mbootI
     streamTable.addStream(&serial1);
     streamTable.addStream(&serial2);
 
+    ulog.addStream(&vgaDriver);
+    ulog.addStream(&serial1);
     klog.setStream(&serial2);
 
     /// @todo temporary
@@ -54,9 +57,9 @@ void kernelMain(const uint32_t MULTIBOOT_MAGIC_NUM, const multiboot_info* mbootI
     // ensure we were booted by a Multiboot-compliant boot loader
     if (MULTIBOOT_MAGIC_NUM != MULTIBOOT_BOOTLOADER_MAGIC)
     {
-        screen << "Invalid Multiboot magic number: "
-               << os::Screen::hex << MULTIBOOT_MAGIC_NUM
-               << '\n';
+        const char* const ERROR_MSG_FORMAT = "Invalid Multiboot magic number: {x0>8}";
+        klog.logError("Initialization", ERROR_MSG_FORMAT, MULTIBOOT_MAGIC_NUM);
+        ulog.log(ERROR_MSG_FORMAT, MULTIBOOT_MAGIC_NUM);
         return;
     }
 
