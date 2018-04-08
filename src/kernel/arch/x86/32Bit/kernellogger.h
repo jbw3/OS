@@ -1,7 +1,6 @@
 #ifndef KERNEL_LOGGER_H_
 #define KERNEL_LOGGER_H_
 
-#include <stddef.h>
 #include <string.h>
 
 #include "logger.h"
@@ -9,7 +8,7 @@
 class Stream;
 
 /**
- * @brief A class that provides logging capabilities for the kernel log.
+ * @brief Provides capability for logging to the kernel log.
  */
 class KernelLogger : public Logger
 {
