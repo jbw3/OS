@@ -16,6 +16,8 @@ private:
     char buff[MAX_BUFF_SIZE];
     size_t buffSize;
 
+    bool flushAfterMsg;
+
     /**
      * @brief Contains format options.
      */
@@ -102,15 +104,12 @@ protected:
 public:
     /**
      * @brief Construct a new Logger object.
+     * @param flushAfterMessage Whether to flush after writing each message.
      */
-    Logger();
+    Logger(bool flushAfterMessage = false);
 
     // this is the base-case for the recursive log() function
-    void log(const char* format)
-    {
-        write(format);
-        write('\n');
-    }
+    void log(const char* format);
 
     template<typename T, typename... Ts>
     void log(const char* format, T t, Ts... ts)

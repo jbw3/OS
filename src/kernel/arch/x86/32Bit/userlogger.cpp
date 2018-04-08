@@ -3,7 +3,8 @@
 #include "stream.h"
 #include "userlogger.h"
 
-UserLogger::UserLogger()
+UserLogger::UserLogger() :
+    Logger(/*flushAfterMessage=*/ true)
 {
     streamsSize = 0;
 }

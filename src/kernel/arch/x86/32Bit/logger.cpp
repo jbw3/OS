@@ -264,9 +264,21 @@ void Logger::write(const void* ptr)
     writeInt(reinterpret_cast<uintptr_t>(ptr));
 }
 
-Logger::Logger()
+Logger::Logger(bool flushAfterMessage)
 {
+    flushAfterMsg = flushAfterMessage;
     buffSize = 0;
+}
+
+void Logger::log(const char* format)
+{
+    write(format);
+    write('\n');
+
+    if (flushAfterMsg)
+    {
+        flush();
+    }
 }
 
 void Logger::flush()
