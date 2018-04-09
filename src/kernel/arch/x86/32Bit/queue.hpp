@@ -2,7 +2,8 @@
 #define _QUEUE_HPP
 
 #include <stddef.h>
-#include "screen.h"
+
+#include "userlogger.h"
 
 /**
  * @brief This Queue class allows data to be passed between two threads
@@ -158,14 +159,14 @@ void Queue<T, MAX_SIZE>::print()
 {
     if (size == 0)
     {
-        screen << "<empty>\n";
+        ulog.log("<empty>\n");
     }
     else
     {
         size_t idx = head;
         for (size_t i = 0; i < size; ++i)
         {
-            screen << (char)array[idx] << ' ';
+            ulog.log("{} ", array[idx]);
 
             ++idx;
             if (idx >= MAX_SIZE)
@@ -173,7 +174,7 @@ void Queue<T, MAX_SIZE>::print()
                 idx = 0;
             }
         }
-        screen << '\n';
+        ulog.log("\n");
     }
 }
 
