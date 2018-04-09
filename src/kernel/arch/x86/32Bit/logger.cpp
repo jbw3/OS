@@ -199,13 +199,20 @@ void Logger::write(const char* str)
 
 void Logger::write(bool b)
 {
-    if (b)
+    if (fmtOptions.base == 2)
     {
-        write("true", 4);
+        write(b ? "1" : "0", 1);
     }
     else
     {
-        write("false", 5);
+        if (b)
+        {
+            write("true", 4);
+        }
+        else
+        {
+            write("false", 5);
+        }
     }
 }
 
