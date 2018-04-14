@@ -4,9 +4,9 @@
 #include "multiboot.h"
 #include "pageframemgr.h"
 #include "processmgr.h"
-#include "screen.h"
 #include "string.h"
 #include "system.h"
+#include "userlogger.h"
 #include "utils.h"
 
 const uintptr_t ProcessMgr::ProcessInfo::KERNEL_STACK_PAGE = KERNEL_VIRTUAL_BASE - PAGE_SIZE;
@@ -980,9 +980,7 @@ void ProcessMgr::cleanUpProcess(ProcessInfo* procInfo)
 
 void ProcessMgr::logError(const char* errorMsg)
 {
-    /// @todo log the error in the user's terminal instead of hardcoding "screen"
-    screen << "Could not create process:\n" << errorMsg << '\n';
-
+    ulog.log("Could not create process:\n{}\n", errorMsg);
     klog.logError(LOG_TAG, "Could not create process: {}", errorMsg);
 }
 
