@@ -9,7 +9,7 @@ void panic(const char* file, unsigned long line, const char* function, const cha
     klog.logError("Panic", function);
     klog.logError("Panic", message);
 
-    ulog.log("\x1b[31;47mKernel panic!!!\n"
+    ulog.log("\x1b[37;41mKernel panic!!!\n"
              "{}, line {}\n"
              "{}\n"
              "{}\x1b[0m\n",
