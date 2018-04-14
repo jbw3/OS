@@ -12,7 +12,6 @@
 #include "processmgr.h"
 #include "screen.h"
 #include "serialportdriver.h"
-#include "shell.h"
 #include "streamtable.h"
 #include "system.h"
 #include "timer.h"
@@ -71,16 +70,4 @@ void kernelMain(const uint32_t MULTIBOOT_MAGIC_NUM, const multiboot_info* mbootI
     processMgr.setMultibootInfo(mbootInfo);
 
     processMgr.mainloop();
-
-    // Shell sh(mbootInfo);
-
-    // while (true)
-    // {
-    //     os::Keyboard::processQueue();
-
-    //     sh.update();
-
-    //     // halt CPU until an interrupt occurs
-    //     asm volatile ("hlt");
-    // }
 }
