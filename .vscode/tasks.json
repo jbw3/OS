@@ -1,0 +1,44 @@
+{
+    // See https://go.microsoft.com/fwlink/?LinkId=733558
+    // for the documentation about the tasks.json format
+    "version": "2.0.0",
+    "tasks": [
+        {
+            "label": "Build Debug",
+            "type": "shell",
+            "command": "make debug iso",
+            "group": {
+                "kind": "build",
+                "isDefault": true
+            }
+        },
+        {
+            "label": "QEMU x86",
+            "type": "process",
+            "command": "qemu-system-i386",
+            "args": [
+                "-s",
+                "-S",
+                "-cdrom",
+                "bin/OS-x86.iso"
+            ],
+            "dependsOn": "Build Debug",
+            "isBackground": true,
+            "problemMatcher": {
+                "pattern": [
+                    {
+                        "kind": "file",
+                        "regexp": "^(.*)$",
+                        "file": 1,
+                        "message": 1
+                    }
+                ],
+                "background": {
+                    "activeOnStart": true,
+                    "beginsPattern": ".*",
+                    "endsPattern": ".*"
+                }
+            }
+        }
+    ]
+}

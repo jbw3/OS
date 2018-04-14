@@ -3,6 +3,9 @@
     "configurations": [
         {
             "name": "Linux",
+            "compilerPath": "/usr/local/bin/clang",
+            "cStandard": "c11",
+            "cppStandard": "c++17",
             "includePath": [
                 "${workspaceRoot}",
                 "${workspaceRoot}/src/libs/c/include",
