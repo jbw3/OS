@@ -1,6 +1,5 @@
 #include "processmgr.h"
 #include "timer.h"
-#include "screen.h"
 #include "system.h"
 
 namespace os

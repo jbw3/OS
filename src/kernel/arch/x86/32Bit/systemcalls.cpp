@@ -1,6 +1,5 @@
 #include "keyboard.h"
 #include "processmgr.h"
-#include "screen.h"
 #include "streamtable.h"
 #include "sys/wait.h"
 #include "system.h"
