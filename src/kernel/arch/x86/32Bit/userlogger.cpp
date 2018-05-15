@@ -24,6 +24,7 @@ void UserLogger::flush(const char* buff, size_t len)
     for (size_t i = 0; i < streamsSize; ++i)
     {
         streams[i]->write(ptr, len, /*block=*/ true);
+        streams[i]->flush();
     }
 }
 

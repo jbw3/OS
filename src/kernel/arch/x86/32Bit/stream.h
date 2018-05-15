@@ -46,6 +46,11 @@ public:
      * @return The number of bytes written if successful, or a number less than 0 if an error occurred.
      */
     ssize_t write(const uint8_t* buff, size_t nbyte, bool block);
+
+    /**
+     * @brief Flush any internal stream buffers.
+     */
+    virtual void flush() = 0;
 };
 
 #endif // STREAM_H_

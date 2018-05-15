@@ -52,6 +52,11 @@ public:
         return -1;
     }
 
+    void flush() override
+    {
+        // nothing to do
+    }
+
 private:
     /// US keyboard layout
     static const uint16_t LAYOUT_US[128];

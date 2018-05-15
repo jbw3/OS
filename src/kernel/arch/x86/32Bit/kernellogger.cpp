@@ -19,6 +19,7 @@ void KernelLogger::flush(const char* buff, size_t len)
     {
         const uint8_t* ptr = reinterpret_cast<const uint8_t*>(buff);
         stream->write(ptr, len, /*block=*/ true);
+        stream->flush();
     }
 }
 

@@ -67,6 +67,11 @@ public:
 
     ssize_t write(const uint8_t* buff, size_t nbyte) override;
 
+    void flush() override
+    {
+        // nothing to do
+    }
+
 private:
     static constexpr char ESCAPE = '\x1B';
     static constexpr char CSI    = '[';
