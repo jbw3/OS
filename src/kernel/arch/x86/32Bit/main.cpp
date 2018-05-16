@@ -10,7 +10,6 @@
 #include "pageframemgr.h"
 #include "paging.h"
 #include "processmgr.h"
-#include "screen.h"
 #include "serialportdriver.h"
 #include "streamtable.h"
 #include "system.h"
@@ -49,9 +48,6 @@ void kernelMain(const uint32_t MULTIBOOT_MAGIC_NUM, const multiboot_info* mbootI
     ulog.addStream(&vgaDriver);
     ulog.addStream(&serial1);
     klog.setStream(&serial2);
-
-    /// @todo temporary
-    screen.setStream(&vgaDriver);
 
     // ensure we were booted by a Multiboot-compliant boot loader
     if (MULTIBOOT_MAGIC_NUM != MULTIBOOT_BOOTLOADER_MAGIC)
