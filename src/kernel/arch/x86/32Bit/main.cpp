@@ -15,6 +15,7 @@
 #include "system.h"
 #include "timer.h"
 #include "userlogger.h"
+#include "vgadriver.h"
 
 /**
  * @brief 32-bit x86 kernel main
