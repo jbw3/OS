@@ -1,9 +1,7 @@
 .dep/
-.vscode/
 bin/
 lib/
 obj/
 .DS_Store
-bochsout.txt
-*.sublime-workspace
+kernel-*.log
 *.vdi

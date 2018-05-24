@@ -2,12 +2,18 @@
 #define KEYBOARD_H_
 
 #include "irq.h"
+#include "stream.h"
 
 namespace os
 {
 
+constexpr uint16_t KEY_UP    = 0x80;
+constexpr uint16_t KEY_DOWN  = 0x81;
+constexpr uint16_t KEY_LEFT  = 0x82;
+constexpr uint16_t KEY_RIGHT = 0x83;
+
 /// @todo some of the code in this class needs an interrupt guard
-class Keyboard
+class Keyboard : public Stream
 {
 public:
     static void init();
@@ -28,6 +34,28 @@ public:
     static bool getChar(char& ch);
 
     static void processQueue();
+
+    bool canRead() const override
+    {
+        return true;
+    }
+
+    bool canWrite() const override
+    {
+        return false;
+    }
+
+    ssize_t read(uint8_t* buff, size_t nbyte) override;
+
+    ssize_t write(const uint8_t*, size_t) override
+    {
+        return -1;
+    }
+
+    void flush() override
+    {
+        // nothing to do
+    }
 
 private:
     /// US keyboard layout

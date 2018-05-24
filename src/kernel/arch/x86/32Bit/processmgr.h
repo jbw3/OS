@@ -28,6 +28,7 @@ public:
         constexpr static uintptr_t CODE_VIRTUAL_START = 0;
         constexpr static int MAX_NUM_PAGES = 8;
         constexpr static size_t MAX_NUM_CHILDREN = 32;
+        constexpr static int MAX_NUM_STREAM_INDICES = 8;
 
         /// virtual address of the kernel stack page
         static const uintptr_t KERNEL_STACK_PAGE;
@@ -95,6 +96,18 @@ public:
 
         EStatus getStatus() const;
 
+        int addStreamIndex(int masterStreamIdx);
+
+        void removeStreamIndex(int procStreamIdx);
+
+        int getStreamIndex(int procStreamIdx) const;
+
+        void copyStreamIndices(ProcessInfo* procInfo);
+
+        int duplicateStreamIndex(int procStreamIdx);
+
+        int duplicateStreamIndex(int procStreamIdx, int dupProcStreamIdx);
+
         PageFrameInfo pageDir;
 
         PageFrameInfo kernelPageTable;
@@ -120,10 +133,17 @@ public:
         /// and stack.
         PageFrameInfo pages[MAX_NUM_PAGES];
 
+        /// Maps the process's stream indices (e.g. file descriptors)
+        /// to the kernel's stream table.
+        int streamIndices[MAX_NUM_STREAM_INDICES];
+
         int numPages;
 
         EStatus status;
     };
+
+    /// The tag used in the kernel log
+    static const char* LOG_TAG;
 
     /**
      * @brief Constructor
@@ -135,7 +155,7 @@ public:
     void mainloop();
 
     /// @todo make this private
-    void createProcess(const multiboot_mod_list* module);
+    void createProcess(const multiboot_mod_list* module, int stdinStreamIdx, int stdoutStreamIdx, int stderrStreamIdx);
 
     pid_t forkCurrentProcess();
 

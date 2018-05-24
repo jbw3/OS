@@ -41,6 +41,8 @@
 #define PAGE_ERROR_WRITE   (0x2)
 #define PAGE_ERROR_USER    (0x4)
 
+const char* const PAGING_TAG = "Paging";
+
 struct multiboot_info;
 
 extern "C"

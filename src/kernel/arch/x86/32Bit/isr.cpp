@@ -1,5 +1,7 @@
+#include <stdio.h>
+
 #include "isr.h"
-#include "screen.h"
+#include "system.h"
 
 namespace
 {
@@ -112,27 +114,21 @@ void isrHandler(const struct registers* regs)
     }
     else // print an error message and hang
     {
-        os::Screen::EColor bgColor = screen.getBackgroundColor();
-        os::Screen::EColor fgColor = screen.getForegroundColor();
-
-        screen.setBackgroundColor(os::Screen::EColor::eRed);
-        screen.setForegroundColor(os::Screen::EColor::eWhite);
+        char errorMsg[128];
+        int idx = 0;
 
         if (regs->intNo < 32)
         {
-            screen << EXCEPTION_MESSAGES[regs->intNo] << " Exception\n";
+            idx += sprintf(errorMsg + idx, "%s Exception\n", EXCEPTION_MESSAGES[regs->intNo]);
         }
         else
         {
-            screen << "Unknown exception number: " << regs->intNo << '\n';
+            idx += sprintf(errorMsg + idx, "Unknown exception number: %u\n", regs->intNo);
         }
 
-        screen << "Error code: " << regs->errCode << '\n';
+        idx += sprintf(errorMsg + idx, "Error code: %u", regs->errCode);
 
-        screen.setBackgroundColor(bgColor);
-        screen.setForegroundColor(fgColor);
-
-        while (true);
+        PANIC(errorMsg);
     }
 
 }

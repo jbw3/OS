@@ -8,6 +8,9 @@
 
 #include "shell.h"
 
+const char ESCAPE = '\x1b';
+const char DELETE = '\x7f';
+
 Shell::Commands::iterator::iterator(int builtInIndex, int moduleIndex)
 {
     builtInIdx = builtInIndex;
@@ -178,12 +181,50 @@ void Shell::getCommand()
     // reset history index
     historyIdx = 0;
 
+    char escapeSeq[3];
+    int escapeSize = 0;
     int cmdSize = 0;
     cmd[0] = '\0';
-    uint16_t key = getKey();
-    while (key != '\n')
+    char key = getchar();
+    while (key != '\r')
     {
-        if (key == '\b')
+        if (key == ESCAPE || escapeSize > 0)
+        {
+            escapeSeq[escapeSize++] = key;
+
+            if (escapeSize >= 3)
+            {
+                if (escapeSeq[1] == 91 && escapeSeq[2] == 65)
+                {
+                    if (historyIdx < historySize - 1)
+                    {
+                        if (historyIdx == 0)
+                        {
+                            strcpy(history[0], cmd);
+                        }
+
+                        ++historyIdx;
+                        const char* newCmd = history[historyIdx];
+                        setCommand(newCmd);
+                        cmdSize = strlen(newCmd);
+                    }
+                }
+                else if (escapeSeq[1] == 91 && escapeSeq[2] == 66)
+                {
+                    if (historyIdx > 0)
+                    {
+                        --historyIdx;
+                        const char* newCmd = history[historyIdx];
+                        setCommand(newCmd);
+                        cmdSize = strlen(newCmd);
+                    }
+                }
+
+                // reset size
+                escapeSize = 0;
+            }
+        }
+        else if (key == '\b' || key == DELETE)
         {
             if (cmdSize > 0)
             {
@@ -195,41 +236,15 @@ void Shell::getCommand()
         {
             cmdSize = complete();
         }
-        else if (key == KEY_UP)
-        {
-            if (historyIdx < historySize - 1)
-            {
-                if (historyIdx == 0)
-                {
-                    strcpy(history[0], cmd);
-                }
-
-                ++historyIdx;
-                const char* newCmd = history[historyIdx];
-                setCommand(newCmd);
-                cmdSize = strlen(newCmd);
-            }
-        }
-        else if (key == KEY_DOWN)
-        {
-            if (historyIdx > 0)
-            {
-                --historyIdx;
-                const char* newCmd = history[historyIdx];
-                setCommand(newCmd);
-                cmdSize = strlen(newCmd);
-            }
-        }
         else if ( isprint(key) && cmdSize < MAX_CMD_SIZE - 1 )
         {
-            char ch = static_cast<char>(key);
-            cmd[cmdSize++] = ch;
-            putchar(ch);
+            cmd[cmdSize++] = key;
+            putchar(key);
         }
 
         cmd[cmdSize] = '\0';
 
-        key = getKey();
+        key = getchar();
     }
 
     putchar('\n');

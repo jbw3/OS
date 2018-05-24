@@ -1,0 +1,12 @@
+#!/bin/bash
+# Count the number of source code lines in a directory.
+
+if [[ $# -ne 1 ]]; then
+    echo "Error: expected 1 argument"
+    exit 1
+fi
+
+dir=$1
+
+filenames=$(find $1 -name '*.c' -or -name '*.cpp' -or -name '*.h' -or -name '*.s')
+cat $filenames | wc -l

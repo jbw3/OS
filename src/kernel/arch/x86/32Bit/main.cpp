@@ -5,15 +5,18 @@
 #include "gdt.h"
 #include "idt.h"
 #include "irq.h"
+#include "kernellogger.h"
 #include "keyboard.h"
 #include "pageframemgr.h"
 #include "pagetreex86_32.h"
 #include "paging.h"
 #include "processmgr.h"
-#include "screen.h"
-#include "shell.h"
+#include "serialportdriver.h"
+#include "streamtable.h"
 #include "system.h"
 #include "timer.h"
+#include "userlogger.h"
+#include "vgadriver.h"
 
 /**
  * @brief 32-bit x86 kernel main
@@ -35,16 +38,26 @@ void kernelMain(const uint32_t MULTIBOOT_MAGIC_NUM, const multiboot_info* mbootI
     // enable interrupts
     asm volatile ("sti");
 
-    screen.setBackgroundColor(os::Screen::EColor::eBlack);
-    screen.setForegroundColor(os::Screen::EColor::eLightGreen);
-    screen.clear();
+    // create stream drivers
+    os::Keyboard keyboardDriver;
+    VgaDriver vgaDriver;
+    SerialPortDriver serial1(SerialPortDriver::COM1_PORT, 115'200);
+    SerialPortDriver serial2(SerialPortDriver::COM2_PORT, 115'200);
+
+    streamTable.addStream(&keyboardDriver);
+    streamTable.addStream(&vgaDriver);
+    streamTable.addStream(&serial1);
+    streamTable.addStream(&serial2);
+
+    ulog.addStream(&vgaDriver);
+    ulog.addStream(&serial1);
+    klog.setStream(&serial2);
 
     // ensure we were booted by a Multiboot-compliant boot loader
     if (MULTIBOOT_MAGIC_NUM != MULTIBOOT_BOOTLOADER_MAGIC)
     {
-        screen << "Invalid Multiboot magic number: "
-               << os::Screen::hex << MULTIBOOT_MAGIC_NUM
-               << '\n';
+        klog.logError("Initialization", "Invalid Multiboot magic number: {x0>8}", MULTIBOOT_MAGIC_NUM);
+        ulog.log("Invalid Multiboot magic number: {x0>8}\n", MULTIBOOT_MAGIC_NUM);
         return;
     }
 
@@ -56,16 +69,4 @@ void kernelMain(const uint32_t MULTIBOOT_MAGIC_NUM, const multiboot_info* mbootI
     processMgr.setMultibootInfo(mbootInfo);
 
     processMgr.mainloop();
-
-    // Shell sh(mbootInfo);
-
-    // while (true)
-    // {
-    //     os::Keyboard::processQueue();
-
-    //     sh.update();
-
-    //     // halt CPU until an interrupt occurs
-    //     asm volatile ("hlt");
-    // }
 }

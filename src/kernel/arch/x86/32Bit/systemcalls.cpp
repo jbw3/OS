@@ -1,6 +1,6 @@
 #include "keyboard.h"
 #include "processmgr.h"
-#include "screen.h"
+#include "streamtable.h"
 #include "sys/wait.h"
 #include "system.h"
 #include "systemcalls.h"
@@ -9,22 +9,16 @@
 namespace systemcall
 {
 
-void clearTerminal()
+int dup(int fildes)
 {
-    screen.clear();
+    int rv = processMgr.getCurrentProcessInfo()->duplicateStreamIndex(fildes);
+    return rv;
 }
 
-void configTerminal(int background, int foreground)
+int dup2(int fildes, int fildes2)
 {
-    if (background >= 0 && background <= 15)
-    {
-        screen.setBackgroundColor(static_cast<os::Screen::EColor>(background));
-    }
-
-    if (foreground >= 0 && foreground <= 15)
-    {
-        screen.setForegroundColor(static_cast<os::Screen::EColor>(foreground));
-    }
+    int rv = processMgr.getCurrentProcessInfo()->duplicateStreamIndex(fildes, fildes2);
+    return rv;
 }
 
 int execv(const char* path, char* const argv[])
@@ -43,22 +37,6 @@ void exit(int status)
 pid_t fork()
 {
     return processMgr.forkCurrentProcess();
-}
-
-uint32_t getKey()
-{
-    uint16_t key = 0;
-    bool found = false;
-    while (!found)
-    {
-        found = os::Keyboard::getKey(key);
-        if (!found)
-        {
-            processMgr.yieldCurrentProcess();
-        }
-    }
-
-    return key;
 }
 
 int getNumModules()
@@ -83,21 +61,24 @@ pid_t getppid()
 
 ssize_t read(int fildes, void* buf, size_t nbyte)
 {
-    // only support stdin right now
-    if (fildes != STDIN_FILENO)
+    // convert the local stream index to the master stream table index
+    int masterStreamIdx = processMgr.getCurrentProcessInfo()->getStreamIndex(fildes);
+    if (masterStreamIdx < 0)
     {
         return -1;
     }
 
-    char ch;
-    size_t idx = 0;
-    while (idx < nbyte && os::Keyboard::getChar(ch))
+    // look up the stream in the master stream table
+    Stream* stream = streamTable.getStream(masterStreamIdx);
+    if (stream == nullptr)
     {
-        reinterpret_cast<char*>(buf)[idx] = ch;
-        ++idx;
+        return -1;
     }
 
-    return static_cast<ssize_t>(idx);
+    // read from the stream
+    ssize_t rv = stream->read(reinterpret_cast<uint8_t*>(buf), nbyte);
+
+    return rv;
 }
 
 int sched_yield()
@@ -174,19 +155,24 @@ pid_t waitpid(pid_t pid, int* stat_loc, int options)
 
 ssize_t write(int fildes, const void* buf, size_t nbyte)
 {
-    // only support stdout right now
-    if (fildes != STDOUT_FILENO)
+    // convert the local stream index to the master stream table index
+    int masterStreamIdx = processMgr.getCurrentProcessInfo()->getStreamIndex(fildes);
+    if (masterStreamIdx < 0)
     {
         return -1;
     }
 
-    const char* charPtr = reinterpret_cast<const char*>(buf);
-    for (size_t i = 0; i < nbyte; ++i)
+    // look up the stream in the master stream table
+    Stream* stream = streamTable.getStream(masterStreamIdx);
+    if (stream == nullptr)
     {
-        screen.write(charPtr[i]);
+        return -1;
     }
 
-    return 0;
+    // write to the stream
+    ssize_t rv = stream->write(reinterpret_cast<const uint8_t*>(buf), nbyte);
+
+    return rv;
 }
 
 } // namespace systemcall
@@ -204,11 +190,11 @@ const void* SYSTEM_CALLS[SYSTEM_CALLS_SIZE] = {
     reinterpret_cast<const void*>(systemcall::execv),
     reinterpret_cast<const void*>(systemcall::getNumModules),
     reinterpret_cast<const void*>(systemcall::getModuleName),
-    reinterpret_cast<const void*>(systemcall::configTerminal),
-    reinterpret_cast<const void*>(systemcall::clearTerminal),
-    reinterpret_cast<const void*>(systemcall::getKey),
     nullptr,
     nullptr,
+    nullptr,
+    reinterpret_cast<const void*>(systemcall::dup),
+    reinterpret_cast<const void*>(systemcall::dup2),
 };
 
 extern "C"
