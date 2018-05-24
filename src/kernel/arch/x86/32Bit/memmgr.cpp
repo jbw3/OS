@@ -4,8 +4,8 @@
 #include "pageframemgr.h"
 #include "pagetree.h"
 #include "paging.h"
-#include "screen.h"
 #include "utils.h"
+#include "userlogger.h"
 
 /// @todo pass in PageTree pointer
 MemMgr::MemMgr(uintptr_t heapStartAddr)
@@ -182,19 +182,14 @@ void MemMgr::printBlocks()
 {
     if (head == nullptr)
     {
-        screen << "<No memory allocated>\n";
+        ulog.log("<No memory allocated>\n");
     }
     else
     {
         MemBlockInfo* node = head;
         while (node != nullptr)
         {
-            screen << os::Screen::hex << os::Screen::setfill('0')
-                << os::Screen::setw(8) << node->startAddr
-                << " - "
-                << os::Screen::setw(8) << (node->startAddr + node->size)
-                << os::Screen::dec << os::Screen::setfill(' ')
-                << " (" << node->size << ")\n";
+            ulog.log("{x0>8} - {x0>8} ({})\n", node->startAddr, (node->startAddr + node->size), node->size);
 
             node = node->nextNode;
         }
