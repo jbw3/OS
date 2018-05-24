@@ -43,7 +43,7 @@ void pageFault(const registers* regs)
     }
 
     klog.logError(PAGING_TAG, msg);
-    klog.logError(PAGING_TAG, "Address: {0>8}", getRegCR2());
+    klog.logError(PAGING_TAG, "Address: {x0>8}", getRegCR2());
 
     PANIC("Page fault!");
 }
