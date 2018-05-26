@@ -9,7 +9,8 @@
             "includePath": [
                 "${workspaceRoot}",
                 "${workspaceRoot}/src/libs/c/include",
-                "${workspaceRoot}/src/libs/c++/include"
+                "${workspaceRoot}/src/libs/c++/include",
+                "${workspaceFolder}/src/libs/test/include"
             ],
             "defines": [],
             "intelliSenseMode": "clang-x64",
