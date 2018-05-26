@@ -1,4 +1,3 @@
-#include "kernellogger.h"
 #include "testprinter.h"
 
 const char* const TestPrinter::TEST_TAG = "Tests";

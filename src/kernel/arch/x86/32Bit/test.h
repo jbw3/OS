@@ -3,14 +3,18 @@
 
 #include "testprinter.h"
 
-#define FAIL(msg)                          \
-do                                         \
-{                                          \
-    TestPrinter::printFail(__LINE__, msg); \
-    return;                                \
-} while(false)
+namespace details
+{
 
-#define ASSERT_BASE(evalFunc, msg)             \
+template<typename A, typename B>
+bool cmpEq(const A& a, const B& b)
+{
+    return a == b;
+}
+
+} // namespace details
+
+#define FAIL_BASE(evalFunc, msg)               \
 do                                             \
 {                                              \
     if (!(evalFunc))                           \
@@ -20,11 +24,26 @@ do                                             \
     }                                          \
 } while (false)
 
+#define FAIL(msg) \
+FAIL_BASE(false, msg)
+
 #define ASSERT_TRUE(a) \
-ASSERT_BASE((a), #a" is false")
+FAIL_BASE((a), #a" is false")
 
 #define ASSERT_FALSE(a) \
-ASSERT_BASE(!(a), #a" is true")
+FAIL_BASE(!(a), #a" is true")
+
+#define COMPARE_FAIL_BASE(a, b, cmp, compStr)                                       \
+do                                                                                  \
+{                                                                                   \
+    if (!TestPrinter::testComparison(__LINE__, (a), (b), (cmp), #a, #b, (compStr))) \
+    {                                                                               \
+        return;                                                                     \
+    }                                                                               \
+} while (false)
+
+#define ASSERT_EQ(a, b) \
+COMPARE_FAIL_BASE(a, b, details::cmpEq, "!=")
 
 void runTest(const char* name, void (*test)());
 
