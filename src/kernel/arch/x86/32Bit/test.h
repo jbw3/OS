@@ -3,21 +3,21 @@
 
 #include "testprinter.h"
 
-#define FAIL(msg)                \
-do                               \
-{                                \
-    TestPrinter::printFail(msg); \
-    return;                      \
+#define FAIL(msg)                          \
+do                                         \
+{                                          \
+    TestPrinter::printFail(__LINE__, msg); \
+    return;                                \
 } while(false)
 
-#define ASSERT_BASE(evalFunc, msg)   \
-do                                   \
-{                                    \
-    if (!(evalFunc))                 \
-    {                                \
-        TestPrinter::printFail(msg); \
-        return;                      \
-    }                                \
+#define ASSERT_BASE(evalFunc, msg)             \
+do                                             \
+{                                              \
+    if (!(evalFunc))                           \
+    {                                          \
+        TestPrinter::printFail(__LINE__, msg); \
+        return;                                \
+    }                                          \
 } while (false)
 
 #define ASSERT_TRUE(a) \
