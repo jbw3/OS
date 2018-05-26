@@ -40,6 +40,8 @@ public:
         return true;
     }
 
+    static bool cStrComparison(unsigned long long line, const char* a, const char* b, bool equal, const char* aStr, const char* bStr);
+
 private:
     static const char* currentTestName;
 };
@@ -77,5 +79,20 @@ COMPARE_FAIL_BASE(a, b, details::cmpEq, "!=")
 
 #define ASSERT_NE(a, b) \
 COMPARE_FAIL_BASE(a, b, details::cmpNe, "==")
+
+#define COMPARE_FAIL_CSTR_BASE(a, b, equal)                         \
+do                                                                  \
+{                                                                   \
+    if (!Test::cStrComparison(__LINE__, (a), (b), (equal), #a, #b)) \
+    {                                                               \
+        return;                                                     \
+    }                                                               \
+} while (false)
+
+#define ASSERT_CSTR_EQ(a, b) \
+COMPARE_FAIL_CSTR_BASE(a, b, true)
+
+#define ASSERT_CSTR_NE(a, b) \
+COMPARE_FAIL_CSTR_BASE(a, b, false)
 
 #endif // TEST_H_
