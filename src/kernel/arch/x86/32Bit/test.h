@@ -12,6 +12,12 @@ bool cmpEq(const A& a, const B& b)
     return a == b;
 }
 
+template<typename A, typename B>
+bool cmpNe(const A& a, const B& b)
+{
+    return a != b;
+}
+
 } // namespace details
 
 #define FAIL_BASE(evalFunc, msg)               \
@@ -44,6 +50,9 @@ do                                                                              
 
 #define ASSERT_EQ(a, b) \
 COMPARE_FAIL_BASE(a, b, details::cmpEq, "!=")
+
+#define ASSERT_NE(a, b) \
+COMPARE_FAIL_BASE(a, b, details::cmpNe, "==")
 
 void runTest(const char* name, void (*test)());
 
