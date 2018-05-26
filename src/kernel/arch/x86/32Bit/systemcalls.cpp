@@ -5,6 +5,7 @@
 #include "system.h"
 #include "systemcalls.h"
 #include "unistd.h"
+#include "unittests.h"
 
 namespace systemcall
 {
@@ -79,6 +80,24 @@ ssize_t read(int fildes, void* buf, size_t nbyte)
     ssize_t rv = stream->read(reinterpret_cast<uint8_t*>(buf), nbyte);
 
     return rv;
+}
+
+int runKernelTests(size_t* numTestsPtr, size_t* numFailedPtr)
+{
+    size_t numTests = 0;
+    size_t numFailed = 0;
+    bool passed = runUnitTests(numTests, numFailed);
+
+    if (numTestsPtr != nullptr)
+    {
+        *numTestsPtr = numTests;
+    }
+    if (numFailedPtr != nullptr)
+    {
+        *numFailedPtr = numFailed;
+    }
+
+    return passed ? 0 : 1;
 }
 
 int sched_yield()
@@ -190,7 +209,7 @@ const void* SYSTEM_CALLS[SYSTEM_CALLS_SIZE] = {
     reinterpret_cast<const void*>(systemcall::execv),
     reinterpret_cast<const void*>(systemcall::getNumModules),
     reinterpret_cast<const void*>(systemcall::getModuleName),
-    nullptr,
+    reinterpret_cast<const void*>(systemcall::runKernelTests),
     nullptr,
     nullptr,
     reinterpret_cast<const void*>(systemcall::dup),

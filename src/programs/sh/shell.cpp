@@ -186,7 +186,7 @@ void Shell::getCommand()
     int cmdSize = 0;
     cmd[0] = '\0';
     char key = getchar();
-    while (key != '\r')
+    while (key != '\r' && key != '\n')
     {
         if (key == ESCAPE || escapeSize > 0)
         {

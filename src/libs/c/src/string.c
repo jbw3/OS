@@ -195,6 +195,22 @@ char* strcpy(char* dst, const char* src)
     return dst;
 }
 
+char* strncpy(char* dst, const char* src, size_t num)
+{
+    size_t idx = 0;
+    while (idx < num)
+    {
+        dst[idx] = src[idx];
+        if (src[idx] == '\0')
+        {
+            break;
+        }
+        ++idx;
+    }
+
+    return dst;
+}
+
 size_t strlen(const char* str)
 {
     size_t size = 0;
