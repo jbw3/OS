@@ -1,7 +1,7 @@
 #ifndef TEST_H_
 #define TEST_H_
 
-#include "testprinter.h"
+#include "kernellogger.h"
 
 namespace details
 {
@@ -20,14 +20,38 @@ bool cmpNe(const A& a, const B& b)
 
 } // namespace details
 
-#define FAIL_BASE(evalFunc, msg)               \
-do                                             \
-{                                              \
-    if (!(evalFunc))                           \
-    {                                          \
-        TestPrinter::printFail(__LINE__, msg); \
-        return;                                \
-    }                                          \
+class Test
+{
+public:
+    static const char* const TEST_TAG;
+
+    static void run(const char* name, void (*test)());
+
+    static void fail(unsigned long long line, const char* msg);
+
+    template<typename A, typename B>
+    static bool comparison(unsigned long long line, const A& a, const B& b, bool (*cmp)(const A& x, const B& y), const char* aStr, const char* bStr, const char* compStr)
+    {
+        if (!cmp(a, b))
+        {
+            klog.logError(TEST_TAG, "{}, line {}: {} {} {} ({} {} {})", currentTestName, line, aStr, compStr, bStr, a, compStr, b);
+            return false;
+        }
+        return true;
+    }
+
+private:
+    static const char* currentTestName;
+};
+
+#define FAIL_BASE(evalFunc, msg)   \
+do                                 \
+{                                  \
+    if (!(evalFunc))               \
+    {                              \
+        Test::fail(__LINE__, msg); \
+        return;                    \
+    }                              \
 } while (false)
 
 #define FAIL(msg) \
@@ -39,13 +63,13 @@ FAIL_BASE((a), #a" is false")
 #define ASSERT_FALSE(a) \
 FAIL_BASE(!(a), #a" is true")
 
-#define COMPARE_FAIL_BASE(a, b, cmp, compStr)                                       \
-do                                                                                  \
-{                                                                                   \
-    if (!TestPrinter::testComparison(__LINE__, (a), (b), (cmp), #a, #b, (compStr))) \
-    {                                                                               \
-        return;                                                                     \
-    }                                                                               \
+#define COMPARE_FAIL_BASE(a, b, cmp, compStr)                            \
+do                                                                       \
+{                                                                        \
+    if (!Test::comparison(__LINE__, (a), (b), (cmp), #a, #b, (compStr))) \
+    {                                                                    \
+        return;                                                          \
+    }                                                                    \
 } while (false)
 
 #define ASSERT_EQ(a, b) \
@@ -53,7 +77,5 @@ COMPARE_FAIL_BASE(a, b, details::cmpEq, "!=")
 
 #define ASSERT_NE(a, b) \
 COMPARE_FAIL_BASE(a, b, details::cmpNe, "==")
-
-void runTest(const char* name, void (*test)());
 
 #endif // TEST_H_

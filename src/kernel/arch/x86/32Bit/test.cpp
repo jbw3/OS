@@ -1,11 +1,18 @@
 #include "test.h"
-#include "testprinter.h"
 
-void runTest(const char* name, void (*test)())
+const char* const Test::TEST_TAG = "Tests";
+const char* Test::currentTestName = nullptr;
+
+void Test::run(const char* name, void (*test)())
 {
-    TestPrinter::setCurrentTestName(name);
+    currentTestName = name;
 
     test();
 
-    TestPrinter::setCurrentTestName(nullptr);
+    currentTestName = nullptr;
+}
+
+void Test::fail(unsigned long long line, const char* msg)
+{
+    klog.logError(TEST_TAG, "{}, line {}: {}", currentTestName, line, msg);
 }
