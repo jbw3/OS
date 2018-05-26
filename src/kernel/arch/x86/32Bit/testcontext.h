@@ -1,12 +1,12 @@
 #ifndef TEST_CONTEXT_H_
 #define TEST_CONTEXT_H_
 
-#include "testset.h"
+#include "testexecutor.h"
 
 class TestContext
 {
 public:
-    friend TestSet;
+    friend TestExecutor;
 
     TestContext();
 

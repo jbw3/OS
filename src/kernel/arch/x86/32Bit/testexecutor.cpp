@@ -1,16 +1,16 @@
 #include "kernellogger.h"
 #include "testcontext.h"
-#include "testset.h"
+#include "testexecutor.h"
 
-const char* TEST_TAG = "Tests";
+const char* TestExecutor::TEST_TAG = "Tests";
 
-TestSet::TestSet()
+TestExecutor::TestExecutor()
 {
     total = 0;
     failed = 0;
 }
 
-void TestSet::runTest(const char* name, TestType test)
+void TestExecutor::runTest(const char* name, TestType test)
 {
     TestContext context;
     test(context);
