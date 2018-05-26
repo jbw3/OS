@@ -8,7 +8,7 @@ public:
 
     static void setCurrentTestName(const char* name);
 
-    static void printFail(const char* msg);
+    static void printFail(unsigned long long line, const char* msg);
 
 private:
     static const char* currentTestName;

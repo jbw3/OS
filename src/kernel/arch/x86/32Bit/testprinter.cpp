@@ -9,7 +9,7 @@ void TestPrinter::setCurrentTestName(const char* name)
     currentTestName = name;
 }
 
-void TestPrinter::printFail(const char* msg)
+void TestPrinter::printFail(unsigned long long line, const char* msg)
 {
-    klog.logError(TEST_TAG, "{}: {}", currentTestName, msg);
+    klog.logError(TEST_TAG, "{}, line {}: {}", currentTestName, line, msg);
 }
