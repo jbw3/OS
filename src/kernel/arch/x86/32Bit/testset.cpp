@@ -1,32 +1,24 @@
+#include "kernellogger.h"
+#include "testcontext.h"
 #include "testset.h"
+
+const char* TEST_TAG = "Tests";
 
 TestSet::TestSet()
 {
-    testsSize = 0;
+    total = 0;
+    failed = 0;
 }
 
-void TestSet::addTest(TestType test)
+void TestSet::runTest(const char* name, TestType test)
 {
-    if (testsSize >= MAX_TESTS_SIZE)
-    {
-        /// @todo print error message
-    }
-    else
-    {
-        tests[testsSize++] = test;
-    }
-}
+    TestContext context;
+    test(context);
 
-TestSet& TestSet::operator +=(TestType test)
-{
-    addTest(test);
-    return *this;
-}
-
-void TestSet::run()
-{
-    for (size_t i = 0; i < testsSize; ++i)
+    ++total;
+    if (!context.passed)
     {
-        tests[i]();
+        klog.logError(TEST_TAG, "{} failed!", name);
+        ++failed;
     }
 }

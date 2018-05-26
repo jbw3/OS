@@ -3,23 +3,22 @@
 
 #include <stddef.h>
 
-typedef void (*TestType)();
+class TestContext;
+
+typedef void (*TestType)(TestContext& context);
 
 class TestSet
 {
 public:
+    static const char* TEST_TAG;
+
     TestSet();
 
-    void addTest(TestType test);
-
-    TestSet& operator +=(TestType test);
-
-    void run();
+    void runTest(const char* name, TestType test);
 
 private:
-    static constexpr size_t MAX_TESTS_SIZE = 32;
-    TestType tests[MAX_TESTS_SIZE];
-    size_t testsSize;
+    size_t total;
+    size_t failed;
 };
 
 #endif // TEST_SET_H_
