@@ -14,6 +14,7 @@
 #include "streamtable.h"
 #include "system.h"
 #include "timer.h"
+#include "unittests.h"
 #include "userlogger.h"
 #include "vgadriver.h"
 
@@ -65,6 +66,9 @@ void kernelMain(const uint32_t MULTIBOOT_MAGIC_NUM, const multiboot_info* mbootI
 
     processMgr.setPageFrameMgr(&pageFrameMgr);
     processMgr.setMultibootInfo(mbootInfo);
+
+    /// @todo Make a system call to run unit tests instead of doing it here.
+    runUnitTests();
 
     processMgr.mainloop();
 }
