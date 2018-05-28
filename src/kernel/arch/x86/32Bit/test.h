@@ -35,6 +35,7 @@ public:
         if (!cmp(a, b))
         {
             klog.logError(TEST_TAG, "{}, line {}: {} {} {} ({} {} {})", currentTestName, line, aStr, compStr, bStr, a, compStr, b);
+            currentTestPassed = false;
             return false;
         }
         return true;
@@ -44,6 +45,7 @@ public:
 
 private:
     static const char* currentTestName;
+    static bool currentTestPassed;
 };
 
 #define FAIL_BASE(evalFunc, msg)   \
