@@ -2,6 +2,7 @@
 
 import re
 import subprocess
+import sys
 import time
 
 class TestCase:
@@ -77,6 +78,12 @@ def main():
     runQemu(logFilename)
     testSuite = parseLog(logFilename)
     writeJUnitXml(resultsFilename, testSuite)
+
+    # return 0 if all tests passed, or 1 if any tests failed
+    rc = 0
+    if testSuite.errors > 0 or testSuite.failures > 0:
+        rc = 1
+    sys.exit(rc)
 
 if __name__ == '__main__':
     main()
