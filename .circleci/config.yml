@@ -8,4 +8,4 @@ jobs:
 
     steps:
       - checkout
-      - run: make iso
+      - run: make release iso
