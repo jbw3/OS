@@ -5,9 +5,10 @@ import subprocess
 import time
 
 class TestCase:
-    def __init__(self, name, fail):
+    def __init__(self, name, fail, message=''):
         self.name = name
         self.fail = fail
+        self.message = message
 
 class TestSuite:
     def __init__(self, name):
@@ -47,8 +48,8 @@ def parseLog(logFilename):
                 testCase = TestCase(match.group(1), fail=False)
                 testSuite.addTestCase(testCase)
             elif line.startswith('ERROR: Tests:'):
-                match = re.search(r'^ERROR: Tests: (.*), line (\d+):', line)
-                testCase = TestCase(match.group(1), fail=True)
+                match = re.search(r'^ERROR: Tests: (.*), line (\d+): (.*)', line)
+                testCase = TestCase(match.group(1), fail=True, message=match.group(3))
                 testSuite.addTestCase(testCase)
 
     return testSuite
@@ -62,6 +63,9 @@ def writeJUnitXml(filename, testSuite):
 
         for testCase in testSuite.testCases:
             xmlFile.write('    <testcase name="{}">\n'.format(testCase.name))
+            if testCase.fail:
+                xmlFile.write('        <failure message="{}">\n'.format(testCase.message))
+                xmlFile.write('        </failure>\n')
             xmlFile.write('    </testcase>\n')
 
         xmlFile.write('</testsuite>\n')
