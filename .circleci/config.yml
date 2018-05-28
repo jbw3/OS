@@ -9,3 +9,4 @@ jobs:
     steps:
       - checkout
       - run: make release iso
+      - run: python3 tools/run-tests.py
