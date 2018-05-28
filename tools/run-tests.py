@@ -1,16 +1,13 @@
 #!/usr/bin/env python3
 
+import re
 import subprocess
 import time
 
 class TestCase:
-    def __init__(self, classname, file, line, name, fail):
-        self.classname = classname
-        self.file = file
-        self.line = line
+    def __init__(self, name, fail):
         self.name = name
         self.fail = fail
-        self.time = 0.0
 
 class TestSuite:
     def __init__(self, name):
@@ -19,7 +16,6 @@ class TestSuite:
         self.failures = 0
         self.skips = 0
         self.tests = 0
-        self.time = 0.0
         self._testCases = []
 
     def addTestCase(self, testCase):
@@ -27,6 +23,10 @@ class TestSuite:
         self.tests += 1
         if testCase.fail:
             self.failures += 1
+
+    @property
+    def testCases(self):
+        return self._testCases
 
 def runQemu(logFilename):
     qemu = 'qemu-system-i386'
@@ -43,10 +43,12 @@ def parseLog(logFilename):
     with open(logFilename, 'r') as logFile:
         for line in logFile:
             if line.startswith('INFO: Tests:'):
-                testCase = TestCase('TODO', 'TODO', 'TODO', 'TODO', fail=False)
+                match = re.search(r'^INFO: Tests: (.*) passed.', line)
+                testCase = TestCase(match.group(1), fail=False)
                 testSuite.addTestCase(testCase)
             elif line.startswith('ERROR: Tests:'):
-                testCase = TestCase('TODO', 'TODO', 'TODO', 'TODO', fail=True)
+                match = re.search(r'^ERROR: Tests: (.*), line (\d+):', line)
+                testCase = TestCase(match.group(1), fail=True)
                 testSuite.addTestCase(testCase)
 
     return testSuite
@@ -55,8 +57,12 @@ def writeJUnitXml(filename, testSuite):
     with open(filename, 'w') as xmlFile:
         xmlFile.write('<?xml version="1.0" encoding="utf-8"?>\n')
 
-        xmlFile.write('<testsuite errors="{}" failures="{}" name="{}" skips="{}" tests="{}" time="{}">\n'
-                      .format(testSuite.errors, testSuite.failures, testSuite.name, testSuite.skips, testSuite.tests, testSuite.time))
+        xmlFile.write('<testsuite errors="{}" failures="{}" name="{}" skips="{}" tests="{}">\n'
+                      .format(testSuite.errors, testSuite.failures, testSuite.name, testSuite.skips, testSuite.tests))
+
+        for testCase in testSuite.testCases:
+            xmlFile.write('    <testcase name="{}">\n'.format(testCase.name))
+            xmlFile.write('    </testcase>\n')
 
         xmlFile.write('</testsuite>\n')
 
