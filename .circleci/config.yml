@@ -9,12 +9,4 @@ jobs:
     steps:
       - checkout
       - run: make release iso
-      - run:
-          name: Run tests
-          command: |
-            mkdir -p ~/test-results
-            python3 tools/run-tests.py -o ~/test-results/junit.xml
-      - store_test_results:
-          path: ~/test-results
-      - store_artifacts:
-          path: ~/test-results
+      - run: python3 tools/run-tests.py
