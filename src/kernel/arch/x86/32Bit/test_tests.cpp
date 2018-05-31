@@ -4,7 +4,7 @@ void runTestTests()
 {
     Test::run("AssertTrue", []()
     {
-        ASSERT_TRUE(false);
+        ASSERT_TRUE(true);
     });
 
     Test::run("AssertFalse", []()
