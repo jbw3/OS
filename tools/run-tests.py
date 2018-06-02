@@ -147,13 +147,15 @@ def writeJUnitXml(testSuites, filename):
 
             for testCase in testSuite.testCases:
                 tcName = sanitizeXmlAttribute(testCase.name)
-                xmlFile.write('    <testcase name="{}">\n'.format(tcName))
                 if testCase.fail:
                     message = sanitizeXmlText(testCase.failMessage)
+                    xmlFile.write('    <testcase name="{}">\n'.format(tcName))
                     xmlFile.write('        <failure message="Test failed.">\n')
                     xmlFile.write(message)
                     xmlFile.write('\n        </failure>\n')
-                xmlFile.write('    </testcase>\n')
+                    xmlFile.write('    </testcase>\n')
+                else:
+                    xmlFile.write('    <testcase name="{}"/>\n'.format(tcName))
 
             xmlFile.write('</testsuite>\n')
 
