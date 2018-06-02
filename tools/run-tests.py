@@ -1,10 +1,15 @@
 #!/usr/bin/env python3
 
+import multiprocessing
 import os
 import re
 import subprocess
 import sys
-import time
+
+# return codes
+RC_SUCCESS      = 0 # all tests passed
+RC_RUN_FAILED   = 1 # tests could not be run (e.g. OS failed to boot)
+RC_TESTS_FAILED = 2 # tests were run, but some failed
 
 class TestCase:
     def __init__(self, name, fail, message=''):
@@ -31,19 +36,51 @@ class TestSuite:
     def testCases(self):
         return self._testCases
 
+class PromptTimeoutExpired(Exception): pass
+
+def waitForPrompt(qemuProc, timeout):
+    def readPrompt(qemuProc):
+        lastChar = b''
+        char = qemuProc.stdout.read(1)
+        while lastChar != b'>' or char != b' ':
+            lastChar = char
+            char = qemuProc.stdout.read(1)
+
+    p = multiprocessing.Process(target=readPrompt, args=(qemuProc,))
+    p.start()
+    p.join(timeout)
+
+    # If the process is still alive, it is still waiting to read the prompt. Something must
+    # have gone wrong while the OS was booting.
+    if p.is_alive():
+        p.terminate()
+        raise PromptTimeoutExpired()
+
 def runQemu(logFilename):
     scriptDir = os.path.dirname(__file__)
     isoPath = os.path.join(scriptDir, '..', 'bin', 'OS-x86.iso')
     isoPath = os.path.abspath(isoPath)
 
     qemu = 'qemu-system-i386'
-    cmd = [qemu, '-nographic', '-monitor', 'stdio', '-serial', 'file:/dev/null', '-serial', 'file:{}'.format(logFilename), '-cdrom', isoPath]
+    cmd = [qemu, '-nographic', '-serial', 'mon:stdio', '-serial', 'file:{}'.format(logFilename), '-cdrom', isoPath]
 
-    proc = subprocess.Popen(cmd, stdin=subprocess.PIPE)
-    time.sleep(3)
+    proc = subprocess.Popen(cmd, stdin=subprocess.PIPE, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
 
-    proc.communicate(b'quit\n')
-    proc.wait()
+    try:
+        # wait for OS to boot by watching for terminal prompt
+        waitForPrompt(proc, timeout=3)
+    except PromptTimeoutExpired:
+        proc.kill()
+        return False
+
+    try:
+        # switch to the QEMU monitor and tell it to quit
+        proc.communicate(b'\x01cquit\n', timeout=5)
+    except subprocess.TimeoutExpired:
+        proc.kill()
+        return False
+
+    return True
 
 def parseLog(logFilename):
     testSuite = TestSuite('KernelTests')
@@ -102,20 +139,23 @@ def parseArgs():
 def main():
     args = parseArgs()
 
+    rc = RC_SUCCESS
     logFilename = 'kernel-x86.log'
 
-    runQemu(logFilename)
-    testSuite = parseLog(logFilename)
+    ok = runQemu(logFilename)
+    if ok:
+        testSuite = parseLog(logFilename)
+        if args.output is None:
+            writeStdout(testSuite)
+        else:
+            writeJUnitXml(testSuite, args.output)
 
-    if args.output is None:
-        writeStdout(testSuite)
+        if testSuite.errors > 0 or testSuite.failures > 0:
+            rc = RC_TESTS_FAILED
     else:
-        writeJUnitXml(testSuite, args.output)
+        print('Failed to run tests.', file=sys.stderr)
+        rc = RC_RUN_FAILED
 
-    # return 0 if all tests passed, or 1 if any tests failed
-    rc = 0
-    if testSuite.errors > 0 or testSuite.failures > 0:
-        rc = 1
     sys.exit(rc)
 
 if __name__ == '__main__':
