@@ -55,7 +55,7 @@ def parseLog(logFilename):
 
     return testSuite
 
-def writeJUnitXml(filename, testSuite):
+def writeJUnitXml(testSuite, filename):
     with open(filename, 'w') as xmlFile:
         xmlFile.write('<?xml version="1.0" encoding="utf-8"?>\n')
 
@@ -71,11 +71,16 @@ def writeJUnitXml(filename, testSuite):
 
         xmlFile.write('</testsuite>\n')
 
+def writeStdout(testSuite):
+    for testCase in testSuite.testCases:
+        if testCase.fail:
+            print('FAIL: {}'.format(testCase.name))
+
 def parseArgs():
     import argparse
 
     parser = argparse.ArgumentParser()
-    parser.add_argument('-o', '--output', default='junit.xml', help='the output file for test results')
+    parser.add_argument('-o', '--output', default=None, help='the output file for test results')
 
     args = parser.parse_args()
     return args
@@ -87,7 +92,11 @@ def main():
 
     runQemu(logFilename)
     testSuite = parseLog(logFilename)
-    writeJUnitXml(args.output, testSuite)
+
+    if args.output is None:
+        writeStdout(testSuite)
+    else:
+        writeJUnitXml(testSuite, args.output)
 
     # return 0 if all tests passed, or 1 if any tests failed
     rc = 0
