@@ -68,7 +68,7 @@ def runQemu(logFilename):
 
     try:
         # wait for OS to boot by watching for terminal prompt
-        waitForPrompt(proc, timeout=3)
+        waitForPrompt(proc, timeout=10)
     except PromptTimeoutExpired:
         proc.kill()
         return False
