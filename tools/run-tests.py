@@ -55,17 +55,24 @@ def parseLog(logFilename):
 
     return testSuite
 
+def sanitizeXmlAttribute(att):
+    rv = str(att).replace('"', '&quot;')
+    return rv
+
 def writeJUnitXml(testSuite, filename):
     with open(filename, 'w') as xmlFile:
         xmlFile.write('<?xml version="1.0" encoding="utf-8"?>\n')
 
+        name = sanitizeXmlAttribute(testSuite.name)
         xmlFile.write('<testsuite errors="{}" failures="{}" name="{}" skips="{}" tests="{}">\n'
-                      .format(testSuite.errors, testSuite.failures, testSuite.name, testSuite.skips, testSuite.tests))
+                      .format(testSuite.errors, testSuite.failures, name, testSuite.skips, testSuite.tests))
 
         for testCase in testSuite.testCases:
-            xmlFile.write('    <testcase name="{}">\n'.format(testCase.name))
+            tcName = sanitizeXmlAttribute(testCase.name)
+            xmlFile.write('    <testcase name="{}">\n'.format(tcName))
             if testCase.fail:
-                xmlFile.write('        <failure message="{}">\n'.format(testCase.message))
+                message = sanitizeXmlAttribute(testCase.message)
+                xmlFile.write('        <failure message="{}">\n'.format(message))
                 xmlFile.write('        </failure>\n')
             xmlFile.write('    </testcase>\n')
 
