@@ -88,7 +88,7 @@ def writeJUnitXml(testSuite, filename):
 def writeStdout(testSuite):
     for testCase in testSuite.testCases:
         if testCase.fail:
-            print('FAIL: {}'.format(testCase.name))
+            print('FAIL: {}: {}'.format(testCase.name, testCase.message))
 
 def parseArgs():
     import argparse
