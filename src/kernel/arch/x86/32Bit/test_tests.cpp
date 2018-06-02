@@ -29,7 +29,7 @@ void runTestTests()
     Test::run("AssertCStringEqual", []()
     {
         const char* str1 = "Hello";
-        const char* str2 = "Hello!";
+        const char* str2 = "Hello";
         ASSERT_CSTR_EQ(str1, str2);
     });
 
