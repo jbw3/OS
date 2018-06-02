@@ -96,6 +96,10 @@ debugger: debug iso
 	qemu-system-i386 -s -S -serial /dev/null -serial file:$(KERNEL_LOG) -cdrom $(BINDIR)/$(ISO_NAME) &
 	gdb -x $(TOOLSDIR)/$(ARCH_NAME).gdb
 
+.PHONY: test
+test: iso
+	$(TOOLSDIR)/run-tests.py
+
 $(TARGET): $(BUILD_OBJ)
 	$(CXX) $(LINK_OBJ) -o $(TARGET) $(LDFLAGS)
 

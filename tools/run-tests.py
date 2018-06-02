@@ -1,5 +1,6 @@
 #!/usr/bin/env python3
 
+import os
 import re
 import subprocess
 import sys
@@ -31,8 +32,12 @@ class TestSuite:
         return self._testCases
 
 def runQemu(logFilename):
+    scriptDir = os.path.dirname(__file__)
+    isoPath = os.path.join(scriptDir, '..', 'bin', 'OS-x86.iso')
+    isoPath = os.path.abspath(isoPath)
+
     qemu = 'qemu-system-i386'
-    cmd = [qemu, '-nographic', '-monitor', 'stdio', '-serial', 'file:/dev/null', '-serial', 'file:{}'.format(logFilename), '-cdrom', 'bin/OS-x86.iso']
+    cmd = [qemu, '-nographic', '-monitor', 'stdio', '-serial', 'file:/dev/null', '-serial', 'file:{}'.format(logFilename), '-cdrom', isoPath]
 
     proc = subprocess.Popen(cmd, stdin=subprocess.PIPE)
     time.sleep(3)
