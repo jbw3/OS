@@ -56,7 +56,9 @@ def parseLog(logFilename):
     return testSuite
 
 def sanitizeXmlAttribute(att):
-    rv = str(att).replace('"', '&quot;')
+    rv = str(att)
+    rv = rv.replace('&', '&amp;') # replace ampersand first
+    rv = rv.replace('"', '&quot;')
     return rv
 
 def writeJUnitXml(testSuite, filename):
