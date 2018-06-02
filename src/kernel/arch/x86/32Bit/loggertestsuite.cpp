@@ -1,5 +1,5 @@
 #include "logger.h"
-#include "test.h"
+#include "unittests.h"
 
 class TestLogger : public Logger
 {
@@ -58,9 +58,14 @@ void TestLogger::flush(const char* buff, size_t len)
     }
 }
 
-void runLoggerTests()
+LoggerTestSuite::LoggerTestSuite() :
+    TestSuite("Logger")
 {
-    Test::run("NoArgs", []()
+}
+
+void LoggerTestSuite::runTests()
+{
+    runTest("NoArgs", []()
     {
         const char* expectedStr = "This is a test.";
 
@@ -70,7 +75,7 @@ void runLoggerTests()
         ASSERT_CSTR_EQ(expectedStr, l.getStr());
     });
 
-    Test::run("StringArg", []()
+    runTest("StringArg", []()
     {
         const char* expectedStr = "string: ABCD";
         const char* arg = "ABCD";

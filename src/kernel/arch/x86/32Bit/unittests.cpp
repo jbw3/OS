@@ -1,8 +1,10 @@
-#include "test.h"
 #include "unittests.h"
 
 void runUnitTests()
 {
-    runTestTests();
-    runLoggerTests();
+    TestSuiteTestSuite testSuiteSuite;
+    testSuiteSuite.run();
+
+    LoggerTestSuite loggerSuite;
+    loggerSuite.run();
 }
