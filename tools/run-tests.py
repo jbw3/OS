@@ -12,29 +12,41 @@ RC_RUN_FAILED   = 1 # tests could not be run (e.g. OS failed to boot)
 RC_TESTS_FAILED = 2 # tests were run, but some failed
 
 class TestCase:
-    def __init__(self, name, fail, message=''):
+    def __init__(self, name):
         self.name = name
-        self.fail = fail
-        self.message = message
+        self.error = False
+        self.fail = False
+        self.errorMessage = ''
+        self.failMessage = ''
 
 class TestSuite:
     def __init__(self, name):
         self.name = name
-        self.errors = 0
-        self.failures = 0
-        self.skips = 0
-        self.tests = 0
         self._testCases = []
 
     def addTestCase(self, testCase):
         self._testCases.append(testCase)
-        self.tests += 1
-        if testCase.fail:
-            self.failures += 1
 
     @property
     def testCases(self):
         return self._testCases
+
+    @property
+    def numTests(self):
+        return len(self._testCases)
+
+    @property
+    def numSkips(self):
+        # right now, tests cannot be skipped
+        return 0
+
+    @property
+    def numErrors(self):
+        return sum([1 for tc in self._testCases if tc.error])
+
+    @property
+    def numFailures(self):
+        return sum([1 for tc in self._testCases if tc.fail])
 
 class PromptTimeoutExpired(Exception): pass
 
@@ -83,19 +95,33 @@ def runQemu(logFilename):
     return True
 
 def parseLog(logFilename):
-    testSuite = TestSuite('KernelTests')
+    testSuites = []
+    testSuite = None
+    testCase = None
     with open(logFilename, 'r') as logFile:
         for line in logFile:
-            if line.startswith('INFO: Tests:'):
-                match = re.search(r'^INFO: Tests: (.*) passed.', line)
-                testCase = TestCase(match.group(1), fail=False)
+            # check if this is the start of a test suite
+            if line.startswith('INFO: Tests: TestSuite:'):
+                match = re.search(r'^INFO: Tests: TestSuite: (.*)', line)
+                testSuite = TestSuite(match.group(1))
+                testSuites.append(testSuite)
+            # check if this is the start of a test
+            elif line.startswith('INFO: Tests: Test:'):
+                match = re.search(r'^INFO: Tests: Test: (.*)', line)
+                testCase = TestCase(match.group(1))
                 testSuite.addTestCase(testCase)
-            elif line.startswith('ERROR: Tests:'):
-                match = re.search(r'^ERROR: Tests: (.*), line (\d+): (.*)', line)
-                testCase = TestCase(match.group(1), fail=True, message=match.group(3))
-                testSuite.addTestCase(testCase)
+            # check if the the current test failed
+            elif line.startswith('ERROR: Tests: Fail:'):
+                match = re.search(r'^ERROR: Tests: Fail: (.*), line (\d+): (.*)', line)
+                testCase.fail = True
+                testCase.failMessage = match.group(3)
+            # check if there was an error while the current test was running
+            elif testCase is not None and line.startswith('ERROR: '):
+                match = re.search(r'^ERROR: (.*)', line)
+                testCase.error = True
+                testCase.errorMessage = match.group(1)
 
-    return testSuite
+    return testSuites
 
 def sanitizeXmlAttribute(att):
     rv = str(att)
@@ -103,29 +129,39 @@ def sanitizeXmlAttribute(att):
     rv = rv.replace('"', '&quot;')
     return rv
 
-def writeJUnitXml(testSuite, filename):
+def sanitizeXmlText(text):
+    rv = str(text)
+    rv = rv.replace('&', '&amp;') # replace ampersand first
+    rv = rv.replace('<', '&lt;')
+    rv = rv.replace('>', '&gt;')
+    return rv
+
+def writeJUnitXml(testSuites, filename):
     with open(filename, 'w') as xmlFile:
         xmlFile.write('<?xml version="1.0" encoding="utf-8"?>\n')
 
-        name = sanitizeXmlAttribute(testSuite.name)
-        xmlFile.write('<testsuite errors="{}" failures="{}" name="{}" skips="{}" tests="{}">\n'
-                      .format(testSuite.errors, testSuite.failures, name, testSuite.skips, testSuite.tests))
+        for testSuite in testSuites:
+            tsName = sanitizeXmlAttribute(testSuite.name)
+            xmlFile.write('<testsuite name="{}" tests="{}" skips="{}" errors="{}" failures="{}">\n'
+                        .format(tsName, testSuite.numTests, testSuite.numSkips, testSuite.numErrors, testSuite.numFailures))
 
+            for testCase in testSuite.testCases:
+                tcName = sanitizeXmlAttribute(testCase.name)
+                xmlFile.write('    <testcase name="{}">\n'.format(tcName))
+                if testCase.fail:
+                    message = sanitizeXmlText(testCase.failMessage)
+                    xmlFile.write('        <failure message="Test failed.">\n')
+                    xmlFile.write(message)
+                    xmlFile.write('\n        </failure>\n')
+                xmlFile.write('    </testcase>\n')
+
+            xmlFile.write('</testsuite>\n')
+
+def writeStdout(testSuites):
+    for testSuite in testSuites:
         for testCase in testSuite.testCases:
-            tcName = sanitizeXmlAttribute(testCase.name)
-            xmlFile.write('    <testcase name="{}">\n'.format(tcName))
             if testCase.fail:
-                message = sanitizeXmlAttribute(testCase.message)
-                xmlFile.write('        <failure message="{}">\n'.format(message))
-                xmlFile.write('        </failure>\n')
-            xmlFile.write('    </testcase>\n')
-
-        xmlFile.write('</testsuite>\n')
-
-def writeStdout(testSuite):
-    for testCase in testSuite.testCases:
-        if testCase.fail:
-            print('FAIL: {}: {}'.format(testCase.name, testCase.message))
+                print('FAIL: {}: {}: {}'.format(testSuite.name, testCase.name, testCase.failMessage))
 
 def parseArgs():
     import argparse
@@ -144,13 +180,15 @@ def main():
 
     ok = runQemu(logFilename)
     if ok:
-        testSuite = parseLog(logFilename)
+        testSuites = parseLog(logFilename)
         if args.output is None:
-            writeStdout(testSuite)
+            writeStdout(testSuites)
         else:
-            writeJUnitXml(testSuite, args.output)
+            writeJUnitXml(testSuites, args.output)
 
-        if testSuite.errors > 0 or testSuite.failures > 0:
+        totalErrors = sum([ts.numErrors for ts in testSuites])
+        totalFailures = sum([ts.numFailures for ts in testSuites])
+        if totalErrors > 0 or totalFailures > 0:
             rc = RC_TESTS_FAILED
     else:
         print('Failed to run tests.', file=sys.stderr)

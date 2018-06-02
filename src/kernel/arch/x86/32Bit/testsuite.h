@@ -35,8 +35,7 @@ public:
     {
         if (!cmp(a, b))
         {
-            klog.logError(TEST_TAG, "{}, line {}: {} {} {} ({} {} {})", runningTestName, line, aStr, compStr, bStr, a, compStr, b);
-            runningTestPassed = false;
+            klog.logError(TEST_TAG, "Fail: {}, line {}: {} {} {} ({} {} {})", runningTestName, line, aStr, compStr, bStr, a, compStr, b);
             return false;
         }
         return true;
@@ -52,7 +51,6 @@ protected:
 private:
     static const char* const TEST_TAG;
     static const char* runningTestName;
-    static bool runningTestPassed;
 
     static constexpr size_t MAX_NAME_SIZE = 64;
     char name[MAX_NAME_SIZE];

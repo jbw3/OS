@@ -3,12 +3,10 @@
 
 const char* const TestSuite::TEST_TAG = "Tests";
 const char* TestSuite::runningTestName = nullptr;
-bool TestSuite::runningTestPassed = true;
 
 void TestSuite::fail(unsigned long long line, const char* msg)
 {
-    klog.logError(TEST_TAG, "{}, line {}: {}", runningTestName, line, msg);
-    runningTestPassed = false;
+    klog.logError(TEST_TAG, "Fail: {}, line {}: {}", runningTestName, line, msg);
 }
 
 bool TestSuite::cStrComparison(unsigned long long line, const char* a, const char* b, bool equal, const char* aStr, const char* bStr)
@@ -17,8 +15,7 @@ bool TestSuite::cStrComparison(unsigned long long line, const char* a, const cha
     if ( (equal && rv != 0) || (!equal && rv == 0) )
     {
         const char* compStr = equal ? "!=" : "==";
-        klog.logError(TEST_TAG, "{}, line {}: {} {} {} (\"{}\" {} \"{}\")", runningTestName, line, aStr, compStr, bStr, a, compStr, b);
-        runningTestPassed = false;
+        klog.logError(TEST_TAG, "Fail: {}, line {}: {} {} {} (\"{}\" {} \"{}\")", runningTestName, line, aStr, compStr, bStr, a, compStr, b);
         return false;
     }
     return true;
@@ -32,20 +29,18 @@ TestSuite::TestSuite(const char* suiteName)
 
 void TestSuite::run()
 {
+    klog.logInfo(TEST_TAG, "TestSuite: {}", name);
+
     runTests();
 }
 
 void TestSuite::runTest(const char* testName, void (*test)())
 {
     runningTestName = testName;
-    runningTestPassed = true;
+
+    klog.logInfo(TEST_TAG, "Test: {}", testName);
 
     test();
-
-    if (runningTestPassed)
-    {
-        klog.logInfo(TEST_TAG, "{} passed.", runningTestName);
-    }
 
     runningTestName = nullptr;
 }
