@@ -1,21 +1,21 @@
 #ifndef UNIT_TESTS_H_
 #define UNIT_TESTS_H_
 
-#include "testsuite.h"
+#include "testclass.h"
 
-class TestSuiteTestSuite : public TestSuite
+class TestClassTestClass : public TestClass
 {
 public:
-    TestSuiteTestSuite();
+    TestClassTestClass();
 
 protected:
     void runTests() override;
 };
 
-class LoggerTestSuite : public TestSuite
+class LoggerTestClass : public TestClass
 {
 public:
-    LoggerTestSuite();
+    LoggerTestClass();
 
 protected:
     void runTests() override;

@@ -58,12 +58,12 @@ void TestLogger::flush(const char* buff, size_t len)
     }
 }
 
-LoggerTestSuite::LoggerTestSuite() :
-    TestSuite("Logger")
+LoggerTestClass::LoggerTestClass() :
+    TestClass("Logger")
 {
 }
 
-void LoggerTestSuite::runTests()
+void LoggerTestClass::runTests()
 {
     runTest("NoArgs", []()
     {

@@ -2,9 +2,9 @@
 
 void runUnitTests()
 {
-    TestSuiteTestSuite testSuiteSuite;
-    testSuiteSuite.run();
+    TestClassTestClass testClassClass;
+    testClassClass.run();
 
-    LoggerTestSuite loggerSuite;
-    loggerSuite.run();
+    LoggerTestClass loggerClass;
+    loggerClass.run();
 }

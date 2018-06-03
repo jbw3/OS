@@ -1,11 +1,11 @@
 #include "unittests.h"
 
-TestSuiteTestSuite::TestSuiteTestSuite() :
-    TestSuite("TestSuite")
+TestClassTestClass::TestClassTestClass() :
+    TestClass("TestClass")
 {
 }
 
-void TestSuiteTestSuite::runTests()
+void TestClassTestClass::runTests()
 {
     runTest("AssertTrue", []()
     {

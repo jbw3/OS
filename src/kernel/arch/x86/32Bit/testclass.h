@@ -1,5 +1,5 @@
-#ifndef TEST_SUITE_H_
-#define TEST_SUITE_H_
+#ifndef TEST_CLASS_H_
+#define TEST_CLASS_H_
 
 #include <stddef.h>
 #include "kernellogger.h"
@@ -21,10 +21,10 @@ bool cmpNe(const A& a, const B& b)
 
 } // namespace details
 
-class TestSuite
+class TestClass
 {
 public:
-    TestSuite(const char* suiteName);
+    TestClass(const char* className);
 
     void run();
 
@@ -62,7 +62,7 @@ do                                      \
 {                                       \
     if (!(evalFunc))                    \
     {                                   \
-        TestSuite::fail(__LINE__, msg); \
+        TestClass::fail(__LINE__, msg); \
         return;                         \
     }                                   \
 } while (false)
@@ -79,7 +79,7 @@ FAIL_BASE(!(a), #a" is true")
 #define COMPARE_FAIL_BASE(a, b, cmp, compStr)                                 \
 do                                                                            \
 {                                                                             \
-    if (!TestSuite::comparison(__LINE__, (a), (b), (cmp), #a, #b, (compStr))) \
+    if (!TestClass::comparison(__LINE__, (a), (b), (cmp), #a, #b, (compStr))) \
     {                                                                         \
         return;                                                               \
     }                                                                         \
@@ -94,7 +94,7 @@ COMPARE_FAIL_BASE(a, b, details::cmpNe, "==")
 #define COMPARE_FAIL_CSTR_BASE(a, b, equal)                              \
 do                                                                       \
 {                                                                        \
-    if (!TestSuite::cStrComparison(__LINE__, (a), (b), (equal), #a, #b)) \
+    if (!TestClass::cStrComparison(__LINE__, (a), (b), (equal), #a, #b)) \
     {                                                                    \
         return;                                                          \
     }                                                                    \
@@ -106,4 +106,4 @@ COMPARE_FAIL_CSTR_BASE(a, b, true)
 #define ASSERT_CSTR_NE(a, b) \
 COMPARE_FAIL_CSTR_BASE(a, b, false)
 
-#endif // TEST_SUITE_H_
+#endif // TEST_CLASS_H_
