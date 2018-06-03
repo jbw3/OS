@@ -9,7 +9,7 @@ void TestClassTestClass::runTests()
 {
     runTest("AssertTrue", []()
     {
-        ASSERT_TRUE(false);
+        ASSERT_TRUE(true);
     });
 
     runTest("AssertFalse", []()
@@ -22,8 +22,6 @@ void TestClassTestClass::runTests()
         int i1 = 10;
         int i2 = 10;
         ASSERT_EQ(i1, i2);
-
-        klog.logError("TEMP", "An error occurred. <&>");
     });
 
     runTest("AssertNotEqual", []()
@@ -36,14 +34,14 @@ void TestClassTestClass::runTests()
     runTest("AssertCStringEqual", []()
     {
         const char* str1 = "Hello";
-        const char* str2 = "Hello!";
+        const char* str2 = "Hello";
         ASSERT_CSTR_EQ(str1, str2);
     });
 
     runTest("AssertCStringNotEqual", []()
     {
         const char* str1 = "Hello";
-        const char* str2 = "Hello";
+        const char* str2 = "Hi";
         ASSERT_CSTR_NE(str1, str2);
     });
 }
