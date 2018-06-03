@@ -147,12 +147,18 @@ def writeJUnitXml(testSuite, filename):
         for testCase in testSuite.testCases:
             className = sanitizeXmlAttribute(testCase.className)
             testName = sanitizeXmlAttribute(testCase.testName)
-            if testCase.fail:
-                message = sanitizeXmlText(testCase.failMessage)
+            if testCase.error or testCase.fail:
                 xmlFile.write('    <testcase classname="{}" name="{}">\n'.format(className, testName))
-                xmlFile.write('        <failure message="Test failed.">\n')
-                xmlFile.write(message)
-                xmlFile.write('\n        </failure>\n')
+                if testCase.error:
+                    xmlFile.write('        <error message="An error occurred while running the test.">\n')
+                    errorMessage = sanitizeXmlText(testCase.errorMessage)
+                    xmlFile.write(errorMessage)
+                    xmlFile.write('\n        </error>\n')
+                if testCase.fail:
+                    xmlFile.write('        <failure message="Test failed.">\n')
+                    failMessage = sanitizeXmlText(testCase.failMessage)
+                    xmlFile.write(failMessage)
+                    xmlFile.write('\n        </failure>\n')
                 xmlFile.write('    </testcase>\n')
             else:
                 xmlFile.write('    <testcase classname="{}" name="{}"/>\n'.format(className, testName))
@@ -161,6 +167,8 @@ def writeJUnitXml(testSuite, filename):
 
 def writeStdout(testSuite):
     for testCase in testSuite.testCases:
+        if testCase.error:
+            print('ERROR: {}: {}: {}'.format(testCase.className, testCase.testName, testCase.errorMessage))
         if testCase.fail:
             print('FAIL: {}: {}: {}'.format(testCase.className, testCase.testName, testCase.failMessage))
 
