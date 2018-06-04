@@ -8,8 +8,8 @@ import sys
 
 # return codes
 RC_SUCCESS      = 0 # all tests passed
-RC_RUN_FAILED   = 1 # tests could not be run (e.g. OS failed to boot)
-RC_TESTS_FAILED = 2 # tests were run, but some failed
+RC_TESTS_FAILED = 1 # tests were run, but some failed
+RC_RUN_FAILED   = 2 # all tests may not have been run (e.g. OS failed to boot, page fault occurred, etc.)
 
 class TestCase:
     def __init__(self, className, testName):
@@ -187,19 +187,19 @@ def main():
     rc = RC_SUCCESS
     logFilename = 'kernel-x86.log'
 
-    ok = runQemu(logFilename)
-    if ok:
-        testSuite = parseLog(logFilename)
-        if args.output is None:
-            writeStdout(testSuite)
-        else:
-            writeJUnitXml(testSuite, args.output)
+    runSuccessful = runQemu(logFilename)
 
-        if testSuite.numErrors > 0 or testSuite.numFailures > 0:
-            rc = RC_TESTS_FAILED
+    testSuite = parseLog(logFilename)
+    if args.output is None:
+        writeStdout(testSuite)
     else:
-        print('Failed to run tests.', file=sys.stderr)
+        writeJUnitXml(testSuite, args.output)
+
+    if not runSuccessful:
+        print('OS failed to shut down gracefully. All tests may not have been run successfully.', file=sys.stderr)
         rc = RC_RUN_FAILED
+    elif testSuite.numErrors > 0 or testSuite.numFailures > 0:
+        rc = RC_TESTS_FAILED
 
     sys.exit(rc)
 
