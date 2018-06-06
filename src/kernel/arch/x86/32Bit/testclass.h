@@ -19,6 +19,30 @@ bool cmpNe(const A& a, const B& b)
     return a != b;
 }
 
+template<typename A, typename B>
+bool cmpLt(const A& a, const B& b)
+{
+    return a < b;
+}
+
+template<typename A, typename B>
+bool cmpLe(const A& a, const B& b)
+{
+    return a <= b;
+}
+
+template<typename A, typename B>
+bool cmpGt(const A& a, const B& b)
+{
+    return a > b;
+}
+
+template<typename A, typename B>
+bool cmpGe(const A& a, const B& b)
+{
+    return a >= b;
+}
+
 } // namespace details
 
 class TestClass
@@ -90,6 +114,18 @@ COMPARE_FAIL_BASE(a, b, details::cmpEq, "!=")
 
 #define ASSERT_NE(a, b) \
 COMPARE_FAIL_BASE(a, b, details::cmpNe, "==")
+
+#define ASSERT_LT(a, b) \
+COMPARE_FAIL_BASE(a, b, details::cmpLt, ">=")
+
+#define ASSERT_LE(a, b) \
+COMPARE_FAIL_BASE(a, b, details::cmpLe, ">")
+
+#define ASSERT_GT(a, b) \
+COMPARE_FAIL_BASE(a, b, details::cmpGt, "<=")
+
+#define ASSERT_GE(a, b) \
+COMPARE_FAIL_BASE(a, b, details::cmpGe, "<")
 
 #define COMPARE_FAIL_CSTR_BASE(a, b, equal)                              \
 do                                                                       \
