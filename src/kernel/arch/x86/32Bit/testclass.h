@@ -47,10 +47,37 @@ bool cmpGe(const A& a, const B& b)
 
 class TestClass
 {
+private:
+    static const char* const TEST_TAG;
+    static const char* runningTestName;
+    static bool runningTestPassed;
+
+    static constexpr size_t MAX_NAME_SIZE = 64;
+    char name[MAX_NAME_SIZE];
+    size_t numTests;
+    size_t numFailed;
+
+    template<typename... Ts>
+    static void failTest(const char* errorMsgFmt, Ts... ts)
+    {
+        runningTestPassed = false;
+        klog.logError(TEST_TAG, errorMsgFmt, ts...);
+    }
+
 public:
     TestClass(const char* className);
 
     void run();
+
+    size_t getNumTests() const
+    {
+        return numTests;
+    }
+
+    size_t getNumFailed() const
+    {
+        return numFailed;
+    }
 
     static void fail(unsigned long long line, const char* msg);
 
@@ -59,7 +86,7 @@ public:
     {
         if (!cmp(a, b))
         {
-            klog.logError(TEST_TAG, "Fail: {}, line {}: {} {} {} ({} {} {})", runningTestName, line, aStr, compStr, bStr, a, compStr, b);
+            failTest("Fail: {}, line {}: {} {} {} ({} {} {})", runningTestName, line, aStr, compStr, bStr, a, compStr, b);
             return false;
         }
         return true;
@@ -71,14 +98,6 @@ protected:
     virtual void runTests() = 0;
 
     void runTest(const char* testName, void (*test)());
-
-private:
-    static const char* const TEST_TAG;
-    static const char* runningTestName;
-
-    static constexpr size_t MAX_NAME_SIZE = 64;
-    char name[MAX_NAME_SIZE];
-
 };
 
 #define FAIL_BASE(evalFunc, msg)        \

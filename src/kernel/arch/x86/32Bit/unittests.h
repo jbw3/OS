@@ -21,6 +21,6 @@ protected:
     void runTests() override;
 };
 
-void runUnitTests();
+bool runUnitTests(size_t& numTests, size_t& numFailed);
 
 #endif // UNIT_TESTS_H_
