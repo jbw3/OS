@@ -85,4 +85,38 @@ void LoggerTestClass::runTests()
 
         ASSERT_CSTR_EQ(expectedStr, l.getStr());
     });
+
+    runTest("IntArg", []()
+    {
+        const char* expectedStr1 = "int: 450";
+        int arg1 = 450;
+        TestLogger l;
+
+        l.log("int: 450", arg1);
+        ASSERT_CSTR_EQ(expectedStr1, l.getStr());
+
+        const char* expectedStr2 = "negative: -30";
+        int arg2 = -30;
+        l.reset();
+
+        l.log("negative: -30", arg2);
+        ASSERT_CSTR_EQ(expectedStr2, l.getStr());
+    });
+
+    runTest("UintArg", []()
+    {
+        const char* expectedStr1 = "unsigned int: 1034";
+        unsigned int arg1 = 1'034;
+        TestLogger l;
+
+        l.log("unsigned int: 1034", arg1);
+        ASSERT_CSTR_EQ(expectedStr1, l.getStr());
+
+        const char* expectedStr2 = "(4000000000)";
+        unsigned int arg2 = 4'000'000'000;
+        l.reset();
+
+        l.log("({})", arg2);
+        ASSERT_CSTR_EQ(expectedStr2, l.getStr());
+    });
 }
