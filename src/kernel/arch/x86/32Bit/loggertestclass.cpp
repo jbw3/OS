@@ -119,4 +119,34 @@ void LoggerTestClass::runTests()
         l.log("({})", arg2);
         ASSERT_CSTR_EQ(expectedStr2, l.getStr());
     });
+
+    runTest("MultiArgTypes", []()
+    {
+        const char* expectedStr = "arg1 = 13008, arg2 = string, arg3 = !";
+        int arg1 = 13'008;
+        const char* arg2 = "string";
+        char arg3 = '!';
+        TestLogger l;
+
+        l.log("arg1 = {}, arg2 = {}, arg3 = {}", arg1, arg2, arg3);
+        ASSERT_CSTR_EQ(expectedStr, l.getStr());
+    });
+
+    runTest("TooManyArgs", []()
+    {
+        const char* expectedStr = "arg1 = 1, arg2 = 2";
+        TestLogger l;
+
+        l.log("arg1 = {}, arg2 = {}", 1, 2, 3, 4, 5, 6, 7, 8, 9, 10);
+        ASSERT_CSTR_EQ(expectedStr, l.getStr());
+    });
+
+    runTest("TooFewArgs", []()
+    {
+        const char* expectedStr = "arg1 = 1, arg2 = 2, arg3 = {}, arg4 = {}, arg5 = {}";
+        TestLogger l;
+
+        l.log("arg1 = {}, arg2 = {}, arg3 = {}, arg4 = {}, arg5 = {}", 1, 2);
+        ASSERT_CSTR_EQ(expectedStr, l.getStr());
+    });
 }
