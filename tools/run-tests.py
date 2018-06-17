@@ -19,6 +19,7 @@ class TestCase:
         self.fail = False
         self.errorMessage = ''
         self.failMessage = ''
+        self.line = -1
 
 class TestSuite:
     def __init__(self):
@@ -114,6 +115,7 @@ def parseLog(logFilename):
             elif line.startswith('ERROR: Tests: Fail:'):
                 match = re.search(r'^ERROR: Tests: Fail: (.*), line (\d+): (.*)', line)
                 testCase.fail = True
+                testCase.line = int(match.group(2))
                 testCase.failMessage = match.group(3)
             # check if there was an error while the current test was running
             elif testCase is not None and line.startswith('ERROR: '):
@@ -170,7 +172,7 @@ def writeStdout(testSuite):
         if testCase.error:
             print('ERROR: {}: {}: {}'.format(testCase.className, testCase.testName, testCase.errorMessage))
         if testCase.fail:
-            print('FAIL: {}: {}: {}'.format(testCase.className, testCase.testName, testCase.failMessage))
+            print('FAIL: {}: {}: line {}: {}'.format(testCase.className, testCase.testName, testCase.line, testCase.failMessage))
 
 def parseArgs():
     import argparse
