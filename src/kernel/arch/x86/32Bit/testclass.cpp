@@ -5,18 +5,32 @@ const char* const TestClass::TEST_TAG = "Tests";
 const char* TestClass::runningTestName = nullptr;
 bool TestClass::runningTestPassed = true;
 
-void TestClass::fail(unsigned long long line, const char* msg)
+void TestClass::fail(unsigned long long line, const char* msg1, const char* msg2)
 {
-    failTest("Fail: {}, line {}: {}", runningTestName, line, msg);
+    if (msg2 == nullptr)
+    {
+        failTest("Fail: {}, line {}: {}", runningTestName, line, msg1);
+    }
+    else
+    {
+        failTest("Fail: {}, line {}: {}: {}", runningTestName, line, msg1, msg2);
+    }
 }
 
-bool TestClass::cStrComparison(unsigned long long line, const char* a, const char* b, bool equal, const char* aStr, const char* bStr)
+bool TestClass::cStrComparison(unsigned long long line, const char* a, const char* b, bool equal, const char* aStr, const char* bStr, const char* msg)
 {
     int rv = strcmp(a, b);
     if ( (equal && rv != 0) || (!equal && rv == 0) )
     {
         const char* compStr = equal ? "!=" : "==";
-        failTest("Fail: {}, line {}: {} {} {} (\"{}\" {} \"{}\")", runningTestName, line, aStr, compStr, bStr, a, compStr, b);
+        if (msg == nullptr)
+        {
+            failTest("Fail: {}, line {}: {} {} {} (\"{}\" {} \"{}\")", runningTestName, line, aStr, compStr, bStr, a, compStr, b);
+        }
+        else
+        {
+            failTest("Fail: {}, line {}: {} {} {} (\"{}\" {} \"{}\"): {}", runningTestName, line, aStr, compStr, bStr, a, compStr, b, msg);
+        }
         return false;
     }
     return true;
