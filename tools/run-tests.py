@@ -81,15 +81,24 @@ def runQemu(logFilename):
 
     proc = subprocess.Popen(cmd, stdin=subprocess.PIPE, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
 
+    # wait for OS to boot by watching for terminal prompt
     try:
-        # wait for OS to boot by watching for terminal prompt
         waitForPrompt(proc, timeout=10)
     except PromptTimeoutExpired:
         proc.kill()
         return False
 
+    # run unit tests
+    proc.stdin.write(b'run-kernel-tests\n')
+    proc.stdin.flush()
     try:
-        # switch to the QEMU monitor and tell it to quit
+        waitForPrompt(proc, timeout=10)
+    except PromptTimeoutExpired:
+        proc.kill()
+        return False
+
+    # switch to the QEMU monitor and tell it to quit
+    try:
         proc.communicate(b'\x01cquit\n', timeout=5)
     except subprocess.TimeoutExpired:
         proc.kill()

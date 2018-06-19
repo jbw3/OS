@@ -67,10 +67,5 @@ void kernelMain(const uint32_t MULTIBOOT_MAGIC_NUM, const multiboot_info* mbootI
     processMgr.setPageFrameMgr(&pageFrameMgr);
     processMgr.setMultibootInfo(mbootInfo);
 
-    /// @todo Make a system call to run unit tests instead of doing it here.
-    size_t numTests = 0;
-    size_t numFailed = 0;
-    runUnitTests(numTests, numFailed);
-
     processMgr.mainloop();
 }
