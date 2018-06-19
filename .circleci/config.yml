@@ -4,9 +4,17 @@ jobs:
     working_directory: ~/OS
 
     docker:
-      - image: jbw3/cci-os:0.2.0
+      - image: jbw3/cci-os:0.3.1
 
     steps:
       - checkout
-
-      - run: make
+      - run: make release iso
+      - run:
+          name: Run tests
+          command: |
+            mkdir -p ~/test-results
+            python3 tools/run-tests.py -o ~/test-results/junit.xml
+      - store_test_results:
+          path: ~/test-results
+      - store_artifacts:
+          path: ~/test-results
