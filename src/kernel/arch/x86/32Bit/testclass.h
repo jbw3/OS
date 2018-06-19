@@ -58,10 +58,15 @@ private:
     size_t numFailed;
 
     template<typename... Ts>
-    static void failTest(const char* errorMsgFmt, Ts... ts)
+    static void failTest(const char* testName, const char* filename, unsigned long long line, const char* errorMsgFmt, Ts... ts)
     {
+        constexpr size_t MAX_FORMAT_SIZE = 64;
+        char format[MAX_FORMAT_SIZE];
+        strncpy(format, "Fail: {}, {}, {}: ", MAX_FORMAT_SIZE);
+        strncat(format, errorMsgFmt, MAX_FORMAT_SIZE - strlen(format));
+
         runningTestPassed = false;
-        klog.logError(TEST_TAG, errorMsgFmt, ts...);
+        klog.logError(TEST_TAG, format, testName, filename, line, ts...);
     }
 
 public:
@@ -79,27 +84,27 @@ public:
         return numFailed;
     }
 
-    static void fail(unsigned long long line, const char* msg1, const char* msg2 = nullptr);
+    static void fail(const char* filename, unsigned long long line, const char* msg1, const char* msg2 = nullptr);
 
     template<typename A, typename B>
-    static bool comparison(unsigned long long line, const A& a, const B& b, bool (*cmp)(const A& x, const B& y), const char* aStr, const char* bStr, const char* compStr, const char* msg = nullptr)
+    static bool comparison(const char* filename, unsigned long long line, const A& a, const B& b, bool (*cmp)(const A& x, const B& y), const char* aStr, const char* bStr, const char* compStr, const char* msg = nullptr)
     {
         if (!cmp(a, b))
         {
             if (msg == nullptr)
             {
-                failTest("Fail: {}, line {}: {} {} {} ({} {} {})", runningTestName, line, aStr, compStr, bStr, a, compStr, b);
+                failTest(runningTestName, filename, line, "{} {} {} ({} {} {})", aStr, compStr, bStr, a, compStr, b);
             }
             else
             {
-                failTest("Fail: {}, line {}: {} {} {} ({} {} {}): {}", runningTestName, line, aStr, compStr, bStr, a, compStr, b, msg);
+                failTest(runningTestName, filename, line, "{} {} {} ({} {} {}): {}", aStr, compStr, bStr, a, compStr, b, msg);
             }
             return false;
         }
         return true;
     }
 
-    static bool cStrComparison(unsigned long long line, const char* a, const char* b, bool equal, const char* aStr, const char* bStr, const char* msg = nullptr);
+    static bool cStrComparison(const char* filename, unsigned long long line, const char* a, const char* b, bool equal, const char* aStr, const char* bStr, const char* msg = nullptr);
 
 protected:
     virtual void runTests() = 0;
@@ -107,14 +112,14 @@ protected:
     void runTest(const char* testName, void (*test)());
 };
 
-#define FAIL_BASE(evalFunc, ...)                  \
-do                                                \
-{                                                 \
-    if (!(evalFunc))                              \
-    {                                             \
-        TestClass::fail(__LINE__, ##__VA_ARGS__); \
-        return;                                   \
-    }                                             \
+#define FAIL_BASE(evalFunc, ...)                            \
+do                                                          \
+{                                                           \
+    if (!(evalFunc))                                        \
+    {                                                       \
+        TestClass::fail(__FILE__, __LINE__, ##__VA_ARGS__); \
+        return;                                             \
+    }                                                       \
 } while (false)
 
 #define FAIL(msg) \
@@ -126,13 +131,13 @@ FAIL_BASE((a), #a" is false", ##__VA_ARGS__)
 #define ASSERT_FALSE(a, ...) \
 FAIL_BASE(!(a), #a" is true", ##__VA_ARGS__)
 
-#define COMPARE_FAIL_BASE(a, b, cmp, compStr, ...)                                           \
-do                                                                                           \
-{                                                                                            \
-    if (!TestClass::comparison(__LINE__, (a), (b), (cmp), #a, #b, (compStr), ##__VA_ARGS__)) \
-    {                                                                                        \
-        return;                                                                              \
-    }                                                                                        \
+#define COMPARE_FAIL_BASE(a, b, cmp, compStr, ...)                                                     \
+do                                                                                                     \
+{                                                                                                      \
+    if (!TestClass::comparison(__FILE__, __LINE__, (a), (b), (cmp), #a, #b, (compStr), ##__VA_ARGS__)) \
+    {                                                                                                  \
+        return;                                                                                        \
+    }                                                                                                  \
 } while (false)
 
 #define ASSERT_EQ(a, b, ...) \
@@ -153,13 +158,13 @@ COMPARE_FAIL_BASE(a, b, details::cmpGt, "<=", ##__VA_ARGS__)
 #define ASSERT_GE(a, b, ...) \
 COMPARE_FAIL_BASE(a, b, details::cmpGe, "<", ##__VA_ARGS__)
 
-#define COMPARE_FAIL_CSTR_BASE(a, b, equal, ...)                                        \
-do                                                                                      \
-{                                                                                       \
-    if (!TestClass::cStrComparison(__LINE__, (a), (b), (equal), #a, #b, ##__VA_ARGS__)) \
-    {                                                                                   \
-        return;                                                                         \
-    }                                                                                   \
+#define COMPARE_FAIL_CSTR_BASE(a, b, equal, ...)                                                  \
+do                                                                                                \
+{                                                                                                 \
+    if (!TestClass::cStrComparison(__FILE__, __LINE__, (a), (b), (equal), #a, #b, ##__VA_ARGS__)) \
+    {                                                                                             \
+        return;                                                                                   \
+    }                                                                                             \
 } while (false)
 
 #define ASSERT_CSTR_EQ(a, b, ...) \

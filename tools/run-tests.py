@@ -19,6 +19,7 @@ class TestCase:
         self.fail = False
         self.errorMessage = ''
         self.failMessage = ''
+        self.filename = ''
         self.line = -1
 
 class TestSuite:
@@ -113,10 +114,11 @@ def parseLog(logFilename):
                 testSuite.addTestCase(testCase)
             # check if the the current test failed
             elif line.startswith('ERROR: Tests: Fail:'):
-                match = re.search(r'^ERROR: Tests: Fail: (.*), line (\d+): (.*)', line)
+                match = re.search(r'^ERROR: Tests: Fail: (.*), (.*), (\d+): (.*)', line)
                 testCase.fail = True
-                testCase.line = int(match.group(2))
-                testCase.failMessage = match.group(3)
+                testCase.filename = match.group(2)
+                testCase.line = int(match.group(3))
+                testCase.failMessage = match.group(4)
             # check if there was an error while the current test was running
             elif testCase is not None and line.startswith('ERROR: '):
                 match = re.search(r'^ERROR: (.*)', line)
@@ -162,7 +164,8 @@ def writeJUnitXml(testSuite, filename):
                     textMsg = sanitizeXmlText(testCase.failMessage)
                     xmlFile.write('        <failure message="{}">\n'.format(attMsg))
                     xmlFile.write(textMsg + '\n')
-                    xmlFile.write('Line {}\n'.format(testCase.line))
+                    xmlFile.write('File: {}\n'.format(testCase.filename))
+                    xmlFile.write('Line: {}\n'.format(testCase.line))
                     xmlFile.write('        </failure>\n')
                 xmlFile.write('    </testcase>\n')
             else:
@@ -175,7 +178,7 @@ def writeStdout(testSuite):
         if testCase.error:
             print('ERROR: {}: {}: {}'.format(testCase.className, testCase.testName, testCase.errorMessage))
         if testCase.fail:
-            print('FAIL: {}: {}: Line {}: {}'.format(testCase.className, testCase.testName, testCase.line, testCase.failMessage))
+            print('FAIL: {}: {}: {}, line {}: {}'.format(testCase.className, testCase.testName, testCase.filename, testCase.line, testCase.failMessage))
 
 def parseArgs():
     import argparse
