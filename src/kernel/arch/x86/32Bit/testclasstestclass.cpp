@@ -7,26 +7,6 @@ TestClassTestClass::TestClassTestClass() :
 
 void TestClassTestClass::runTests()
 {
-    runTest("TestFail", []()
-    {
-        FAIL("Testing FAIL()");
-    });
-
-    runTest("TestCompare", []()
-    {
-        ASSERT_EQ(1, 2, "Testing compare");
-    });
-
-    runTest("TestCStrCompare", []()
-    {
-        ASSERT_CSTR_EQ("1", "2", "Testing C-string compare");
-    });
-
-    runTest("TestError", []()
-    {
-        klog.logError("temp", "This is a test error\"<&>\".");
-    });
-
     runTest("AssertTrue", []()
     {
         ASSERT_TRUE(true);
