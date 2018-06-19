@@ -127,15 +127,10 @@ def parseLog(logFilename):
 
     return testSuite
 
-def sanitizeXmlAttribute(att):
+def sanitizeXml(att):
     rv = str(att)
     rv = rv.replace('&', '&amp;') # replace ampersand first
     rv = rv.replace('"', '&quot;')
-    return rv
-
-def sanitizeXmlText(text):
-    rv = str(text)
-    rv = rv.replace('&', '&amp;') # replace ampersand first
     rv = rv.replace('<', '&lt;')
     rv = rv.replace('>', '&gt;')
     return rv
@@ -144,26 +139,24 @@ def writeJUnitXml(testSuite, filename):
     with open(filename, 'w') as xmlFile:
         xmlFile.write('<?xml version="1.0" encoding="utf-8"?>\n')
 
-        tsName = sanitizeXmlAttribute(testSuite.name)
+        tsName = sanitizeXml(testSuite.name)
         xmlFile.write('<testsuite name="{}" tests="{}" skips="{}" errors="{}" failures="{}">\n'
-                    .format(tsName, testSuite.numTests, testSuite.numSkips, testSuite.numErrors, testSuite.numFailures))
+                      .format(tsName, testSuite.numTests, testSuite.numSkips, testSuite.numErrors, testSuite.numFailures))
 
         for testCase in testSuite.testCases:
-            className = sanitizeXmlAttribute(testCase.className)
-            testName = sanitizeXmlAttribute(testCase.testName)
+            className = sanitizeXml(testCase.className)
+            testName = sanitizeXml(testCase.testName)
             if testCase.error or testCase.fail:
                 xmlFile.write('    <testcase classname="{}" name="{}">\n'.format(className, testName))
                 if testCase.error:
-                    attMsg = sanitizeXmlAttribute(testCase.errorMessage)
-                    textMsg = sanitizeXmlText(testCase.errorMessage)
-                    xmlFile.write('        <error message="{}">\n'.format(attMsg))
-                    xmlFile.write(textMsg + '\n')
+                    msg = sanitizeXml(testCase.errorMessage)
+                    xmlFile.write('        <error message="{}">\n'.format(msg))
+                    xmlFile.write(msg + '\n')
                     xmlFile.write('        </error>\n')
                 if testCase.fail:
-                    attMsg = sanitizeXmlAttribute(testCase.failMessage)
-                    textMsg = sanitizeXmlText(testCase.failMessage)
-                    xmlFile.write('        <failure message="{}">\n'.format(attMsg))
-                    xmlFile.write(textMsg + '\n')
+                    msg = sanitizeXml(testCase.failMessage)
+                    xmlFile.write('        <failure message="{}">\n'.format(msg))
+                    xmlFile.write(msg + '\n')
                     xmlFile.write('File: {}\n'.format(testCase.filename))
                     xmlFile.write('Line: {}\n'.format(testCase.line))
                     xmlFile.write('        </failure>\n')
