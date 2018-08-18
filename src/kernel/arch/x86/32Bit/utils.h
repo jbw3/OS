@@ -3,9 +3,9 @@
 
 #include <stdint.h>
 
-constexpr uint32_t align(uint32_t value, unsigned int alignment, bool alignNext = true)
+constexpr uintptr_t align(uintptr_t value, unsigned int alignment, bool alignNext = true)
 {
-    uint32_t mask = alignment - 1;
+    uintptr_t mask = alignment - 1;
     if ( (value & mask) != 0 )
     {
         value &= ~mask;
@@ -16,6 +16,12 @@ constexpr uint32_t align(uint32_t value, unsigned int alignment, bool alignNext 
     }
 
     return value;
+}
+
+constexpr void* align(const void* value, unsigned int alignment, bool alignNext = true)
+{
+    uintptr_t ptr = align(reinterpret_cast<uintptr_t>(value), alignment, alignNext);
+    return reinterpret_cast<void*>(ptr);
 }
 
 #endif // UTILS_H_
