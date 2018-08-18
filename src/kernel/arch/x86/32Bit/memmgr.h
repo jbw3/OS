@@ -1,20 +1,24 @@
-/**
- * @brief Memory manager
- */
-
 #ifndef MEM_MGR_H_
 #define MEM_MGR_H_
 
 #include <stddef.h>
 #include <stdint.h>
 
+/**
+ * @brief Memory manager
+ */
 class MemMgr
 {
 public:
     /**
-     * @brief Constructor
+     * @brief Constructor.
      */
     MemMgr(uintptr_t heapStartAddr);
+
+    /**
+     * @brief Free all page frames.
+     */
+    ~MemMgr();
 
     void* alloc(size_t size);
 

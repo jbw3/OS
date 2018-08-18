@@ -16,6 +16,12 @@ MemMgr::MemMgr(uintptr_t heapStartAddr)
     heapStart = heapEnd = align(heapStartAddr, PAGE_SIZE);
 }
 
+MemMgr::~MemMgr()
+{
+    size_t numAllocatedPages = (heapEnd - heapStart) / PAGE_SIZE;
+    freePages(numAllocatedPages);
+}
+
 void* MemMgr::alloc(size_t size)
 {
     // calculate total size of allocated memory and info block
