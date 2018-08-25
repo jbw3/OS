@@ -8,6 +8,11 @@ PAGE_DIR_COLOR = 'rgb(200, 0, 0)'
 PAGE_TABLE_COLOR = 'rgb(0, 10, 200)'
 PAGE_COLOR = 'rgb(0, 0, 0)'
 
+class PageRange:
+    def __init__(self, startAddr, numPages):
+        self.startAddr = startAddr
+        self.numPages = numPages
+
 def parseArgs():
     import argparse
 
@@ -43,6 +48,7 @@ def draw(args):
     pageSize = 4096
     pageDir = None
     pageTables = []
+    pageRanges = []
     foundPageInfo = False
     with open(args.input, 'r') as inFile:
         for line in inFile:
@@ -50,27 +56,32 @@ def draw(args):
                 if line == 'DEBUG: Paging: PageDirEnd\n':
                     break
                 else:
-                    match = re.search(r'^DEBUG: Paging: (.*): ([\da-fA-F]+)$', line)
+                    match = re.search(r'^DEBUG: Paging: (.*): ([\da-fA-F]+),?(\d+)?$', line)
                     if match is not None:
-                        if match.group(1) == 'PageTable':
+                        if match.group(1) == 'PageRange':
+                            startAddr = int(match.group(2), base=16)
+                            numPages = int(match.group(3))
+                            pageRanges.append(PageRange(startAddr, numPages))
+                        elif match.group(1) == 'PageTable':
                             pageTables.append(int(match.group(2), base=16))
                         elif match.group(1) == 'PageDir':
                             pageDir = int(match.group(2), base=16)
             elif line == 'DEBUG: Paging: PageInfoStart\n':
                 foundPageInfo = True
 
-    # add page dir
-    layout['shapes'].append({
-        'type': 'rect',
-        'x0': 0,
-        'x1': 4,
-        'y0': pageDir,
-        'y1': pageDir + pageSize - 1,
-        'line': {
-            'color': PAGE_DIR_COLOR
-        },
-        'fillcolor': PAGE_DIR_COLOR
-    })
+    # add pages
+    for pageRange in pageRanges:
+        layout['shapes'].append({
+            'type': 'rect',
+            'x0': 0,
+            'x1': 4,
+            'y0': pageRange.startAddr,
+            'y1': pageRange.startAddr + (pageSize * pageRange.numPages) - 1,
+            'line': {
+                'color': PAGE_COLOR
+            },
+            'fillcolor': PAGE_COLOR
+        })
 
     # add page tables
     for pageTable in pageTables:
@@ -85,6 +96,19 @@ def draw(args):
             },
             'fillcolor': PAGE_TABLE_COLOR
         })
+
+    # add page dir
+    layout['shapes'].append({
+        'type': 'rect',
+        'x0': 0,
+        'x1': 4,
+        'y0': pageDir,
+        'y1': pageDir + pageSize - 1,
+        'line': {
+            'color': PAGE_DIR_COLOR
+        },
+        'fillcolor': PAGE_DIR_COLOR
+    })
 
     fig = {'data': data, 'layout': layout}
     py.plot(fig, filename='test.html', auto_open=True)
