@@ -5,6 +5,7 @@
 
 /**
  * @brief Abstract base class for a page tree structure.
+ * @todo This does not need to be an abstract base class.
  */
 class PageTree
 {
@@ -43,6 +44,11 @@ public:
      * @brief Get the physical address mapped to the given virtual address.
      */
     virtual bool getPhysicalAddress(uintptr_t virtualAddr, uintptr_t& physicalAddr) const = 0;
+
+    /**
+     * @brief Log page tree info to the kernel log.
+     */
+    virtual void logDebugInfo() const = 0;
 };
 
 #endif // PAGE_TREE_H_

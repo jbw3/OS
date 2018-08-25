@@ -19,6 +19,8 @@ public:
 
     bool getPhysicalAddress(uintptr_t virtualAddr, uintptr_t& physicalAddr) const override;
 
+    void logDebugInfo() const override;
+
 private:
     /// The starting virtual address of the kernel's page tables
     static Entry* const KERNEL_PAGE_TABLES;

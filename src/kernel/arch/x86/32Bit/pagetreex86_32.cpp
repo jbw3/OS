@@ -1,4 +1,5 @@
 #include <string.h>
+#include "kernellogger.h"
 #include "pageframemgr.h"
 #include "pagetreex86_32.h"
 #include "paging.h"
@@ -177,6 +178,25 @@ bool PageTreeX86_32::getPhysicalAddress(uintptr_t virtualAddr, uintptr_t& physic
     physicalAddr = (pageTableEntry & PAGE_TABLE_ADDRESS) | (virtualAddr & ~PAGE_TABLE_ADDRESS);
 
     return true;
+}
+
+void PageTreeX86_32::logDebugInfo() const
+{
+    klog.logDebug(PAGING_TAG, "PageDirStart: {x0>8}", pageDir);
+
+    for (size_t pageDirIdx = 0; pageDirIdx < PAGE_DIR_NUM_ENTRIES; ++pageDirIdx)
+    {
+        Entry pageDirEntry = pageDir[pageDirIdx];
+        if ( (pageDirEntry & PAGE_DIR_PRESENT) != 0 )
+        {
+            Entry* pageTable = getPageTable(pageDirIdx);
+
+            klog.logDebug(PAGING_TAG, "PageTableStart: {x0>8}", pageTable);
+            klog.logDebug(PAGING_TAG, "PageTableEnd");
+        }
+    }
+
+    klog.logDebug(PAGING_TAG, "PageDirEnd");
 }
 
 PageTree::Entry* PageTreeX86_32::getPageTable(int pageDirIdx) const
