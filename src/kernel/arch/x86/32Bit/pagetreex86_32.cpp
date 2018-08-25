@@ -182,7 +182,8 @@ bool PageTreeX86_32::getPhysicalAddress(uintptr_t virtualAddr, uintptr_t& physic
 
 void PageTreeX86_32::logDebugInfo() const
 {
-    klog.logDebug(PAGING_TAG, "PageDirStart: {x0>8}", pageDir);
+    klog.logDebug(PAGING_TAG, "PageInfoStart");
+    klog.logDebug(PAGING_TAG, "PageDir: {x0>8}", pageDir);
 
     for (size_t pageDirIdx = 0; pageDirIdx < PAGE_DIR_NUM_ENTRIES; ++pageDirIdx)
     {
@@ -191,12 +192,37 @@ void PageTreeX86_32::logDebugInfo() const
         {
             Entry* pageTable = getPageTable(pageDirIdx);
 
-            klog.logDebug(PAGING_TAG, "PageTableStart: {x0>8}", pageTable);
-            klog.logDebug(PAGING_TAG, "PageTableEnd");
+            klog.logDebug(PAGING_TAG, "PageTable: {x0>8}", pageTable);
+
+            uintptr_t pageRangeStart = 0;
+            size_t pageRangeNumPages = 0;
+            for (size_t pageTableIdx = 0; pageTableIdx < PAGE_TABLE_NUM_ENTRIES; ++pageTableIdx)
+            {
+                Entry pageTableEntry = pageTable[pageTableIdx];
+                if ( (pageTableEntry & PAGE_TABLE_PRESENT) != 0 )
+                {
+                    if (pageRangeNumPages == 0)
+                    {
+                        pageRangeStart = (pageDirIdx << PAGE_DIR_INDEX_SHIFT) | (pageTableIdx << PAGE_TABLE_INDEX_SHIFT);
+                    }
+                    ++pageRangeNumPages;
+                }
+                else if (pageRangeNumPages > 0)
+                {
+                    klog.logDebug(PAGING_TAG, "PageRange: {x0>8},{}", pageRangeStart, pageRangeNumPages);
+                    pageRangeNumPages = 0;
+                }
+            }
+
+            if (pageRangeNumPages > 0)
+            {
+                klog.logDebug(PAGING_TAG, "PageRange: {x0>8},{}", pageRangeStart, pageRangeNumPages);
+                pageRangeNumPages = 0;
+            }
         }
     }
 
-    klog.logDebug(PAGING_TAG, "PageDirEnd");
+    klog.logDebug(PAGING_TAG, "PageInfoEnd");
 }
 
 PageTree::Entry* PageTreeX86_32::getPageTable(int pageDirIdx) const
