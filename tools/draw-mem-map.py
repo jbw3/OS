@@ -4,9 +4,9 @@ import plotly.offline as py
 import plotly.graph_objs as go
 import re
 
-PAGE_DIR_COLOR = 'rgb(200, 0, 0)'
-PAGE_TABLE_COLOR = 'rgb(0, 10, 200)'
-PAGE_COLOR = 'rgb(0, 0, 0)'
+PAGE_DIR_COLOR = 'rgb(255, 30, 60)'
+PAGE_TABLE_COLOR = 'rgb(30, 180, 255)'
+PAGE_COLOR = 'rgb(50, 50, 50)'
 
 class PageRange:
     def __init__(self, startAddr, numPages):
@@ -40,7 +40,6 @@ def draw(args):
         'yaxis': {
             'range': [0, 2**32 - 1],
             'dtick': 2**30,
-            'ticktext': ['A', 'B']
         },
         'shapes': []
     }
