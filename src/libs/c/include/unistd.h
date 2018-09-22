@@ -14,6 +14,8 @@ extern "C"
 {
 #endif
 
+int close(int fildes);
+
 int dup(int fildes);
 
 int dup2(int fildes, int fildes2);

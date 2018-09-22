@@ -51,6 +51,11 @@ public:
      * @brief Flush any internal stream buffers.
      */
     virtual void flush() = 0;
+
+    /**
+     * @brief Close the stream.
+     */
+    virtual void close() = 0;
 };
 
 #endif // STREAM_H_

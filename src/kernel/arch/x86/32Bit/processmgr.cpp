@@ -4,6 +4,7 @@
 #include "multiboot.h"
 #include "pageframemgr.h"
 #include "processmgr.h"
+#include "streamtable.h"
 #include "string.h"
 #include "system.h"
 #include "userlogger.h"
@@ -62,6 +63,17 @@ void ProcessMgr::ProcessInfo::exit()
     }
 
     childProcesses.clear();
+
+    // close any open file descriptors
+    for (int i = 0; i < MAX_NUM_STREAM_INDICES; ++i)
+    {
+        int masterStreamIdx = streamIndices[i];
+        if (masterStreamIdx >= 0)
+        {
+            streamTable.removeStreamReference(masterStreamIdx);
+            streamIndices[i] = -1;
+        }
+    }
 
     status = eTerminated;
 }
@@ -139,6 +151,14 @@ int ProcessMgr::ProcessInfo::getStreamIndex(int procStreamIdx) const
 void ProcessMgr::ProcessInfo::copyStreamIndices(ProcessInfo* procInfo)
 {
     memcpy(streamIndices, procInfo->streamIndices, MAX_NUM_STREAM_INDICES * sizeof(int));
+
+    for (int i = 0; i < MAX_NUM_STREAM_INDICES; ++i)
+    {
+        if (streamIndices[i] >= 0)
+        {
+            streamTable.addStreamReference(streamIndices[i]);
+        }
+    }
 }
 
 int ProcessMgr::ProcessInfo::duplicateStreamIndex(int procStreamIdx)
@@ -155,6 +175,11 @@ int ProcessMgr::ProcessInfo::duplicateStreamIndex(int procStreamIdx)
     }
 
     int dupStreamIdx = addStreamIndex(masterStreamIdx);
+    if (dupStreamIdx >= 0)
+    {
+        streamTable.addStreamReference(masterStreamIdx);
+    }
+
     return dupStreamIdx;
 }
 
@@ -171,13 +196,19 @@ int ProcessMgr::ProcessInfo::duplicateStreamIndex(int procStreamIdx, int dupProc
         return -1;
     }
 
-    int oldMasterStreamIdx = streamIndices[dupProcStreamIdx];
-    if (oldMasterStreamIdx >= 0 && procStreamIdx != dupProcStreamIdx)
+    int dupMasterStreamIdx = streamIndices[dupProcStreamIdx];
+    if (dupMasterStreamIdx >= 0 && procStreamIdx != dupProcStreamIdx)
     {
-        /// @todo close the stream when closing is implemented
+        // close the existing stream
+        streamTable.removeStreamReference(dupMasterStreamIdx);
     }
 
     streamIndices[dupProcStreamIdx] = masterStreamIdx;
+    if (procStreamIdx != dupProcStreamIdx)
+    {
+        streamTable.addStreamReference(masterStreamIdx);
+    }
+
     return dupProcStreamIdx;
 }
 

@@ -68,6 +68,9 @@ pid_t startShell(int in, int out, int err)
         dup2(out, STDOUT_FILENO);
         dup2(err, STDERR_FILENO);
 
+        // close the extra serial port stream
+        close(3);
+
         execl("sh", "sh", nullptr);
 
         // we shouldn't get here

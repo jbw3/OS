@@ -1,3 +1,4 @@
+#include "fcntl.h"
 #include "sched.h"
 #include "stddef.h"
 #include "stdio.h"
@@ -20,11 +21,14 @@ void printCharLoop(int num);
 
 void echoChar();
 
+void fileTest();
+
 int main(int argc, const char* argv[])
 {
     // forkTest();
     // preemptTest();
     ioTest(argc, argv);
+    // fileTest();
 
     return 0;
 }
@@ -125,6 +129,40 @@ void echoChar()
         char ch = getchar();
         putchar(ch);
     }
+}
+
+void readChar(int fd)
+{
+    char ch = '?';
+    read(fd, &ch, 1);
+    printf("pid: %i, char: %c\n", getpid(), ch);
+}
+
+void fileTest()
+{
+    dprintf(STDOUT_FILENO, "<%s>\n", "stdout");
+    dprintf(STDERR_FILENO, "<%s>\n", "stderr");
+
+    int fd = open("hello.txt", O_RDONLY);
+    printf("fd = %i\n", fd);
+
+    readChar(fd);
+
+    pid_t pid = fork();
+    if (pid == 0)
+    {
+        readChar(fd);
+        close(fd);
+        readChar(fd);
+        exit(0);
+    }
+
+    wait(nullptr);
+
+    readChar(fd);
+
+    close(fd);
+    readChar(fd);
 }
 
 int getNumber(const char* prompt)
