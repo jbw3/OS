@@ -8,7 +8,9 @@ struct multiboot_mod_list;
 class MBootModuleStream : public Stream
 {
 public:
-    MBootModuleStream(const multiboot_mod_list* modulePtr);
+    MBootModuleStream();
+
+    void setModule(const multiboot_mod_list* modulePtr);
 
     bool canRead() const override
     {
@@ -30,6 +32,10 @@ public:
     void flush() override
     {
     }
+
+    void close();
+
+    bool isOpen() const;
 
 private:
     const multiboot_mod_list* module;

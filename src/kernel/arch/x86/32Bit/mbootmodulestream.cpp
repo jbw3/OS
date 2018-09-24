@@ -2,10 +2,15 @@
 #include "mbootmodulestream.h"
 #include "multiboot.h"
 
-MBootModuleStream::MBootModuleStream(const multiboot_mod_list* modulePtr)
+MBootModuleStream::MBootModuleStream()
+{
+    setModule(nullptr);
+}
+
+void MBootModuleStream::setModule(const multiboot_mod_list* modulePtr)
 {
     module = modulePtr;
-    position = module->mod_start;
+    position = (module == nullptr) ? 0 : module->mod_start;
 }
 
 ssize_t MBootModuleStream::read(uint8_t* buff, size_t nbyte)
@@ -19,4 +24,14 @@ ssize_t MBootModuleStream::read(uint8_t* buff, size_t nbyte)
     position += nbyte;
 
     return static_cast<ssize_t>(nbyte);
+}
+
+void MBootModuleStream::close()
+{
+    setModule(nullptr);
+}
+
+bool MBootModuleStream::isOpen() const
+{
+    return module != nullptr;
 }

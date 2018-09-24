@@ -57,6 +57,11 @@ public:
         // nothing to do
     }
 
+    void close() override
+    {
+        // nothing to do
+    }
+
 private:
     /// US keyboard layout
     static const uint16_t LAYOUT_US[128];
