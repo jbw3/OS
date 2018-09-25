@@ -1,3 +1,5 @@
+#include "fcntl.h"
+#include "filesystem.h"
 #include "keyboard.h"
 #include "processmgr.h"
 #include "streamtable.h"
@@ -9,6 +11,31 @@
 
 namespace systemcall
 {
+
+int close(int fildes)
+{
+    int rv = -1;
+    ProcessMgr::ProcessInfo* process = processMgr.getCurrentProcessInfo();
+
+    int masterStreamIdx = process->getStreamIndex(fildes);
+    if (masterStreamIdx >= 0)
+    {
+        process->removeStreamIndex(fildes);
+
+        FileSystem* fileSystem = FileSystem::getRootFileSystem();
+        fileSystem->close(masterStreamIdx);
+
+        // success
+        rv = 0;
+    }
+    else
+    {
+        // an error occurred
+        rv = -1;
+    }
+
+    return rv;
+}
 
 int dup(int fildes)
 {
@@ -58,6 +85,28 @@ pid_t getpid()
 pid_t getppid()
 {
     return processMgr.getCurrentProcessInfo()->parentProcess->getId();
+}
+
+int open(const char *path, int oflag)
+{
+    /// @todo Support other modes besides read-only
+    if (oflag != O_RDONLY)
+    {
+        return -1;
+    }
+
+    FileSystem* fileSystem = FileSystem::getRootFileSystem();
+    int masterStreamIdx = fileSystem->open(path);
+
+    int fd = processMgr.getCurrentProcessInfo()->addStreamIndex(masterStreamIdx);
+
+    // close the stream if there was an error
+    if (fd < 0)
+    {
+        fileSystem->close(masterStreamIdx);
+    }
+
+    return fd;
 }
 
 ssize_t read(int fildes, void* buf, size_t nbyte)
@@ -210,8 +259,8 @@ const void* SYSTEM_CALLS[SYSTEM_CALLS_SIZE] = {
     reinterpret_cast<const void*>(systemcall::getNumModules),
     reinterpret_cast<const void*>(systemcall::getModuleName),
     reinterpret_cast<const void*>(systemcall::runKernelTests),
-    nullptr,
-    nullptr,
+    reinterpret_cast<const void*>(systemcall::open),
+    reinterpret_cast<const void*>(systemcall::close),
     reinterpret_cast<const void*>(systemcall::dup),
     reinterpret_cast<const void*>(systemcall::dup2),
 };

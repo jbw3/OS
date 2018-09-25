@@ -7,6 +7,7 @@
 #include "irq.h"
 #include "kernellogger.h"
 #include "keyboard.h"
+#include "mbootmodulefilesystem.h"
 #include "pageframemgr.h"
 #include "paging.h"
 #include "processmgr.h"
@@ -62,6 +63,10 @@ void kernelMain(const uint32_t MULTIBOOT_MAGIC_NUM, const multiboot_info* mbootI
     mapModules(mbootInfo);
 
     PageFrameMgr pageFrameMgr(mbootInfo);
+
+    /// @todo temporarily setting the root filesystem to the multiboot file system
+    MBootModuleFileSystem mbootModuleFileSystem(mbootInfo->mods_addr, mbootInfo->mods_count);
+    FileSystem::setRootFileSystem(&mbootModuleFileSystem);
 
     processMgr.setPageFrameMgr(&pageFrameMgr);
     processMgr.setMultibootInfo(mbootInfo);

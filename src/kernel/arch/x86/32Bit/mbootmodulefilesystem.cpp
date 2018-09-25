@@ -5,7 +5,7 @@
 #include "system.h"
 
 MBootModuleFileSystem::MBootModuleFileSystem(uintptr_t modulesStart, size_t numMods) :
-    moduleStartAddr(modulesStart),
+    moduleStartAddr(modulesStart + KERNEL_VIRTUAL_BASE),
     numModules(numMods)
 {
 }

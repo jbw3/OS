@@ -15,8 +15,8 @@ const uint32_t SYSTEM_CALL_EXECV            =  8;
 const uint32_t SYSTEM_CALL_GET_NUM_MODULES  =  9;
 const uint32_t SYSTEM_CALL_GET_MODULE_NAME  = 10;
 const uint32_t SYSTEM_CALL_RUN_KERNEL_TESTS = 11;
-//                                          = 12;
-//                                          = 13;
+const uint32_t SYSTEM_CALL_OPEN             = 12;
+const uint32_t SYSTEM_CALL_CLOSE            = 13;
 const uint32_t SYSTEM_CALL_DUP              = 14;
 const uint32_t SYSTEM_CALL_DUP2             = 15;
 

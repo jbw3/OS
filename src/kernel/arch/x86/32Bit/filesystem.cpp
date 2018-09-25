@@ -2,33 +2,45 @@
 #include "stream.h"
 #include "streamtable.h"
 
+FileSystem* FileSystem::rootFileSystem = nullptr;
+
+FileSystem* FileSystem::getRootFileSystem()
+{
+    return rootFileSystem;
+}
+
+void FileSystem::setRootFileSystem(FileSystem* fs)
+{
+    rootFileSystem = fs;
+}
+
 int FileSystem::open(const char* path)
 {
     Stream* stream = openStream(path);
 
     // open the stream
-    int fd = -1;
+    int streamIdx = -1;
     if (stream != nullptr)
     {
-        fd = streamTable.addStream(stream);
+        streamIdx = streamTable.addStream(stream);
 
         // if there was an error, close the stream
-        if (fd < 0)
+        if (streamIdx < 0)
         {
             stream->close();
         }
     }
 
-    return fd;
+    return streamIdx;
 }
 
-void FileSystem::close(int fd)
+void FileSystem::close(int streamIdx)
 {
-    Stream* stream = streamTable.getStream(fd);
+    Stream* stream = streamTable.getStream(streamIdx);
     if (stream != nullptr)
     {
         stream->close();
 
-        streamTable.removeStream(fd);
+        streamTable.removeStream(streamIdx);
     }
 }

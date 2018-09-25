@@ -1,6 +1,7 @@
 #include <string.h>
 #include "mbootmodulestream.h"
 #include "multiboot.h"
+#include "system.h"
 
 MBootModuleStream::MBootModuleStream()
 {
@@ -10,14 +11,15 @@ MBootModuleStream::MBootModuleStream()
 void MBootModuleStream::setModule(const multiboot_mod_list* modulePtr)
 {
     module = modulePtr;
-    position = (module == nullptr) ? 0 : module->mod_start;
+    position = (module == nullptr) ? 0 : module->mod_start + KERNEL_VIRTUAL_BASE;
 }
 
 ssize_t MBootModuleStream::read(uint8_t* buff, size_t nbyte)
 {
-    if (position + nbyte >= module->mod_end)
+    size_t moduleEnd = module->mod_end + KERNEL_VIRTUAL_BASE;
+    if (position + nbyte >= moduleEnd)
     {
-        nbyte = module->mod_end - position;
+        nbyte = moduleEnd - position;
     }
 
     memcpy(buff, reinterpret_cast<const void*>(position), nbyte);
