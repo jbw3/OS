@@ -4,6 +4,7 @@
 #include "multiboot.h"
 #include "pageframemgr.h"
 #include "processmgr.h"
+#include "streamtable.h"
 #include "string.h"
 #include "system.h"
 #include "userlogger.h"
@@ -139,6 +140,14 @@ int ProcessMgr::ProcessInfo::getStreamIndex(int procStreamIdx) const
 void ProcessMgr::ProcessInfo::copyStreamIndices(ProcessInfo* procInfo)
 {
     memcpy(streamIndices, procInfo->streamIndices, MAX_NUM_STREAM_INDICES * sizeof(int));
+
+    for (int i = 0; i < MAX_NUM_STREAM_INDICES; ++i)
+    {
+        if (streamIndices[i] >= 0)
+        {
+            streamTable.addStreamReference(streamIndices[i]);
+        }
+    }
 }
 
 int ProcessMgr::ProcessInfo::duplicateStreamIndex(int procStreamIdx)

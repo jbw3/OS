@@ -12,7 +12,9 @@ public:
 
     int addStream(Stream* stream);
 
-    void removeStream(int streamIdx);
+    void addStreamReference(int streamIdx);
+
+    bool removeStreamReference(int streamIdx);
 
     Stream* getStream(int streamIdx) const;
 
@@ -20,6 +22,7 @@ private:
     constexpr static int MAX_NUM_STREAMS = 16;
 
     Stream* streams[MAX_NUM_STREAMS];
+    size_t streamsRefCounts[MAX_NUM_STREAMS];
 };
 
 extern StreamTable streamTable;

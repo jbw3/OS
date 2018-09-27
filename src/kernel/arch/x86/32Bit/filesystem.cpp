@@ -39,8 +39,10 @@ void FileSystem::close(int streamIdx)
     Stream* stream = streamTable.getStream(streamIdx);
     if (stream != nullptr)
     {
-        stream->close();
-
-        streamTable.removeStream(streamIdx);
+        bool removed = streamTable.removeStreamReference(streamIdx);
+        if (removed)
+        {
+            stream->close();
+        }
     }
 }
