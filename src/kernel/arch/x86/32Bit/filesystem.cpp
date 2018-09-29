@@ -36,13 +36,5 @@ int FileSystem::open(const char* path)
 
 void FileSystem::close(int streamIdx)
 {
-    Stream* stream = streamTable.getStream(streamIdx);
-    if (stream != nullptr)
-    {
-        bool removed = streamTable.removeStreamReference(streamIdx);
-        if (removed)
-        {
-            stream->close();
-        }
-    }
+    streamTable.removeStreamReference(streamIdx);
 }

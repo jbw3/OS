@@ -164,6 +164,11 @@ int ProcessMgr::ProcessInfo::duplicateStreamIndex(int procStreamIdx)
     }
 
     int dupStreamIdx = addStreamIndex(masterStreamIdx);
+    if (dupStreamIdx >= 0)
+    {
+        streamTable.addStreamReference(masterStreamIdx);
+    }
+
     return dupStreamIdx;
 }
 
@@ -180,13 +185,19 @@ int ProcessMgr::ProcessInfo::duplicateStreamIndex(int procStreamIdx, int dupProc
         return -1;
     }
 
-    int oldMasterStreamIdx = streamIndices[dupProcStreamIdx];
-    if (oldMasterStreamIdx >= 0 && procStreamIdx != dupProcStreamIdx)
+    int dupMasterStreamIdx = streamIndices[dupProcStreamIdx];
+    if (dupMasterStreamIdx >= 0 && procStreamIdx != dupProcStreamIdx)
     {
-        /// @todo close the stream when closing is implemented
+        // close the existing stream
+        streamTable.removeStreamReference(dupMasterStreamIdx);
     }
 
     streamIndices[dupProcStreamIdx] = masterStreamIdx;
+    if (procStreamIdx != dupProcStreamIdx)
+    {
+        streamTable.addStreamReference(masterStreamIdx);
+    }
+
     return dupProcStreamIdx;
 }
 

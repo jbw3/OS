@@ -1,5 +1,6 @@
 #include "string.h"
 
+#include "stream.h"
 #include "streamtable.h"
 
 StreamTable::StreamTable()
@@ -34,10 +35,8 @@ void StreamTable::addStreamReference(int streamIdx)
     }
 }
 
-bool StreamTable::removeStreamReference(int streamIdx)
+void StreamTable::removeStreamReference(int streamIdx)
 {
-    bool removed = false;
-
     if (streamIdx >= 0 && streamIdx < MAX_NUM_STREAMS && streamsRefCounts[streamIdx] > 0)
     {
         // decrement the stream ref count
@@ -46,12 +45,10 @@ bool StreamTable::removeStreamReference(int streamIdx)
         // if the ref count is now zero, remove the stream
         if (streamsRefCounts[streamIdx] == 0)
         {
+            streams[streamIdx]->close();
             streams[streamIdx] = nullptr;
-            removed = true;
         }
     }
-
-    return removed;
 }
 
 Stream* StreamTable::getStream(int streamIdx) const

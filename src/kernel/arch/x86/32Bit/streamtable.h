@@ -14,7 +14,7 @@ public:
 
     void addStreamReference(int streamIdx);
 
-    bool removeStreamReference(int streamIdx);
+    void removeStreamReference(int streamIdx);
 
     Stream* getStream(int streamIdx) const;
 
