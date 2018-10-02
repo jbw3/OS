@@ -54,6 +54,29 @@ int puts(const char* s)
     return 0;
 }
 
+int dprintf(int fildes, const char* fmt, ...)
+{
+    va_list args;
+    va_start(args, fmt);
+
+    int rv = vdprintf(fildes, fmt, args);
+
+    va_end(args);
+
+    return rv;
+}
+
+int vdprintf(int fildes, const char* fmt, va_list args)
+{
+    char buff[128];
+
+    int numChars = vsprintf(buff, fmt, args);
+
+    ssize_t status = write(fildes, buff, numChars);
+
+    return (status < 0) ? -1 : numChars;
+}
+
 int printf(const char* fmt, ...)
 {
     va_list args;
@@ -68,13 +91,8 @@ int printf(const char* fmt, ...)
 
 int vprintf(const char* fmt, va_list args)
 {
-    char buff[128];
-
-    int numChars = vsprintf(buff, fmt, args);
-
-    ssize_t status = write(STDOUT_FILENO, buff, numChars);
-
-    return (status < 0) ? -1 : numChars;
+    int rv = vdprintf(STDOUT_FILENO, fmt, args);
+    return rv;
 }
 
 int sprintf(char* buff, const char* fmt, ...)
