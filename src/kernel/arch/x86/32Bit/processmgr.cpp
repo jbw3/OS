@@ -64,6 +64,17 @@ void ProcessMgr::ProcessInfo::exit()
 
     childProcesses.clear();
 
+    // close any open file descriptors
+    for (int i = 0; i < MAX_NUM_STREAM_INDICES; ++i)
+    {
+        int masterStreamIdx = streamIndices[i];
+        if (masterStreamIdx >= 0)
+        {
+            streamTable.removeStreamReference(masterStreamIdx);
+            streamIndices[i] = -1;
+        }
+    }
+
     status = eTerminated;
 }
 
