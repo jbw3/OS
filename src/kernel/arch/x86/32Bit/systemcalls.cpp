@@ -95,15 +95,19 @@ int open(const char *path, int oflag)
         return -1;
     }
 
+    int fd = -1;
     FileSystem* fileSystem = FileSystem::getRootFileSystem();
     int masterStreamIdx = fileSystem->open(path);
 
-    int fd = processMgr.getCurrentProcessInfo()->addStreamIndex(masterStreamIdx);
-
-    // close the stream if there was an error
-    if (fd < 0)
+    if (masterStreamIdx >= 0)
     {
-        fileSystem->close(masterStreamIdx);
+        fd = processMgr.getCurrentProcessInfo()->addStreamIndex(masterStreamIdx);
+
+        // close the stream if there was an error
+        if (fd < 0)
+        {
+            fileSystem->close(masterStreamIdx);
+        }
     }
 
     return fd;
