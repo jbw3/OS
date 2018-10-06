@@ -11,6 +11,7 @@
 #include "pageframemgr.h"
 #include "paging.h"
 #include "processmgr.h"
+#include "rootfilesystem.h"
 #include "serialportdriver.h"
 #include "streamtable.h"
 #include "system.h"
@@ -64,9 +65,9 @@ void kernelMain(const uint32_t MULTIBOOT_MAGIC_NUM, const multiboot_info* mbootI
 
     PageFrameMgr pageFrameMgr(mbootInfo);
 
-    /// @todo temporarily setting the root filesystem to the multiboot file system
-    MBootModuleFileSystem mbootModuleFileSystem(mbootInfo->mods_addr, mbootInfo->mods_count);
-    FileSystem::setRootFileSystem(&mbootModuleFileSystem);
+    // init file systems
+    MBootModuleFileSystem mbootModuleFileSystem(mbootInfo);
+    rootFileSystem.addFileSystem(&mbootModuleFileSystem);
 
     processMgr.setPageFrameMgr(&pageFrameMgr);
     processMgr.setMultibootInfo(mbootInfo);

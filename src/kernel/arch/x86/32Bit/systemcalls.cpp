@@ -1,7 +1,7 @@
 #include "fcntl.h"
-#include "filesystem.h"
 #include "keyboard.h"
 #include "processmgr.h"
+#include "rootfilesystem.h"
 #include "streamtable.h"
 #include "sys/wait.h"
 #include "system.h"
@@ -22,8 +22,7 @@ int close(int fildes)
     {
         process->removeStreamIndex(fildes);
 
-        FileSystem* fileSystem = FileSystem::getRootFileSystem();
-        fileSystem->close(masterStreamIdx);
+        rootFileSystem.close(masterStreamIdx);
 
         // success
         rv = 0;
@@ -96,8 +95,7 @@ int open(const char *path, int oflag)
     }
 
     int fd = -1;
-    FileSystem* fileSystem = FileSystem::getRootFileSystem();
-    int masterStreamIdx = fileSystem->open(path);
+    int masterStreamIdx = rootFileSystem.open(path);
 
     if (masterStreamIdx >= 0)
     {
@@ -106,7 +104,7 @@ int open(const char *path, int oflag)
         // close the stream if there was an error
         if (fd < 0)
         {
-            fileSystem->close(masterStreamIdx);
+            rootFileSystem.close(masterStreamIdx);
         }
     }
 

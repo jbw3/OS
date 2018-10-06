@@ -6,10 +6,12 @@
 #include "filesystem.h"
 #include "mbootmodulestream.h"
 
+struct multiboot_info;
+
 class MBootModuleFileSystem : public FileSystem
 {
 public:
-    MBootModuleFileSystem(uintptr_t modulesStart, size_t numMods);
+    MBootModuleFileSystem(const multiboot_info* mbootInfo);
 
 protected:
     Stream* openStream(const char* path) override;

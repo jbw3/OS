@@ -4,9 +4,9 @@
 #include "streamtable.h"
 #include "system.h"
 
-MBootModuleFileSystem::MBootModuleFileSystem(uintptr_t modulesStart, size_t numMods) :
-    moduleStartAddr(modulesStart + KERNEL_VIRTUAL_BASE),
-    numModules(numMods)
+MBootModuleFileSystem::MBootModuleFileSystem(const multiboot_info* mbootInfo) :
+    moduleStartAddr(mbootInfo->mods_addr + KERNEL_VIRTUAL_BASE),
+    numModules(mbootInfo->mods_count)
 {
 }
 
