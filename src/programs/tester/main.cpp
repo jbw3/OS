@@ -27,8 +27,8 @@ int main(int argc, const char* argv[])
 {
     // forkTest();
     // preemptTest();
-    // ioTest(argc, argv);
-    fileTest();
+    ioTest(argc, argv);
+    // fileTest();
 
     return 0;
 }
@@ -131,27 +131,38 @@ void echoChar()
     }
 }
 
+void readChar(int fd)
+{
+    char ch = '?';
+    read(fd, &ch, 1);
+    printf("pid: %i, char: %c\n", getpid(), ch);
+}
+
 void fileTest()
 {
+    dprintf(STDOUT_FILENO, "<%s>\n", "stdout");
+    dprintf(STDERR_FILENO, "<%s>\n", "stderr");
+
     int fd = open("hello.txt", O_RDONLY);
     printf("fd = %i\n", fd);
 
-    constexpr size_t BUFF_SIZE = 32;
-    char buff[BUFF_SIZE];
+    readChar(fd);
 
-    memset(buff, 0, BUFF_SIZE);
-    read(fd, buff, 5);
-    printf("%s\n", buff);
+    pid_t pid = fork();
+    if (pid == 0)
+    {
+        readChar(fd);
+        close(fd);
+        readChar(fd);
+        exit(0);
+    }
 
-    memset(buff, 0, BUFF_SIZE);
-    read(fd, buff, 6);
-    printf("%s\n", buff);
+    wait(nullptr);
 
-    memset(buff, 0, BUFF_SIZE);
-    read(fd, buff, 32);
-    printf("%s\n", buff);
+    readChar(fd);
 
     close(fd);
+    readChar(fd);
 }
 
 int getNumber(const char* prompt)
