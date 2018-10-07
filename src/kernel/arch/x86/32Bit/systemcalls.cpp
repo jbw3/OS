@@ -240,7 +240,7 @@ ssize_t write(int fildes, const void* buf, size_t nbyte)
     }
 
     // write to the stream
-    ssize_t rv = stream->write(reinterpret_cast<const uint8_t*>(buf), nbyte);
+    ssize_t rv = stream->write(reinterpret_cast<const uint8_t*>(buf), nbyte, true);
 
     return rv;
 }
