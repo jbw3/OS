@@ -1,11 +1,15 @@
 #include "string.h"
 
+#include "stream.h"
 #include "streamtable.h"
 
 StreamTable::StreamTable()
 {
     // init all stream pointers to null
     memset(streams, 0, sizeof(streams));
+
+    // init all stream ref counts to 0
+    memset(streamsRefCounts, 0, sizeof(streamsRefCounts));
 }
 
 int StreamTable::addStream(Stream* stream)
@@ -15,6 +19,7 @@ int StreamTable::addStream(Stream* stream)
         if (streams[i] == nullptr)
         {
             streams[i] = stream;
+            ++streamsRefCounts[i];
             return i;
         }
     }
@@ -22,11 +27,27 @@ int StreamTable::addStream(Stream* stream)
     return -1;
 }
 
-void StreamTable::removeStream(int streamIdx)
+void StreamTable::addStreamReference(int streamIdx)
 {
-    if (streamIdx >= 0 && streamIdx < MAX_NUM_STREAMS)
+    if (streamIdx >= 0 && streamIdx < MAX_NUM_STREAMS && streamsRefCounts[streamIdx] > 0)
     {
-        streams[streamIdx] = nullptr;
+        ++streamsRefCounts[streamIdx];
+    }
+}
+
+void StreamTable::removeStreamReference(int streamIdx)
+{
+    if (streamIdx >= 0 && streamIdx < MAX_NUM_STREAMS && streamsRefCounts[streamIdx] > 0)
+    {
+        // decrement the stream ref count
+        --streamsRefCounts[streamIdx];
+
+        // if the ref count is now zero, remove the stream
+        if (streamsRefCounts[streamIdx] == 0)
+        {
+            streams[streamIdx]->close();
+            streams[streamIdx] = nullptr;
+        }
     }
 }
 

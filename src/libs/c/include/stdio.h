@@ -16,6 +16,10 @@ int putchar(int ch);
 
 int puts(const char* s);
 
+int dprintf(int fildes, const char* fmt, ...);
+
+int vdprintf(int fildes, const char* fmt, va_list args);
+
 int printf(const char* fmt, ...);
 
 int vprintf(const char* fmt, va_list args);

@@ -113,6 +113,11 @@ public:
 
     void flush() override;
 
+    void close() override
+    {
+        // nothing to do
+    }
+
 private:
     static constexpr unsigned int MAX_NUM_INSTANCES = 4;
     static SerialPortDriver* instances[MAX_NUM_INSTANCES];

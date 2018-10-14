@@ -307,9 +307,8 @@ void Shell::parseCommand()
             }
             else if (ch == ' ' || ch == '\t' || ch == '\0')
             {
-                // don't add arg if the whitespace charactor was at the start
-                // of the string or after another whitespace character
-                if (cmdIdx != 0 && cmd[cmdIdx - 1] != ' ' && cmd[cmdIdx - 1] != '\t')
+                // don't add arg if it's empty
+                if (argStrIdx > 0 && argStrings[argStrIdx - 1] != '\0')
                 {
                     argStrings[argStrIdx++] = '\0';
                     args[++numArgs] = &argStrings[argStrIdx];

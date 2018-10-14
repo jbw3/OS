@@ -6,6 +6,11 @@
 extern "C"
 {
 
+int close(int fildes)
+{
+    return systemCall(SYSTEM_CALL_CLOSE, fildes);
+}
+
 int dup(int fildes)
 {
     return systemCall(SYSTEM_CALL_DUP, fildes);

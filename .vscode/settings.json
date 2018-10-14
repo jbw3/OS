@@ -1,4 +1,8 @@
 {
+    "files.associations": {
+        "*.s": "asm",
+        "type_traits": "cpp"
+    },
     "clang.cxxflags": [
         "-std=c++1z",
         "-Wall",

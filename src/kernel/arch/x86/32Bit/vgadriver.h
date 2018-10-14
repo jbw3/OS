@@ -72,6 +72,11 @@ public:
         // nothing to do
     }
 
+    void close() override
+    {
+        // nothing to do
+    }
+
 private:
     static constexpr char ESCAPE = '\x1B';
     static constexpr char CSI    = '[';
