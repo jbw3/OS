@@ -10,21 +10,23 @@
             "group": {
                 "kind": "build",
                 "isDefault": true
-            }
+            },
+            "problemMatcher": [
+                "$gcc"
+            ]
         },
         {
             "label": "QEMU x86",
             "type": "process",
             "command": "qemu-system-i386",
             "args": [
-                "-s",
-                "-S",
-                "-serial",
-                "/dev/null",
-                "-serial",
-                "file:kernel-x86.log",
-                "-cdrom",
-                "bin/OS-x86.iso"
+                "-s", "-S",
+                "-serial", "/dev/null",
+                // "-serial", "stdio",
+                "-monitor", "stdio",
+                "-serial", "file:kernel-x86.log",
+                "-cdrom", "bin/OS-x86.iso"
+                // "-kernel", "bin/kernel-x86"  // this doesn't load programs
             ],
             "dependsOn": "Build Debug",
             "isBackground": true,

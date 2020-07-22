@@ -11,6 +11,7 @@
             "program": "${workspaceFolder}/bin/kernel-x86",
             "args": [],
             "miDebuggerServerAddress": "localhost:1234",
+            "targetArchitecture": "x86",
             "preLaunchTask": "QEMU x86",
             "stopAtEntry": false,
             "cwd": "${workspaceFolder}",

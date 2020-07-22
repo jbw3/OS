@@ -119,7 +119,7 @@ class Builder:
 
         return path
 
-    def _buildBinutils(self, target):
+    def _buildBinutils(self, target, njobs=12):
         print('Building Binutils...', end='\n' if self.args.verbose else '', flush=True)
 
         srcPath = self._processSrc(self.binutilsPath)
@@ -136,16 +136,16 @@ class Builder:
         proc.wait()
 
         # build
-        proc = subprocess.Popen(['make'], cwd=buildPath, stdout=self.subprocStdout)
+        proc = subprocess.Popen(['make', f'-j{njobs}'], cwd=buildPath, stdout=self.subprocStdout)
         proc.wait()
 
         # install
-        proc = subprocess.Popen(['make', 'install'], cwd=buildPath, stdout=self.subprocStdout)
+        proc = subprocess.Popen(['make', f'-j{njobs}', 'install'], cwd=buildPath, stdout=self.subprocStdout)
         proc.wait()
 
         print('done.')
 
-    def _buildGcc(self, target):
+    def _buildGcc(self, target, njobs=12):
         print('Building GCC...', end='\n' if self.args.verbose else '', flush=True)
 
         srcPath = self._processSrc(self.gccPath)
@@ -171,17 +171,17 @@ class Builder:
         proc.wait()
 
         # build
-        proc = subprocess.Popen(['make', 'all-gcc'], cwd=buildPath, env=env, stdout=self.subprocStdout)
+        proc = subprocess.Popen(['make', f'-j{njobs}', 'all-gcc'], cwd=buildPath, env=env, stdout=self.subprocStdout)
         proc.wait()
 
-        proc = subprocess.Popen(['make', 'all-target-libgcc'], cwd=buildPath, env=env, stdout=self.subprocStdout)
+        proc = subprocess.Popen(['make', f'-j{njobs}', 'all-target-libgcc'], cwd=buildPath, env=env, stdout=self.subprocStdout)
         proc.wait()
 
         # install
-        proc = subprocess.Popen(['make', 'install-gcc'], cwd=buildPath, env=env, stdout=self.subprocStdout)
+        proc = subprocess.Popen(['make', f'-j{njobs}', 'install-gcc'], cwd=buildPath, env=env, stdout=self.subprocStdout)
         proc.wait()
 
-        proc = subprocess.Popen(['make', 'install-target-libgcc'], cwd=buildPath, env=env, stdout=self.subprocStdout)
+        proc = subprocess.Popen(['make', f'-j{njobs}', 'install-target-libgcc'], cwd=buildPath, env=env, stdout=self.subprocStdout)
         proc.wait()
 
         print('done.')
