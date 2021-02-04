@@ -1,11 +1,19 @@
 {
     "files.associations": {
         "*.s": "asm",
-        "type_traits": "cpp"
+        "type_traits": "cpp",
+        "*.tcc": "cpp",
+        "fstream": "cpp",
+        "iosfwd": "cpp",
+        "istream": "cpp",
+        "limits": "cpp",
+        "sstream": "cpp",
+        "streambuf": "cpp"
     },
     "clang.cxxflags": [
         "-std=c++1z",
         "-Wall",
         "-Wextra"
-    ]
+    ],
+    "workbench.colorTheme": "NeonGlow"
 }

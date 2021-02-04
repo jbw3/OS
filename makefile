@@ -5,6 +5,10 @@ PROG_PATH = src/programs
 ARCH_PATH = src/kernel/arch
 X86_32_PATH = $(ARCH_PATH)/x86/32Bit
 
+# TODO: add a hierarchy level (cd kernel; make)
+# TODO: shouldn't we have ARCH_PATH = $(X86_32_PATH) if we want to
+# build x86 and then we generically cd $(ARC_PATH); make?
+
 .PHONY: release
 release:
 	cd $(X86_32_PATH); make release
