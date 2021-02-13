@@ -1,5 +1,16 @@
 # Makefile for kernel
 
+# TODO: need to move the core of what this makefile is up to the src/kernel folder.
+# then it can include a makefile.inc that lives here based on the architecture we're targeting
+# (or some other such mechanism to remove arch-specific files from generic kernel makefile)
+# LATER we can go through the process of actually moving probably most of this code up
+# to the kernel level since the majority is not x86-dependent. That's not required right
+# away though...with this plan in mind we can leave it here for now. The driving force
+# behind setting up src/kernel/Makefile NOW is I wanted to put the filesystem code
+# in kernel/fs (yes I can include ../../kernel/fs from here, but that seems wrong :P)
+# and the filesystem code seemed like a relatively easy place to implement everything in
+# an arch-independent way
+
 SRCDIR = .
 DEPDIR = .dep
 OBJDIR = obj
